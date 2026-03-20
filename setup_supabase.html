@@ -9,25 +9,26 @@ body { font-family: -apple-system, 'PingFang SC', sans-serif; max-width: 700px; 
 h1 { font-size: 22px; margin-bottom: 8px; }
 p { color: #666; font-size: 14px; }
 .card { background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-top: 24px; }
-input { width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-top: 6px; margin-bottom: 16px; }
+input { width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; box-sizing: border-box; margin-top: 6px; margin-bottom: 16px; font-family: monospace; }
 label { font-size: 13px; font-weight: 600; color: #333; }
 button { width: 100%; padding: 14px; background: #1a73e8; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
 button:hover { background: #1557b0; }
 button:disabled { background: #aaa; cursor: not-allowed; }
 #log { margin-top: 20px; background: #1e1e1e; color: #d4d4d4; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 12px; min-height: 120px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; }
-.ok { color: #4ec94e; } .err { color: #f44747; } .info { color: #9cdcfe; }
+.ok { color: #4ec94e; } .err { color: #f44747; } .info { color: #9cdcfe; } .warn { color: #dcdcaa; }
 </style>
 </head>
 <body>
-<h1>🚀 Supabase 一键建表 + 导数据</h1>
-<p>填入你的 Supabase 连接信息，点击按钮自动完成所有操作</p>
+<h1>🚀 Supabase 一键导数据</h1>
+<p>填入你的 Supabase 连接信息，点击按钮自动导入所有数据</p>
 
 <div class="card">
   <label>Project URL</label>
-  <input id="url" placeholder="https://xxxxxx.supabase.co" value="https://imogeucpwfburswopykq.supabase.co" />
-  <label>anon public key（在 Project Settings → API 里）</label>
-  <input id="key" placeholder="eyJ..." />
-  <button id="btn" onclick="run()">▶ 开始建表并导入数据</button>
+  <input id="url" value="https://imogeucpwfburswopykq.supabase.co" />
+  <label>anon public key（在 Project Settings → API → anon public 里）</label>
+  <input id="key" placeholder="粘贴 anon key（eyJ 开头的那个，不是 sb_ 开头的）" />
+  <p style="color:#e65100;font-size:12px;margin:-10px 0 16px;">⚠️ 注意：请使用 <strong>eyJ 开头</strong>的 JWT 格式 key，不要用 sb_publishable_ 开头的</p>
+  <button id="btn" onclick="run()">▶ 开始导入数据</button>
 </div>
 
 <div id="log">等待开始...</div>
@@ -48,75 +49,100 @@ function log(msg, type='info') {
   el.scrollTop = el.scrollHeight;
 }
 
+function cleanKey(s) {
+  // 过滤掉所有非 ASCII 可打印字符，防止 Header 报错
+  return s.replace(/[^\x20-\x7E]/g, '').trim();
+}
+
 async function run() {
   const url = document.getElementById('url').value.trim();
-  const key = document.getElementById('key').value.trim();
+  const rawKey = document.getElementById('key').value;
+  const key = cleanKey(rawKey);
+  
   if(!url || !key) { alert('请填写 URL 和 Key'); return; }
+  
+  if(!key.startsWith('eyJ')) {
+    log('⚠️ 警告：你填写的 key 不是 eyJ 开头的 JWT 格式', 'warn');
+    log('   请去 Supabase → Project Settings → API → anon public 复制正确的 key', 'warn');
+    log('   （不是 sb_publishable_ 开头的那个）', 'warn');
+    log('', 'info');
+    log('继续尝试...', 'info');
+  }
 
   document.getElementById('btn').disabled = true;
   document.getElementById('log').innerHTML = '';
   
-  const supabase = window.supabase.createClient(url, key);
+  log('🔌 连接 Supabase: ' + url, 'info');
+  log('🔑 Key 前缀: ' + key.substring(0, 20) + '...', 'info');
   
-  log('🔌 连接 Supabase...', 'info');
+  let supabase;
+  try {
+    supabase = window.supabase.createClient(url, key);
+  } catch(e) {
+    log('❌ 创建客户端失败: ' + e.message, 'err');
+    document.getElementById('btn').disabled = false;
+    return;
+  }
 
-  // 建表：通过插入空数据触发错误来检测表是否存在，然后用 upsert
-  // 实际建表需要用 SQL，通过 rpc 调用
-  // 先尝试直接插入数据（表已建好的情况）
-  log('📊 开始导入品牌数据（' + BRANDS.length + ' 条）...', 'info');
+  // 测试连接
+  const { data: testData, error: testErr } = await supabase.from('ka_brands').select('count').limit(1);
+  if(testErr && testErr.message.includes('does not exist')) {
+    log('❌ 表不存在！请先在 Supabase SQL Editor 运行建表 SQL', 'err');
+    document.getElementById('btn').disabled = false;
+    return;
+  }
+  if(testErr) {
+    log('❌ 连接测试失败: ' + testErr.message, 'err');
+    document.getElementById('btn').disabled = false;
+    return;
+  }
+  log('✅ 连接成功！', 'ok');
   
-  // 分批插入，每批 20 条
-  const batchSize = 20;
-  
-  // 品牌数据
+  const batchSize = 10;
   let errors = 0;
+
+  // 清空旧数据再导入
+  log('🗑️ 清空旧数据...', 'info');
+  await supabase.from('ka_brands').delete().neq('id', 0);
+  await supabase.from('ka_activities').delete().neq('id', 0);
+  await supabase.from('ka_assignments').delete().neq('id', 0);
+  await supabase.from('ka_overall').delete().neq('id', 0);
+
+  // 品牌数据
+  log('📊 导入品牌数据（' + BRANDS.length + ' 条）...', 'info');
   for(let i = 0; i < BRANDS.length; i += batchSize) {
     const batch = BRANDS.slice(i, i + batchSize);
-    const { error } = await supabase.from('ka_brands').upsert(batch, { onConflict: 'name' });
-    if(error) {
-      log('  ❌ 品牌批次 ' + i + ': ' + error.message, 'err');
-      errors++;
-    } else {
-      log('  ✅ 品牌 ' + (i+1) + '~' + Math.min(i+batchSize, BRANDS.length) + ' 导入成功', 'ok');
-    }
+    const { error } = await supabase.from('ka_brands').insert(batch);
+    if(error) { log('  ❌ 品牌批次 ' + i + ': ' + error.message, 'err'); errors++; }
+    else { log('  ✅ 品牌 ' + (i+1) + '~' + Math.min(i+batchSize, BRANDS.length), 'ok'); }
   }
 
   // 活动数据
-  log('📋 开始导入活动数据（' + ACTIVITIES.length + ' 条）...', 'info');
+  log('📋 导入活动数据（' + ACTIVITIES.length + ' 条）...', 'info');
   for(let i = 0; i < ACTIVITIES.length; i += batchSize) {
     const batch = ACTIVITIES.slice(i, i + batchSize);
     const { error } = await supabase.from('ka_activities').insert(batch);
-    if(error) {
-      log('  ❌ 活动批次 ' + i + ': ' + error.message, 'err');
-      errors++;
-    } else {
-      log('  ✅ 活动 ' + (i+1) + '~' + Math.min(i+batchSize, ACTIVITIES.length) + ' 导入成功', 'ok');
-    }
+    if(error) { log('  ❌ 活动批次 ' + i + ': ' + error.message, 'err'); errors++; }
+    else { log('  ✅ 活动 ' + (i+1) + '~' + Math.min(i+batchSize, ACTIVITIES.length), 'ok'); }
   }
 
-  // 负责人分配数据
-  log('👥 开始导入负责人分配数据（' + ASSIGNMENTS.length + ' 条）...', 'info');
-  const { error: ae } = await supabase.from('ka_assignments').upsert(ASSIGNMENTS, { onConflict: 'brand' });
-  if(ae) { log('  ❌ 分配数据: ' + ae.message, 'err'); errors++; }
+  // 负责人分配
+  log('👥 导入负责人分配（' + ASSIGNMENTS.length + ' 条）...', 'info');
+  const { error: ae } = await supabase.from('ka_assignments').insert(ASSIGNMENTS);
+  if(ae) { log('  ❌ ' + ae.message, 'err'); errors++; }
   else { log('  ✅ 分配数据导入成功', 'ok'); }
 
   // 整体指标
   log('📈 导入整体指标...', 'info');
-  const overallRow = { ...OVERALL, data_date: DATA_DATE };
-  const { error: oe } = await supabase.from('ka_overall').insert(overallRow);
-  if(oe) { log('  ❌ 整体指标: ' + oe.message, 'err'); errors++; }
+  const { error: oe } = await supabase.from('ka_overall').insert({ ...OVERALL, data_date: DATA_DATE });
+  if(oe) { log('  ❌ ' + oe.message, 'err'); errors++; }
   else { log('  ✅ 整体指标导入成功', 'ok'); }
 
   if(errors === 0) {
     log('\n🎉 全部完成！数据已成功导入 Supabase', 'ok');
-    log('\n下一步：', 'info');
-    log('  1. 在 dashboard_supabase.html 里填入你的 URL 和 anon key', 'info');
-    log('  2. 部署到 Vercel，发链接给团队', 'info');
   } else {
-    log('\n⚠️ 完成，但有 ' + errors + ' 个错误（可能是表还没建好）', 'err');
-    log('请先在 Supabase SQL Editor 里建表，然后重试', 'err');
+    log('\n⚠️ 有 ' + errors + ' 个错误，请截图发给我排查', 'err');
   }
-  
   document.getElementById('btn').disabled = false;
 }
 </script>
