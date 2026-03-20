@@ -298,8 +298,9 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 // ============================================================
 // Supabase 配置 — 部署前替换为你自己的值
 // ============================================================
-const SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
+const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================
 // 身份管理
@@ -468,14 +469,28 @@ function subscribeRealtime() {
 }
 
 async function init() {
+  // 检查 Supabase SDK 是否加载
+  if(!window.supabase) {
+    document.getElementById('loadingOverlay').innerHTML = '<div style="text-align:center;color:#fff"><h2>❌ Supabase SDK 加载失败</h2><p>请检查网络连接后刷新页面</p></div>';
+    return;
+  }
+
   // 显示加载中
   document.getElementById('loadingOverlay').style.display = 'flex';
 
-  const ok = await loadData();
+  let ok = false;
+  try {
+    ok = await loadData();
+  } catch(e) {
+    console.error('init loadData error:', e);
+    document.getElementById('loadingOverlay').innerHTML = '<div style="text-align:center;color:#fff"><h2>❌ 数据加载出错</h2><p>' + e.message + '</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;border-radius:6px;border:none;cursor:pointer">刷新重试</button></div>';
+    return;
+  }
+
   document.getElementById('loadingOverlay').style.display = 'none';
 
   if(!ok) {
-    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;"><h2 style="color:#ea4335">数据加载失败</h2><p style="color:#666">请检查 Supabase 配置是否正确（SUPABASE_URL 和 SUPABASE_ANON_KEY）</p></div>';
+    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;"><h2 style="color:#ea4335">数据加载失败</h2><p style="color:#666">请检查 Supabase 配置是否正确（SUPABASE_URL 和 SUPABASE_ANON_KEY）</p><button onclick="location.reload()" style="padding:10px 24px;background:#1a73e8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">刷新重试</button></div>';
     return;
   }
 
