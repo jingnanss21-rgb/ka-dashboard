@@ -1060,7 +1060,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
     const totalActRedeem = brandActs.reduce((s,a)=>s+(a.dailyRedeem||0), 0);
     const sortedActs = [...brandActs].sort((a,b)=>(b.dailyRedeem||0)-(a.dailyRedeem||0));
     html += `<div style="overflow-x:auto;"><table class="act-table">
-      <thead><tr><th>活动名称</th><th>券名</th><th>类型</th><th>门槛</th><th>优惠</th><th>门槛vs客单价</th><th>日均曝光</th><th>曝光占比</th><th>曝光核销率</th><th>日均核销</th><th>核销占比</th></tr></thead>
+      <thead><tr><th>活动名称</th><th>券名</th><th>类型</th><th>门槛</th><th>优惠</th><th>门槛vs客单价</th><th>日均曝光</th><th>曝光占比</th><th>曝光核销率</th><th>日均核销量</th><th>核销占比</th></tr></thead>
       <tbody>`;
     sortedActs.forEach(act => {
       const isWhole = act.isWholeStore===1;
@@ -1174,21 +1174,21 @@ function refreshTable(viewId, ownerFilter) {
         <th rowspan="2" style="text-align:left;">品牌</th>
         ${showOwnerCol?'<th rowspan="2" style="text-align:left;">负责人</th>':''}
         <th rowspan="2" style="text-align:left;">行业</th>
-        <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">核销</th>
-        <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">曝光</th>
-        <th colspan="3" class="group-header" style="border-left:2px solid #c2d7f7;">核销率</th>
+        <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">核销量</th>
+        <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">曝光量</th>
+        <th colspan="3" class="group-header" style="border-left:2px solid #c2d7f7;">转化率（曝光核销率）</th>
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">存活</th>
         <th rowspan="2" style="border-left:2px solid var(--border);">反馈</th>
       </tr><tr>
-        <th class="sortable" data-sort="dailyRedeem" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均核销</th>
+        <th class="sortable" data-sort="dailyRedeem" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均核销量</th>
         <th class="sortable" data-sort="redeemGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">核销环比</th>
         <th class="sortable" data-sort="redeemTarget" data-view="${viewId}" data-owner="${ownerFilter||''}">核销目标</th>
         <th class="sortable" data-sort="redeemAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">核销目标<br>达成率</th>
-        <th class="sortable" data-sort="dailyExposure" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均曝光(w)</th>
+        <th class="sortable" data-sort="dailyExposure" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均曝光量(w)</th>
         <th class="sortable" data-sort="expGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光环比</th>
         <th class="sortable" data-sort="estExposure" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光目标(w)</th>
         <th class="sortable" data-sort="exposureAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光目标<br>达成率</th>
-        <th class="sortable" data-sort="exposureRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">当前<br>曝光核销率</th>
+        <th class="sortable" data-sort="exposureRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">当前<br>转化率（曝光核销率）</th>
         <th class="sortable" data-sort="convTarget" data-view="${viewId}" data-owner="${ownerFilter||''}">目标核销率</th>
         <th class="sortable" data-sort="rateAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">核销率目标<br>达成率</th>
         <th class="sortable" data-sort="alive" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">是否存活</th>
