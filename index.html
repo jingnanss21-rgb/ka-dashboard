@@ -567,7 +567,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
   const achieveRate = totalTarget>0 ? totalRedeem/totalTarget : 0;
   const activeBrands = brands.filter(b=>b.dailyExposure>0);
   const survivedCount = brands.filter(b => isBrandAlive(b)).length;
-  const totalExposure7d = brands.reduce((s,b)=>s+(b.dailyExposure7d||b.dailyExposure||0),0);
+  const totalExposure7d = brands.reduce((s,b)=>s+(b.dailyExposure||0),0);
   const totalEstExposure = assignments.reduce((s,a)=>s+parseFloat(a.estimatedExposure||0),0);
   const exposureAchieveRate = totalEstExposure>0 ? totalExposure7d/totalEstExposure : 0;
 
@@ -884,7 +884,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   const lastWeekRedeem = (a.dailyRedeem||0);
   const lastWeekExposure = (a.dailyExposure||0);
   const curRedeem = b.dailyRedeem||0;
-  const curExposure7d = b.dailyExposure7d||b.dailyExposure||0;
+  const curExposure7d = b.dailyExposure||0;
   const gr = lastWeekRedeem > 0 ? (curRedeem - lastWeekRedeem)/lastWeekRedeem : (curRedeem > 0 ? 'new' : 0);
   const expGrowth = lastWeekExposure > 0 ? (curExposure7d - lastWeekExposure)/lastWeekExposure : (curExposure7d > 0 ? 'new' : 0);
   const estExposure = parseFloat(a.estimatedExposure)||0;
@@ -917,7 +917,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   html += `<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fafbfc;">
     <div style="font-weight:600;font-size:12px;margin-bottom:8px;color:var(--primary);display:flex;align-items:center;gap:4px;">📡 曝光</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
-      <div><span style="color:var(--text-secondary);">当前曝光</span><br><strong>${(b.dailyExposure7d||b.dailyExposure||0).toFixed(1)}w</strong></div>
+      <div><span style="color:var(--text-secondary);">当前曝光</span><br><strong>${(b.dailyExposure||0).toFixed(1)}w</strong></div>
       <div><span style="color:var(--text-secondary);">曝光环比</span><br>${expGrowth==='new'?'<span class="tag tag-blue" style="font-size:10px;">新上线</span>':`<strong class="${typeof expGrowth==='number'&&expGrowth>=0?'trend-up':'trend-down'}">${pctSigned(typeof expGrowth==='number'?expGrowth:0)}</strong>`}</div>
       <div><span style="color:var(--text-secondary);">曝光目标</span><br><strong>${estExposure>0?estExposure.toFixed(0)+'w':'-'}</strong></div>
       <div><span style="color:var(--text-secondary);">曝光目标达成率</span><br><span class="tag ${expAchieveCls}" style="font-size:11px;">${estExposure>0?(exposureAchieveRate*100).toFixed(1)+'%':'-'}</span></div>
@@ -1213,7 +1213,7 @@ function refreshTable(viewId, ownerFilter) {
     const lastWeekExposure = (a.dailyExposure||0) > 0 ? a.dailyExposure : (b.lastWeekDailyExposure||0);
     const lastWeekRedeem = (a.dailyRedeem||0) > 0 ? a.dailyRedeem : (b.lastWeekDailyRedeem||0);
     const curRedeem = b.dailyRedeem||0;
-    const curExposure7d = b.dailyExposure7d||b.dailyExposure||0;
+    const curExposure7d = b.dailyExposure||0;
     const expGrowth = lastWeekExposure>0 ? (curExposure7d - lastWeekExposure)/lastWeekExposure : (curExposure7d>0 ? 'new' : 0);
     const redeemGrowth = lastWeekRedeem>0 ? (curRedeem - lastWeekRedeem)/lastWeekRedeem : (curRedeem>0 ? 'new' : 0);
     // 达成率全部自己计算：实际数据从brands（sheet1/2）取，目标从assignments（sheet3）取
