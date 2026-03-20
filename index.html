@@ -298,9 +298,9 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 // ============================================================
 // Supabase 配置 — 部署前替换为你自己的值
 // ============================================================
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================
 // 身份管理
@@ -372,25 +372,25 @@ document.addEventListener('click', function(e) {
 async function loadData() {
   try {
     // 1. 拉取品牌数据
-    const { data: brands, error: e1 } = await supabase
+    const { data: brands, error: e1 } = await sbClient
       .from('ka_brands')
       .select('*');
     if(e1) throw e1;
 
     // 2. 拉取活动数据
-    const { data: activities, error: e2 } = await supabase
+    const { data: activities, error: e2 } = await sbClient
       .from('ka_activities')
       .select('*');
     if(e2) throw e2;
 
     // 3. 拉取分配数据
-    const { data: assignments, error: e3 } = await supabase
+    const { data: assignments, error: e3 } = await sbClient
       .from('ka_assignments')
       .select('*');
     if(e3) throw e3;
 
     // 4. 拉取整体指标
-    const { data: overallArr, error: e4 } = await supabase
+    const { data: overallArr, error: e4 } = await sbClient
       .from('ka_overall')
       .select('*')
       .order('created_at', { ascending: false })
@@ -399,7 +399,7 @@ async function loadData() {
     const overall = overallArr[0] || {};
 
     // 5. 拉取反馈数据
-    const { data: fbRows, error: e5 } = await supabase
+    const { data: fbRows, error: e5 } = await sbClient
       .from('ka_feedbacks')
       .select('*')
       .order('created_at', { ascending: true });
@@ -436,13 +436,13 @@ async function loadData() {
 // 实时订阅：监听反馈表变化，自动刷新
 // ============================================================
 function subscribeRealtime() {
-  supabase
+  sbClient
     .channel('ka_feedbacks_changes')
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'ka_feedbacks' },
       async (payload) => {
         // 重新拉取所有反馈
-        const { data: fbRows } = await supabase
+        const { data: fbRows } = await sbClient
           .from('ka_feedbacks')
           .select('*')
           .order('created_at', { ascending: true });
@@ -1411,7 +1411,7 @@ async function submitTableFeedback(brandName, owner, viewId) {
   if(!el || !el.value.trim()) { showToast('请输入反馈内容','warning'); return; }
   const text = el.value.trim();
   const fbOwner = currentIdentity || owner || '未知';
-  const { error } = await supabase.from('ka_feedbacks').insert({
+  const { error } = await sbClient.from('ka_feedbacks').insert({
     brand_name: brandName,
     text: text,
     owner: fbOwner
@@ -1559,7 +1559,7 @@ async function submitFeedback(brandName, owner, sourceViewId) {
   }
   if(!text) { showToast('请输入反馈内容', 'warning'); return; }
   const fbOwner = currentIdentity || owner || '未知';
-  const { error } = await supabase.from('ka_feedbacks').insert({
+  const { error } = await sbClient.from('ka_feedbacks').insert({
     brand_name: brandName,
     text: text,
     owner: fbOwner
@@ -1575,7 +1575,7 @@ function editFeedback(brandName, index) {
   const f = feedbacks[brandName][index];
   showModal('编辑反馈 — ' + brandName, f.text, async (newText) => {
     if(f.id) {
-      const { error } = await supabase.from('ka_feedbacks').update({ text: newText }).eq('id', f.id);
+      const { error } = await sbClient.from('ka_feedbacks').update({ text: newText }).eq('id', f.id);
       if(error) { showToast('更新失败: ' + error.message, 'warning'); return; }
     }
     showToast('反馈已更新', 'success');
@@ -1588,7 +1588,7 @@ function confirmDeleteFeedback(brandName, index) {
   const f = feedbacks[brandName][index];
   showConfirm('确认删除', `确定要删除这条反馈吗？<br><br><em style="color:var(--text-secondary);">"${escHtml(f.text.substring(0,50))}${f.text.length>50?'...':''}"</em>`, async () => {
     if(f.id) {
-      const { error } = await supabase.from('ka_feedbacks').delete().eq('id', f.id);
+      const { error } = await sbClient.from('ka_feedbacks').delete().eq('id', f.id);
       if(error) { showToast('删除失败: ' + error.message, 'warning'); return; }
     }
     showToast('反馈已删除', 'info');
