@@ -1886,6 +1886,7 @@ function tagRate(r) {
 function encId(s) { return btoa(unescape(encodeURIComponent(s))).replace(/[+/=]/g,'_'); }
 function escHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 function escAttr(s) { return s.replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+init();
 </script>
 </body>
 </html>
