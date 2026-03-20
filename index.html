@@ -428,6 +428,7 @@ async function loadData() {
     return true;
   } catch(err) {
     console.error('数据加载失败:', err);
+    document.getElementById('loadingOverlay').innerHTML = '<div style="text-align:center;color:#fff;padding:20px"><h2>❌ 数据加载失败</h2><p style="margin:8px 0;word-break:break-all">' + err.message + '</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;border-radius:6px;border:none;cursor:pointer">刷新重试</button></div>';
     return false;
   }
 }
@@ -487,12 +488,11 @@ async function init() {
     return;
   }
 
-  document.getElementById('loadingOverlay').style.display = 'none';
-
   if(!ok) {
-    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;"><h2 style="color:#ea4335">数据加载失败</h2><p style="color:#666">请检查 Supabase 配置是否正确（SUPABASE_URL 和 SUPABASE_ANON_KEY）</p><button onclick="location.reload()" style="padding:10px 24px;background:#1a73e8;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">刷新重试</button></div>';
+    // 错误信息已在 loadData 的 catch 里显示了，直接返回
     return;
   }
+  document.getElementById('loadingOverlay').style.display = 'none';
 
   // 设置日期
   if(DATA.dataDate) {
