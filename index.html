@@ -110,12 +110,16 @@ table tbody td:nth-child(2) { text-align:left; }
 .act-ok { color:var(--success); }
 
 /* 反馈模块 */
-.feedback-block { background:#fafbfc; border:1px solid var(--border); border-radius:10px; padding:16px; margin-top:10px; }
-.feedback-block h5 { font-size:13px; margin-bottom:10px; color:var(--text-secondary); }
+.feedback-block { background:#fff8e1; border:2px solid #ffcc02; border-radius:10px; padding:16px; margin-top:10px; }
+.feedback-block h5 { font-size:13px; margin-bottom:10px; color:#7a5800; font-weight:700; }
 .feedback-list { margin-bottom:10px; }
-.feedback-item { background:#fff; border:1px solid #e8eaed; border-radius:8px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; }
-.feedback-item .fb-text { flex:1; line-height:1.5; font-size:13px; }
-.feedback-item .fb-meta { font-size:11px; color:var(--text-secondary); white-space:nowrap; margin-left:12px; }
+.feedback-item { background:#fff; border:1px solid #f0d060; border-left:4px solid #f9ab00; border-radius:8px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; box-shadow:0 1px 4px rgba(249,171,0,0.1); }
+.feedback-item .fb-text { flex:1; line-height:1.7; font-size:13px; color:#222; font-weight:500; }
+.feedback-item .fb-text-inner { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+.feedback-item .fb-text-inner.expanded { -webkit-line-clamp:unset; overflow:visible; display:block; }
+.feedback-item .fb-expand-btn { display:inline-block; margin-top:4px; font-size:11px; color:var(--primary); cursor:pointer; user-select:none; padding:0; background:none; border:none; }
+.feedback-item .fb-expand-btn:hover { text-decoration:underline; }
+.feedback-item .fb-meta { font-size:11px; color:#a07800; white-space:nowrap; margin-left:12px; font-weight:500; }
 .feedback-item .fb-actions { display:flex; gap:4px; margin-left:8px; flex-shrink:0; }
 .feedback-item .fb-action-btn { cursor:pointer; color:#999; font-size:13px; padding:2px 4px; border-radius:4px; transition:all .15s; }
 .feedback-item .fb-action-btn:hover { background:#f0f0f0; }
@@ -154,7 +158,7 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 
 /* 表格反馈列 */
 .td-feedback { max-width:200px; white-space:normal !important; text-align:left !important; }
-.td-feedback .fb-mini { font-size:11px; line-height:1.4; color:var(--text-secondary); }
+.td-feedback .fb-mini { font-size:11px; line-height:1.4; color:#555; font-weight:500; }
 .td-feedback .fb-mini-item { margin-bottom:2px; display:flex; align-items:center; gap:4px; }
 .td-feedback .fb-mini-item .mini-actions { display:none; gap:2px; }
 .td-feedback .fb-mini-item:hover .mini-actions { display:inline-flex; }
@@ -218,6 +222,22 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 .modal textarea:focus { outline:none; border-color:var(--primary); }
 .modal .modal-btns { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
 .modal .modal-btns .btn { min-width:80px; text-align:center; }
+
+/* 目标达成柱状图 */
+.achieve-bars-section { background:var(--card); border-radius:12px; padding:20px 24px; margin-bottom:20px; box-shadow:var(--shadow); }
+.achieve-bars-title { font-size:15px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.achieve-bars-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:18px 28px; }
+.achieve-bar-item { display:flex; flex-direction:column; gap:6px; }
+.achieve-bar-item .ab-label { font-size:12px; font-weight:600; color:var(--text-secondary); }
+.achieve-bar-item .ab-value { font-size:20px; font-weight:800; color:var(--text); }
+.achieve-bar-item .ab-track { height:10px; background:#e8eaed; border-radius:5px; overflow:hidden; position:relative; }
+.achieve-bar-item .ab-fill { height:100%; border-radius:5px; transition:width .5s ease; }
+.achieve-bar-item .ab-sub { font-size:11px; color:var(--text-secondary); }
+.info-cards-row { display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+.info-card { background:var(--card); border-radius:12px; padding:18px 24px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:4px; min-width:150px; flex:1; }
+.info-card .ic-label { font-size:12px; color:var(--text-secondary); }
+.info-card .ic-value { font-size:28px; font-weight:800; color:var(--text); }
+.info-card .ic-sub { font-size:11px; color:var(--text-secondary); }
 
 @media (max-width:768px) {
   .kpi-grid { grid-template-columns:repeat(2,1fr); }
@@ -417,11 +437,24 @@ async function loadData() {
       });
     });
 
+    // 6. 拉取惊喜货盘数据（如表不存在则忽略错误）
+    let surpriseGoods = [];
+    try {
+      const { data: sgRows, error: e6 } = await sbClient
+        .from('ka_surprise_goods')
+        .select('*')
+        .order('id', { ascending: true });
+      if(!e6) surpriseGoods = sgRows || [];
+    } catch(sgErr) {
+      console.warn('惊喜货盘表尚未创建，跳过:', sgErr.message);
+    }
+
     DATA = {
       brands: brands || [],
       activities: activities || [],
       assignments: assignments || [],
       overall: overall,
+      surpriseGoods: surpriseGoods,
       dataDate: overall.data_date || ''
     };
 
@@ -571,34 +604,38 @@ function buildViewPanel(viewId, ownerFilter, title) {
   const totalEstExposure = assignments.reduce((s,a)=>s+parseFloat(a.estimatedExposure||0),0);
   const exposureAchieveRate = totalEstExposure>0 ? totalExposure7d/totalEstExposure : 0;
 
+  // 存活达成率：存活品牌数 / 品牌总数
+  const survivalAchieveRate = brands.length>0 ? survivedCount/brands.length : 0;
+
+  // 惊喜货盘达成率：在线惊喜货盘 / 惊喜货盘目标
+  const allSG = DATA.surpriseGoods || [];
+  const sgRows = ownerFilter ? allSG.filter(r => r.owner === ownerFilter) : allSG;
+  const sgTarget = sgRows.reduce((s,r)=>s+(r.target||0), 0);
+  const sgOnline = sgRows.reduce((s,r)=>s+(r.online||0), 0);
+  const sgAchieveRate = sgTarget>0 ? sgOnline/sgTarget : 0;
+
   let html = `<div class="view-panel" id="view-${viewId}">`;
 
-  // === 1. KPI ===
-  html += `<div class="kpi-grid">
-    <div class="kpi-card ${achieveRate>=0.6?'good':achieveRate>=0.3?'warn':'bad'}">
-      <div class="label">核销目标达成率</div>
-      <div class="value">${(achieveRate*100).toFixed(1)}%</div>
-      <div class="sub">目标${fmt(totalTarget)} / 日均${fmt(totalRedeem)}</div>
+  // === 1. 信息卡 + 四大目标达成率 ===
+  html += `<div class="info-cards-row">
+    <div class="info-card">
+      <div class="ic-label">📦 品牌总数</div>
+      <div class="ic-value">${brands.length}</div>
+      <div class="ic-sub">存活 ${survivedCount} / 未存活 ${brands.length-survivedCount}</div>
     </div>
-    <div class="kpi-card ${exposureAchieveRate>=0.8?'good':exposureAchieveRate>=0.5?'warn':'bad'}">
-      <div class="label">曝光目标达成率</div>
-      <div class="value">${(exposureAchieveRate*100).toFixed(1)}%</div>
-      <div class="sub">目标${totalEstExposure.toFixed(0)}w / 实际${totalExposure7d.toFixed(1)}w</div>
+    <div class="info-card">
+      <div class="ic-label">📡 有曝光品牌</div>
+      <div class="ic-value">${activeBrands.length}</div>
+      <div class="ic-sub">无曝光 ${brands.length - activeBrands.length} 个</div>
     </div>
-    <div class="kpi-card">
-      <div class="label">品牌总数</div>
-      <div class="value">${brands.length}</div>
-      <div class="sub">存活${survivedCount} / 未存活${brands.length-survivedCount}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="label">存活率</div>
-      <div class="value">${brands.length>0?(survivedCount/brands.length*100).toFixed(1)+'%':'-'}</div>
-      <div class="sub">存活标准：存活率≥1%</div>
-    </div>
-    <div class="kpi-card">
-      <div class="label">有曝光品牌</div>
-      <div class="value">${activeBrands.length}</div>
-      <div class="sub">无曝光 ${brands.length - activeBrands.length} 个</div>
+  </div>
+  <div class="achieve-bars-section">
+    <div class="achieve-bars-title"><span style="width:4px;height:20px;background:var(--primary);border-radius:2px;display:inline-block;"></span>目标达成率总览</div>
+    <div class="achieve-bars-grid">
+      ${buildAchieveBar('🎯 核销量达成率', achieveRate, `目标${fmt(totalTarget)} / 日均${fmt(totalRedeem)}`)}
+      ${buildAchieveBar('📡 曝光量达成率', exposureAchieveRate, `目标${totalEstExposure.toFixed(0)}w / 实际${totalExposure7d.toFixed(1)}w`)}
+      ${buildAchieveBar('✅ 存活达成率', survivalAchieveRate, `存活${survivedCount} / 共${brands.length}个品牌`, 0.5, 0.3)}
+      ${buildAchieveBar('🎁 惊喜货盘达成率', sgAchieveRate, sgTarget>0?`在线${sgOnline} / 目标${sgTarget}`:'暂无数据')}
     </div>
   </div>`;
 
@@ -868,14 +905,33 @@ function isBrandAbnormal(b) {
 
 // === 反馈条目HTML ===
 function buildFeedbackItemHtml(brandName, f, i) {
+  const MAX_LEN = 80; // 超过80字符显示展开按钮
+  const text = f.text || '';
+  const needExpand = text.length > MAX_LEN;
+  const uid = 'fbexp-' + encId(brandName) + '-' + i;
   return `<div class="feedback-item" id="fb-item-${encId(brandName)}-${i}">
-    <div class="fb-text">${escHtml(f.text)}</div>
+    <div class="fb-text">
+      <div class="fb-text-inner" id="${uid}">${escHtml(text)}</div>
+      ${needExpand ? `<button class="fb-expand-btn" onclick="toggleFbExpand('${uid}',this)">展开全文 ▼</button>` : ''}
+    </div>
     <div class="fb-meta">${f.owner||''} · ${f.time}</div>
     <div class="fb-actions">
       <span class="fb-action-btn edit" onclick="editFeedback('${escAttr(brandName)}',${i})" title="编辑">✎</span>
       <span class="fb-action-btn delete" onclick="confirmDeleteFeedback('${escAttr(brandName)}',${i})" title="删除">×</span>
     </div>
   </div>`;
+}
+
+function toggleFbExpand(uid, btn) {
+  const el = document.getElementById(uid);
+  if(!el) return;
+  if(el.classList.contains('expanded')) {
+    el.classList.remove('expanded');
+    btn.textContent = '展开全文 ▼';
+  } else {
+    el.classList.add('expanded');
+    btn.textContent = '收起 ▲';
+  }
 }
 
 // === Case卡片（含活动分析）===
@@ -1876,6 +1932,18 @@ function analyzeGoodCase(b, med) {
 function fmt(n) { if(isNaN(n)||n===null) return '-'; return n>=10000?(n/10000).toFixed(1)+'w':Math.round(n).toLocaleString(); }
 function pct(n) { if(isNaN(n)||n===null) return '-'; return (n*100).toFixed(2)+'%'; }
 function pctSigned(n) { if(isNaN(n)||n===null) return '-'; return (n>=0?'+':'')+(n*100).toFixed(2)+'%'; }
+
+// === 目标达成柱状图辅助 ===
+function buildAchieveBar(label, rate, subText, goodThreshold=0.6, warnThreshold=0.3) {
+  const pctVal = Math.min(rate * 100, 100);
+  const color = rate>=goodThreshold ? '#34a853' : rate>=warnThreshold ? '#f9ab00' : '#ea4335';
+  return `<div class="achieve-bar-item">
+    <div class="ab-label">${label}</div>
+    <div class="ab-value" style="color:${color}">${isNaN(rate)||rate===0&&subText==='暂无数据'?'-':(rate*100).toFixed(1)+'%'}</div>
+    <div class="ab-track"><div class="ab-fill" style="width:${pctVal}%;background:${color};"></div></div>
+    <div class="ab-sub">${subText}</div>
+  </div>`;
+}
 function tagRate(r) {
   if(isNaN(r)) return '<span class="tag tag-gray">-</span>';
   const p = (r*100).toFixed(1);
