@@ -1206,6 +1206,7 @@ function refreshTable(viewId, ownerFilter) {
         <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">曝光量</th>
         <th colspan="3" class="group-header" style="border-left:2px solid #c2d7f7;">转化率（曝光核销率）</th>
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">存活</th>
+        <th colspan="3" class="group-header" style="border-left:2px solid #e8b4d0;">🎁 惊喜货盘</th>
         <th rowspan="2" style="border-left:2px solid var(--border);">反馈</th>
       </tr><tr>
         <th class="sortable" data-sort="dailyRedeem" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均核销量</th>
@@ -1221,6 +1222,9 @@ function refreshTable(viewId, ownerFilter) {
         <th class="sortable" data-sort="rateAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">核销率目标<br>达成率</th>
         <th class="sortable" data-sort="alive" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">是否存活</th>
         <th class="sortable" data-sort="survivalRate" data-view="${viewId}" data-owner="${ownerFilter||''}">存活率</th>
+        <th data-sort="sgTarget" style="border-left:2px solid #e8b4d0;">目标量</th>
+        <th data-sort="sgOnline">在线量</th>
+        <th>货盘内容</th>
       </tr>`;
     }
     // 恢复列头排序样式
@@ -1233,6 +1237,7 @@ function refreshTable(viewId, ownerFilter) {
 
   const merged = assignments.map(a=>{
     const b = DATA.brands.find(br=>br.name===a.brand) || {};
+    const sg = (DATA.surpriseGoods||[]).find(r=>r.brand===a.brand) || {};
     const expEstimated = parseFloat(a.estimatedExposure)||0;
     const convTarget = parseFloat(a.conversionTarget)||0;
     const curExposure = b.dailyExposure||0;
@@ -1279,6 +1284,9 @@ function refreshTable(viewId, ownerFilter) {
       oldRedeemPct: oldRedeemPct,
       lastWeekRedeem: lastWeekRedeem,
       lastWeekExposure: lastWeekExposure,
+      sgTarget: sg.target||0,
+      sgOnline: sg.online||0,
+      sgContent: sg.content||'',
     };
   }).filter(m=>{
     if(search && !m.brand.toLowerCase().includes(search)) return false;
@@ -1424,8 +1432,11 @@ function refreshTable(viewId, ownerFilter) {
         <td>${m.abnormal?'<span style="color:#e65100;" title="数据异常">⚠ 异常</span>':`<div class="rate-bar"><span class="rate-bar-track"><span class="rate-bar-fill ${rrCls}" style="width:${Math.max(rrp,2)}%"></span></span><span>${(m.rateAchieveRate*100).toFixed(1)}%</span></div>`}</td>
         <td style="border-left:2px solid #e8f0fe;">${m.alive?'<span class="tag tag-green">存活</span>':'<span class="tag tag-red">未存活</span>'}</td>
         <td>${pct(m.survivalRate||0)}</td>
+        <td style="border-left:2px solid #e8b4d0;font-size:12px;text-align:center;">${m.sgTarget||'-'}</td>
+        <td style="font-size:12px;text-align:center;">${m.sgTarget>0?(m.sgOnline>0?`<span class="tag tag-green">${m.sgOnline}</span>`:`<span style="color:#bbb;">0</span>`):'-'}</td>
+        <td style="font-size:11px;color:#555;max-width:180px;white-space:pre-wrap;word-break:break-all;line-height:1.5;">${m.sgContent?escHtml(m.sgContent):'<span style="color:#bbb;">—</span>'}</td>
         <td class="td-feedback" style="border-left:2px solid var(--border);">${hasFb
-          ? '<div class="fb-mini">'+fb.map((f,idx)=>`<div class="fb-mini-item"><span>${escHtml(f.text)}</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback('${escAttr(m.brand)}',${idx})" title="编辑">✎</span><span class="mini-btn del" onclick="confirmDeleteFeedback('${escAttr(m.brand)}',${idx})" title="删除">×</span></span></div>`).join('')+'</div>'
+          ? '<div class="fb-mini">'+fb.map((f,idx)=>`<div class="fb-mini-item"><span class="fb-mini-text">${escHtml(f.text)}</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback('${escAttr(m.brand)}',${idx})" title="编辑">✎</span><span class="mini-btn del" onclick="confirmDeleteFeedback('${escAttr(m.brand)}',${idx})" title="删除">×</span></span></div>`).join('')+'</div>'
           : '<span style="color:#bbb;font-size:11px;">—</span>'
         }<div style="margin-top:4px;display:flex;gap:4px;"><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
       </tr>`;
