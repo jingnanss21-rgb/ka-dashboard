@@ -2142,6 +2142,66 @@ function buildChannelBreakdownSection() {
     zbCh, {exp: expShareZb, pExp: pExpShareZb, wrt: wrtShareZb}, {expInverse: true});
   out += '</div>';
 
+  // ═══ 曝光占比对比柱状图（本期 vs 上期） ═══
+  out += '<div style="background:#f8fafc;border-radius:10px;padding:18px 20px;margin-bottom:20px;">';
+  out += '<div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:14px;">曝光占比对比（本期 vs 上期）</div>';
+
+  // 图例
+  out += '<div style="display:flex;gap:16px;margin-bottom:14px;font-size:11px;">';
+  out += '<span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#3b82f6;"></span>本期</span>';
+  out += '<span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:#cbd5e1;"></span>上期</span>';
+  out += '</div>';
+
+  // 柱状图数据
+  const barData = [
+    {label:'摇一摇（二选一）', cur:expShare2x1, prev:pExpShare2x1, color:'#2563eb', lightColor:'#93c5fd'},
+    {label:'周边（非二选一）', cur:expShareZb, prev:pExpShareZb, color:'#ea580c', lightColor:'#fdba74'},
+    {label:'支付有礼', cur:expSharePay, prev:pExpSharePay, color:'#7c3aed', lightColor:'#c4b5fd'}
+  ];
+  const barMaxVal = Math.max(...barData.map(d=>Math.max(d.cur, d.prev)), 10);
+
+  barData.forEach(item => {
+    const curWidth = Math.max(item.cur / barMaxVal * 100, 0.5);
+    const prevWidth = item.prev > 0 ? Math.max(item.prev / barMaxVal * 100, 0.5) : 0;
+    const delta = item.cur - item.prev;
+    const deltaColor = delta >= 0 ? '#16a34a' : '#dc2626';
+
+    out += '<div style="margin-bottom:14px;">';
+    // 渠道名称 + 变化值
+    out += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+    out += '<span style="font-size:12px;font-weight:600;color:#475569;">'+item.label+'</span>';
+    out += '<span style="font-size:11px;color:'+deltaColor+';font-weight:700;">'+(delta>=0?'+':'')+delta.toFixed(1)+'pp</span>';
+    out += '</div>';
+    // 本期柱
+    out += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">';
+    out += '<div style="width:100%;height:22px;background:#e2e8f0;border-radius:4px;overflow:hidden;position:relative;">';
+    out += '<div style="height:100%;width:'+curWidth+'%;background:'+item.color+';border-radius:4px;transition:width 0.6s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;min-width:36px;">';
+    out += '<span style="font-size:11px;font-weight:700;color:#fff;">'+item.cur.toFixed(1)+'%</span>';
+    out += '</div></div></div>';
+    // 上期柱
+    out += '<div style="display:flex;align-items:center;gap:8px;">';
+    out += '<div style="width:100%;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden;position:relative;">';
+    if(item.prev > 0) {
+      out += '<div style="height:100%;width:'+prevWidth+'%;background:#94a3b8;border-radius:4px;transition:width 0.6s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:5px;min-width:30px;">';
+      out += '<span style="font-size:10px;font-weight:600;color:#fff;">'+item.prev.toFixed(1)+'%</span>';
+      out += '</div>';
+    } else {
+      out += '<div style="height:100%;display:flex;align-items:center;padding-left:8px;">';
+      out += '<span style="font-size:10px;color:#94a3b8;font-style:italic;">上期无此渠道</span>';
+      out += '</div>';
+    }
+    out += '</div></div>';
+    out += '</div>';
+  });
+
+  // 底部说明（支付有礼新增提示）
+  if(pExpSharePay <= 0 && expSharePay > 0) {
+    out += '<div style="padding:8px 12px;background:#f5f3ff;border-left:3px solid #7c3aed;border-radius:0 6px 6px 0;font-size:11px;color:#6d28d9;line-height:1.6;">';
+    out += '<strong>📌 新增渠道</strong>：支付有礼为本期新增渠道，上期占比为0%。本期贡献曝光占比 '+expSharePay.toFixed(1)+'%，对摇一摇和周边的占比均产生了稀释效应。';
+    out += '</div>';
+  }
+  out += '</div>';
+
   // ═══ 核销率解读（非二选一核销上涨的结构性分析） ═══
   const zbWrtQ = qoqVal(zbCh.wrt, zbCh.pWrt);
   const zbExpQ = qoqVal(zbCh.exp, zbCh.pExp);
@@ -2353,6 +2413,57 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   out += '<div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;">';
   out += buildMiniCard('摇一摇（二选一）', '#2563eb', '#bfdbfe', 'linear-gradient(135deg, #eff6ff 0%, #f8faff 100%)', s2x1, expShare2x1, {pExpPct: pExpShare2x1});
   out += buildMiniCard('周边（非二选一）', '#ea580c', '#fed7aa', 'linear-gradient(135deg, #fff7ed 0%, #fffbf5 100%)', zbCh, expShareZb, {expInverse:true, pExpPct: pExpShareZb});
+  out += '</div>';
+
+  // ═══ 分渠道曝光占比对比柱状图 ═══
+  out += '<div style="background:#f8fafc;border-radius:8px;padding:14px 16px;margin-bottom:14px;">';
+  out += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+  out += '<span style="font-size:12px;font-weight:700;color:#475569;">曝光占比对比</span>';
+  out += '<span style="font-size:10px;color:#94a3b8;">本期 vs 上期</span>';
+  out += '</div>';
+
+  // 品牌诊断柱状图数据
+  const brandBarData = [
+    {label:'摇一摇', cur:expShare2x1, prev:pExpShare2x1, color:'#2563eb'},
+    {label:'周边', cur:expShareZb, prev:pExpShareZb, color:'#ea580c'}
+  ];
+  const brandBarMax = Math.max(...brandBarData.map(d=>Math.max(d.cur, d.prev)), 10);
+
+  brandBarData.forEach(item => {
+    const curW = Math.max(item.cur / brandBarMax * 100, 1);
+    const prevW = item.prev > 0 ? Math.max(item.prev / brandBarMax * 100, 1) : 0;
+    const d = item.cur - item.prev;
+    const dColor = d >= 0 ? '#16a34a' : '#dc2626';
+    // 周边占比过高时标红警告
+    const isWarning = item.label==='周边' && item.cur > 50;
+
+    out += '<div style="margin-bottom:10px;">';
+    out += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+    out += '<span style="font-size:11px;font-weight:600;color:'+(isWarning?'#dc2626':'#475569')+';">'+item.label+(isWarning?' ⚠️':'')+'</span>';
+    out += '<span style="font-size:10px;color:'+dColor+';font-weight:700;">'+(d>=0?'+':'')+d.toFixed(1)+'pp</span>';
+    out += '</div>';
+    // 本期
+    out += '<div style="height:18px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-bottom:2px;">';
+    out += '<div style="height:100%;width:'+curW+'%;background:'+(isWarning?'#dc2626':item.color)+';border-radius:3px;display:flex;align-items:center;justify-content:flex-end;padding-right:5px;min-width:32px;">';
+    out += '<span style="font-size:10px;font-weight:700;color:#fff;">'+item.cur.toFixed(1)+'%</span>';
+    out += '</div></div>';
+    // 上期
+    out += '<div style="height:12px;background:#e2e8f0;border-radius:3px;overflow:hidden;">';
+    if(prevW > 0) {
+      out += '<div style="height:100%;width:'+prevW+'%;background:#94a3b8;border-radius:3px;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;min-width:28px;">';
+      out += '<span style="font-size:9px;font-weight:600;color:#fff;">'+item.prev.toFixed(1)+'%</span>';
+      out += '</div>';
+    }
+    out += '</div>';
+    out += '</div>';
+  });
+
+  // 如果周边占比>50%，显示警告
+  if(expShareZb > 50) {
+    out += '<div style="padding:6px 10px;background:#fef2f2;border-left:3px solid #dc2626;border-radius:0 4px 4px 0;font-size:10px;color:#991b1b;line-height:1.5;">';
+    out += '<strong>⚠ 曝光分配不合理</strong>：周边渠道占据 '+expShareZb.toFixed(1)+'% 曝光，但转化效率远低于摇一摇，大量低效曝光稀释了整体核销率。';
+    out += '</div>';
+  }
   out += '</div>';
 
   // ═══ 非二选一核销率结构性解读 ═══
