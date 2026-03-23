@@ -1995,6 +1995,10 @@ function buildChannelBreakdownSection() {
   out += '<div style="background:#fff;border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow-md);border:1px solid var(--border);">';
   out += '<div style="font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;"><span style="width:4px;height:20px;background:var(--purple);border-radius:2px;display:inline-block;"></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--purple);color:#fff;font-size:11px;font-weight:700;margin-right:4px;">2</span>渠道概览</div>';
 
+  // 上期占比
+  const pExpShare2x1 = ptotExp>0 ? c2x1.pExp/ptotExp*100 : 0;
+  const pExpShareZb = ptotExp>0 ? zbCh.pExp/ptotExp*100 : 0;
+
   // ═══ 渲染一个大类指标卡片的辅助函数 ═══
   function buildGroupCard(label, color, borderColor, bgGradient, d, share, opts) {
     const expQ = qoqVal(d.exp, d.pExp);
@@ -2002,8 +2006,12 @@ function buildChannelBreakdownSection() {
     const curRate = calcRateNum(d.wrt, d.exp);
     const prevRate = calcRateNum(d.pWrt, d.pExp);
     const expPct = share.exp;
+    const pExpPct = share.pExp;
     const wrtPct = share.wrt;
     const inverse = opts && opts.expInverse;
+
+    // 曝光占比环比（pp）
+    const expPctDelta = expPct - pExpPct;
 
     let c = '';
     c += '<div style="flex:1;min-width:280px;border-radius:12px;border:1.5px solid '+borderColor+';background:'+bgGradient+';padding:18px 20px;position:relative;overflow:hidden;">';
@@ -2023,10 +2031,15 @@ function buildChannelBreakdownSection() {
     c += '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">'+qoqBadge(expQ, inverse)+'<span style="color:#b0b8c4;font-size:10px;">上期 '+fmtW(d.pExp)+'</span></div>';
     c += '</div>';
 
-    // 曝光占比
+    // 曝光占比（含环比和上期）
     c += '<div>';
     c += '<div style="font-size:11px;color:#64748b;margin-bottom:4px;">曝光占比</div>';
     c += '<div style="font-size:20px;font-weight:800;color:'+color+';line-height:1.2;">'+expPct.toFixed(1)+'%</div>';
+    c += '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">';
+    const shareDeltaColor = expPctDelta>=0 ? (inverse?'#dc2626':'#16a34a') : (inverse?'#16a34a':'#dc2626');
+    c += '<span style="color:'+shareDeltaColor+';font-size:12px;font-weight:700;">'+(expPctDelta>=0?'+':'')+expPctDelta.toFixed(1)+'pp</span>';
+    c += '<span style="color:#b0b8c4;font-size:10px;">上期 '+pExpPct.toFixed(1)+'%</span>';
+    c += '</div>';
     // 占比条
     c += '<div style="margin-top:6px;height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden;">';
     c += '<div style="height:100%;width:'+Math.min(expPct, 100)+'%;border-radius:3px;background:'+color+';transition:width 0.5s;"></div>';
@@ -2055,19 +2068,41 @@ function buildChannelBreakdownSection() {
 
   // ═══ 两张大类卡片并排 ═══
   out += '<div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;">';
-  out += buildGroupCard('二选一', '#2563eb', '#bfdbfe', 'linear-gradient(135deg, #eff6ff 0%, #f8faff 100%)',
-    c2x1, {exp: expShare2x1, wrt: wrtShare2x1}, {});
-  out += buildGroupCard('非二选一', '#ea580c', '#fed7aa', 'linear-gradient(135deg, #fff7ed 0%, #fffbf5 100%)',
-    zbCh, {exp: expShareZb, wrt: wrtShareZb}, {expInverse: true});
+  out += buildGroupCard('摇一摇（二选一）', '#2563eb', '#bfdbfe', 'linear-gradient(135deg, #eff6ff 0%, #f8faff 100%)',
+    c2x1, {exp: expShare2x1, pExp: pExpShare2x1, wrt: wrtShare2x1}, {});
+  out += buildGroupCard('周边（非二选一）', '#ea580c', '#fed7aa', 'linear-gradient(135deg, #fff7ed 0%, #fffbf5 100%)',
+    zbCh, {exp: expShareZb, pExp: pExpShareZb, wrt: wrtShareZb}, {expInverse: true});
   out += '</div>';
+
+  // ═══ 核销率解读（非二选一核销上涨的结构性分析） ═══
+  const zbWrtQ = qoqVal(zbCh.wrt, zbCh.pWrt);
+  const zbExpQ = qoqVal(zbCh.exp, zbCh.pExp);
+  const zbRateDelta = zbRate - zbPRate;
+  const c2x1WrtQ = qoqVal(c2x1.wrt, c2x1.pWrt);
+  // 如果非二选一核销增长 但核销率变化不大（绝对变化<0.05pp），说明是曝光带动
+  if(zbWrtQ !== null && zbWrtQ > 0 && Math.abs(zbRateDelta) < 0.05) {
+    out += '<div style="padding:12px 16px;background:linear-gradient(135deg,#fffbeb,#fef3c7);border-left:4px solid #d97706;border-radius:0 8px 8px 0;margin-bottom:16px;font-size:13px;line-height:1.8;">';
+    out += '<span style="font-weight:700;color:#92400e;">💡 结构性解读</span><br>';
+    out += '周边（非二选一）核销量环比上涨'+zbWrtQ.toFixed(1)+'%，主要由<strong>曝光增长</strong>驱动（曝光环比+'+(zbExpQ||0).toFixed(1)+'%），实际曝光核销率变化很小（'+zbRateDelta.toFixed(3)+'pp），说明核销增量并非转化效率提升带来，而是<strong>流量增长的自然结果</strong>。';
+    out += '</div>';
+  }
 
   // ═══ 合计行 - 紧凑横条 ═══
   out += '<div style="display:flex;align-items:center;gap:20px;padding:10px 16px;background:#f1f5f9;border-radius:8px;margin-bottom:18px;flex-wrap:wrap;">';
-  out += '<span style="font-size:12px;font-weight:700;color:#475569;">合计</span>';
+  out += '<span style="font-size:12px;font-weight:700;color:#475569;">合计（分渠道口径）</span>';
   out += '<span style="font-size:12px;color:#64748b;">曝光 <strong style="color:#1e293b;">'+fmtW(totExp)+'</strong> '+qoqBadge(qoqVal(totExp,ptotExp))+'</span>';
   out += '<span style="font-size:12px;color:#64748b;">核销 <strong style="color:#1e293b;">'+fmtN(totWrt)+'</strong> '+qoqBadge(qoqVal(totWrt,ptotWrt))+'</span>';
   out += '<span style="font-size:12px;color:#64748b;">核销率 <strong style="color:#1e293b;">'+totRate.toFixed(2)+'%</strong> '+rateDeltaBadge(totRate, ptotRate)+'</span>';
   out += '</div>';
+
+  // ═══ 数据口径差异说明 ═══
+  const brandTotalExp = (typeof DATA !== 'undefined' && DATA.brands) ? DATA.brands.reduce((s,b)=>s+(b.dailyExposure||0),0) : 0;
+  if(brandTotalExp > 0 && Math.abs(brandTotalExp - totExp) > 10) {
+    out += '<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 14px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px;margin-bottom:16px;font-size:12px;line-height:1.7;color:#64748b;">';
+    out += '<span style="flex-shrink:0;font-size:14px;margin-top:1px;">📊</span>';
+    out += '<div><strong style="color:#475569;">数据口径说明</strong>：分渠道曝光汇总为 <strong style="color:#1e293b;">'+fmtW(totExp)+'</strong>，分品牌曝光汇总为 <strong style="color:#1e293b;">'+brandTotalExp.toFixed(1)+'w</strong>，差异 <strong style="color:#ea580c;">'+(brandTotalExp - totExp).toFixed(1)+'w</strong>。两者统计口径不同——分渠道按曝光渠道维度聚合，分品牌按品牌维度聚合，部分品牌可能存在跨渠道重复计数或渠道归因差异。</div>';
+    out += '</div>';
+  }
 
   // ═══ 子渠道明细表（统一灰色调，弱化差异） ═══
   out += '<div style="margin-top:4px;">';
@@ -2127,12 +2162,12 @@ function buildChannelBreakdownSection() {
   }
 
   // 二选一分组
-  out += renderSubRow('二选一', c2x1, {isGroupLabel:true});
+  out += renderSubRow('摇一摇（二选一）', c2x1, {isGroupLabel:true});
   eff2x1Names.forEach(name => {
     out += renderSubRow(name, ch[name], {anomaly:(name==='其他')});
   });
   // 非二选一分组
-  out += renderSubRow('非二选一', zbCh, {isGroupLabel:true, expInverse:true});
+  out += renderSubRow('周边（非二选一）', zbCh, {isGroupLabel:true, expInverse:true});
   out += renderSubRow('周边', zbCh, {expInverse:true});
 
   out += '</tbody></table></div>';
@@ -2203,22 +2238,35 @@ function buildBrandChannelDiagnosis(brandName, cd) {
     const curRate = calcRateNum(d.wrt, d.exp);
     const prevRate = calcRateNum(d.pWrt, d.pExp);
     const inverse = opts && opts.expInverse;
+    const pExpPct = opts && opts.pExpPct;
+
+    // 曝光占比环比
+    const expPctDelta = (pExpPct!==null && pExpPct!==undefined) ? expPct - pExpPct : null;
 
     let c = '';
     c += '<div style="flex:1;min-width:240px;border-radius:10px;border:1.5px solid '+borderColor+';background:'+bgGrad+';padding:14px 16px;">';
     c += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">';
     c += '<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:'+color+';"></span>';
     c += '<span style="font-size:13px;font-weight:700;color:'+color+';">'+label+'</span>';
-    c += '<span style="font-size:10px;color:#94a3b8;margin-left:auto;">曝光占比 '+expPct.toFixed(1)+'%</span>';
     c += '</div>';
 
-    c += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">';
+    c += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
     // 曝光量
     c += '<div>';
     c += '<div style="font-size:10px;color:#94a3b8;margin-bottom:2px;">曝光量</div>';
     c += '<div style="font-size:16px;font-weight:800;color:#1e293b;">'+fmtW(d.exp)+'</div>';
     c += '<div style="margin-top:2px;">'+qoqBadge(expQ, inverse)+'</div>';
     c += '<div style="color:#b0b8c4;font-size:9px;">上期 '+fmtW(d.pExp)+'</div>';
+    c += '</div>';
+    // 曝光占比（含环比和上期）
+    c += '<div>';
+    c += '<div style="font-size:10px;color:#94a3b8;margin-bottom:2px;">曝光占比</div>';
+    c += '<div style="font-size:16px;font-weight:800;color:'+color+';">'+expPct.toFixed(1)+'%</div>';
+    if(expPctDelta !== null) {
+      const sdColor = expPctDelta>=0 ? (inverse?'#dc2626':'#16a34a') : (inverse?'#16a34a':'#dc2626');
+      c += '<div style="margin-top:2px;"><span style="color:'+sdColor+';font-size:11px;font-weight:700;">'+(expPctDelta>=0?'+':'')+expPctDelta.toFixed(1)+'pp</span></div>';
+      c += '<div style="color:#b0b8c4;font-size:9px;">上期 '+pExpPct.toFixed(1)+'%</div>';
+    }
     c += '</div>';
     // 核销量
     c += '<div>';
@@ -2240,10 +2288,27 @@ function buildBrandChannelDiagnosis(brandName, cd) {
     return c;
   }
 
+  // 上期占比
+  const ptotExp = s2x1.pExp + (zbCh.pExp||0);
+  const pExpShare2x1 = ptotExp>0 ? s2x1.pExp/ptotExp*100 : 0;
+  const pExpShareZb = ptotExp>0 ? (zbCh.pExp||0)/ptotExp*100 : 0;
+
   out += '<div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;">';
-  out += buildMiniCard('二选一', '#2563eb', '#bfdbfe', 'linear-gradient(135deg, #eff6ff 0%, #f8faff 100%)', s2x1, expShare2x1, {});
-  out += buildMiniCard('非二选一', '#ea580c', '#fed7aa', 'linear-gradient(135deg, #fff7ed 0%, #fffbf5 100%)', zbCh, expShareZb, {expInverse:true});
+  out += buildMiniCard('摇一摇（二选一）', '#2563eb', '#bfdbfe', 'linear-gradient(135deg, #eff6ff 0%, #f8faff 100%)', s2x1, expShare2x1, {pExpPct: pExpShare2x1});
+  out += buildMiniCard('周边（非二选一）', '#ea580c', '#fed7aa', 'linear-gradient(135deg, #fff7ed 0%, #fffbf5 100%)', zbCh, expShareZb, {expInverse:true, pExpPct: pExpShareZb});
   out += '</div>';
+
+  // ═══ 非二选一核销率结构性解读 ═══
+  const zbWrtQBrand = qoqVal(zbCh.wrt, zbCh.pWrt);
+  const zbExpQBrand = qoqVal(zbCh.exp, zbCh.pExp);
+  const zbRateCur = calcRateNum(zbCh.wrt, zbCh.exp);
+  const zbRatePrev = calcRateNum(zbCh.pWrt, zbCh.pExp);
+  const zbRateDeltaBrand = zbRateCur - zbRatePrev;
+  if(zbWrtQBrand !== null && zbWrtQBrand > 0 && Math.abs(zbRateDeltaBrand) < 0.05) {
+    out += '<div style="padding:8px 12px;background:#fffbeb;border-left:3px solid #d97706;border-radius:0 6px 6px 0;margin-bottom:12px;font-size:11px;line-height:1.6;color:#78716c;">';
+    out += '<strong style="color:#92400e;">💡</strong> 周边核销量增长主要由曝光增长驱动，核销率变化很小（'+zbRateDeltaBrand.toFixed(3)+'pp），并非转化效率提升。';
+    out += '</div>';
+  }
 
   // ═══ 子渠道精简明细（统一灰色调） ═══
   out += '<div style="overflow-x:auto;">';
@@ -2293,20 +2358,65 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   let diagColor, diagBg, diagIcon, diagMsg;
   if(isZbDilution || isExpShiftCausingLowRate) {
     diagColor='#dc2626'; diagBg='#fef2f2'; diagIcon='⚠';
-    diagMsg = '核销率低的核心原因是<strong>曝光分配不合理</strong>：周边渠道占据'+zbShare.toFixed(1)+'%曝光（环比'+(zbDelta>=0?'+':'')+zbDelta.toFixed(1)+'pp），但周边曝光核销率仅'+calcRate(zbCh.wrt,zbCh.exp)+'，远低于二选一的'+s2x1Rate.toFixed(2)+'%。大量无效曝光稀释了整体核销率。<strong>建议</strong>：将曝光资源向商业支付/面对面等高转化渠道倾斜。';
+    diagMsg = '核销率低的核心原因是<strong>曝光分配不合理</strong>：周边渠道占据'+zbShare.toFixed(1)+'%曝光（环比'+(zbDelta>=0?'+':'')+zbDelta.toFixed(1)+'pp），但周边曝光核销率仅'+calcRate(zbCh.wrt,zbCh.exp)+'，远低于摇一摇的'+s2x1Rate.toFixed(2)+'%。大量无效曝光稀释了整体核销率。<strong>建议</strong>：将曝光资源向商业支付/面对面等高转化渠道倾斜。';
   } else if(isEff2x1Low) {
     diagColor='#ea580c'; diagBg='#fff7ed'; diagIcon='⚡';
-    diagMsg = '二选一有效曝光仅'+fmtW(s2x1.exp)+'（占总曝光'+pctOf(s2x1.exp,cd.totExp)+'），曝光供给不足是核销量低的主要瓶颈。<strong>建议</strong>：扩大商业支付/面对面渠道的曝光覆盖。';
+    diagMsg = '摇一摇（二选一）有效曝光仅'+fmtW(s2x1.exp)+'（占总曝光'+pctOf(s2x1.exp,cd.totExp)+'），曝光供给不足是核销量低的主要瓶颈。<strong>建议</strong>：扩大商业支付/面对面渠道的曝光覆盖。';
   } else if(s2x1RateDelta < -0.5) {
     diagColor='#7c3aed'; diagBg='#f5f3ff'; diagIcon='📉';
-    diagMsg = '二选一核销率下降'+Math.abs(s2x1RateDelta).toFixed(2)+'pp（'+s2x1PRate.toFixed(2)+'% → '+s2x1Rate.toFixed(2)+'%），曝光分配变化不大，核销率下降主要由<strong>转化效率下降</strong>导致，非曝光分配问题。需排查活动下线、货盘变化或用户体验。';
+    diagMsg = '摇一摇核销率下降'+Math.abs(s2x1RateDelta).toFixed(2)+'pp（'+s2x1PRate.toFixed(2)+'% → '+s2x1Rate.toFixed(2)+'%），曝光分配变化不大，核销率下降主要由<strong>转化效率下降</strong>导致，非曝光分配问题。需排查活动下线、货盘变化或用户体验。';
   } else {
     diagColor='#2563eb'; diagBg='#eff6ff'; diagIcon='ℹ';
-    diagMsg = '各渠道曝光分配相对稳定，二选一核销率'+(s2x1RateDelta>=0?'提升':'下降')+Math.abs(s2x1RateDelta).toFixed(2)+'pp。整体表现'+(cd.wrtQoq!==null&&cd.wrtQoq>0?'呈改善趋势':'需持续关注')+'。';
+    diagMsg = '各渠道曝光分配相对稳定，摇一摇核销率'+(s2x1RateDelta>=0?'提升':'下降')+Math.abs(s2x1RateDelta).toFixed(2)+'pp。整体表现'+(cd.wrtQoq!==null&&cd.wrtQoq>0?'呈改善趋势':'需持续关注')+'。';
   }
 
   out += '<div style="margin-top:14px;padding:12px 16px;background:'+diagBg+';border-left:4px solid '+diagColor+';border-radius:0 8px 8px 0;font-size:13px;line-height:1.8;">';
   out += '<span style="font-weight:700;color:'+diagColor+';">'+diagIcon+' 诊断结论</span><br>'+diagMsg;
+  out += '</div>';
+
+  // ═══ 老客数据异常提醒 ═══
+  // 从 DATA.brands 获取该品牌的老客数据
+  const brandDataArr = (typeof DATA !== 'undefined' && DATA.brands) ? DATA.brands.filter(b=>b.name===brandName) : [];
+  const brandData = brandDataArr.length>0 ? brandDataArr[0] : null;
+  if(brandData) {
+    const oldExp = brandData.oldCustomerDailyExposure||0;
+    const oldRate = brandData.oldCustomerExposureRedeemRate||0;
+    const oldRedeem = oldExp * 10000 * oldRate;
+    const totalRedeem = brandData.dailyRedeem||0;
+    // 异常检测：老客核销 > 整体核销
+    if(oldRedeem > totalRedeem && totalRedeem > 0) {
+      out += '<div style="margin-top:12px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-left:4px solid #dc2626;border-radius:0 8px 8px 0;font-size:12px;line-height:1.7;">';
+      out += '<span style="font-weight:700;color:#dc2626;">⚠ 老客数据异常</span><br>';
+      out += '老客推算核销量（<strong>'+Math.round(oldRedeem).toLocaleString()+'</strong>）超过整体核销量（<strong>'+Math.round(totalRedeem).toLocaleString()+'</strong>），理论上整体应包含新客+老客。可能原因：老客曝光核销率口径与整体核销率口径不一致，或存在数据采集时间窗口差异。<strong>建议核实底表数据口径。</strong>';
+      out += '</div>';
+    }
+  }
+
+  // ═══ 老客维度分析（渠道 & 货盘，待补充） ═══
+  out += '<div style="margin-top:14px;border-top:1px dashed #e2e8f0;padding-top:14px;">';
+  out += '<div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;color:#475569;">👤 老客维度分析</div>';
+  // 基础老客数据（来自brands表）
+  if(brandData) {
+    const oldExp = brandData.oldCustomerDailyExposure||0;
+    const oldRate = brandData.oldCustomerExposureRedeemRate||0;
+    const totalExp = brandData.dailyExposure||0;
+    const oldExpPct = totalExp>0 ? (oldExp/totalExp*100).toFixed(1)+'%' : '-';
+    out += '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">';
+    out += '<div style="padding:8px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;font-size:12px;"><span style="color:#94a3b8;">老客曝光</span> <strong style="color:#1e293b;">'+(oldExp||0).toFixed(1)+'w</strong> <span style="color:#94a3b8;font-size:10px;">（占整体 '+oldExpPct+'）</span></div>';
+    out += '<div style="padding:8px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;font-size:12px;"><span style="color:#94a3b8;">老客曝光核销率</span> <strong style="color:#1e293b;">'+(oldRate*100).toFixed(2)+'%</strong></div>';
+    out += '</div>';
+  }
+  // 待补充区域：渠道和货盘在老客上的表现
+  out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+  out += '<div style="padding:14px 16px;background:#fafbfc;border:1px dashed #cbd5e1;border-radius:8px;text-align:center;">';
+  out += '<div style="font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:4px;">📡 分渠道老客表现</div>';
+  out += '<div style="font-size:11px;color:#b0b8c4;line-height:1.6;">待补充：各渠道（摇一摇/周边）在老客上的曝光、核销率等数据，<br>有助于判断算法在老客曝光策略上的变化</div>';
+  out += '</div>';
+  out += '<div style="padding:14px 16px;background:#fafbfc;border:1px dashed #cbd5e1;border-radius:8px;text-align:center;">';
+  out += '<div style="font-size:12px;font-weight:600;color:#94a3b8;margin-bottom:4px;">🎁 分货盘老客表现</div>';
+  out += '<div style="font-size:11px;color:#b0b8c4;line-height:1.6;">待补充：各券/活动在老客上的曝光、领取、核销表现，<br>有助于判断不同货盘对老客的转化差异</div>';
+  out += '</div>';
+  out += '</div>';
   out += '</div>';
 
   out += '</div>';
