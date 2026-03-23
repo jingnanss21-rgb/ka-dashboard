@@ -6,28 +6,36 @@
 <title>餐饮KA摇优惠周报</title>
 <style>
 :root {
-  --primary: #1a73e8;
-  --success: #34a853;
-  --warning: #f9ab00;
-  --danger: #ea4335;
-  --bg: #f5f7fa;
+  --primary: #2563eb;
+  --primary-light: #eff6ff;
+  --success: #16a34a;
+  --success-light: #f0fdf4;
+  --warning: #d97706;
+  --warning-light: #fffbeb;
+  --danger: #dc2626;
+  --danger-light: #fef2f2;
+  --purple: #7c3aed;
+  --orange: #ea580c;
+  --bg: #f8fafc;
   --card: #fff;
-  --text: #333;
-  --text-secondary: #666;
-  --border: #e8eaed;
-  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --radius: 12px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
 
-.header { background:linear-gradient(135deg,#1a73e8,#4285f4); color:#fff; padding:20px 32px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,0.15); }
-.header h1 { font-size:22px; font-weight:600; }
-.header .date-badge { background:rgba(255,255,255,0.2); padding:6px 16px; border-radius:20px; font-size:13px; }
+.header { background:linear-gradient(135deg,#1e40af 0%,#3b82f6 50%,#60a5fa 100%); color:#fff; padding:18px 32px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 4px 20px rgba(30,64,175,0.25); }
+.header h1 { font-size:20px; font-weight:700; letter-spacing:0.5px; }
+.header .date-badge { background:rgba(255,255,255,0.15); backdrop-filter:blur(10px); padding:6px 16px; border-radius:20px; font-size:12px; border:1px solid rgba(255,255,255,0.2); }
 
-.nav-tabs { display:flex; background:#fff; border-bottom:2px solid var(--border); padding:0 32px; position:sticky; top:62px; z-index:99; }
-.nav-tab { padding:14px 24px; cursor:pointer; border-bottom:3px solid transparent; font-weight:500; color:var(--text-secondary); transition:all .2s; white-space:nowrap; }
-.nav-tab:hover { color:var(--primary); background:#f0f6ff; }
-.nav-tab.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; }
+.nav-tabs { display:flex; background:#fff; border-bottom:1px solid var(--border); padding:0 32px; position:sticky; top:62px; z-index:99; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.nav-tab { padding:14px 24px; cursor:pointer; border-bottom:3px solid transparent; font-weight:500; color:var(--text-secondary); transition:all .25s cubic-bezier(.4,0,.2,1); white-space:nowrap; position:relative; }
+.nav-tab:hover { color:var(--primary); background:linear-gradient(180deg,transparent 0%,#eff6ff 100%); }
+.nav-tab.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; background:linear-gradient(180deg,transparent 60%,#eff6ff 100%); }
 .nav-tab.owner-tab { position:relative; }
 .nav-tab.owner-tab::before { content:''; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
 .nav-tab[data-owner="jancie"]::before { background:#e91e63; }
@@ -40,46 +48,48 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .view-panel.active { display:block; }
 
 .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:14px; margin-bottom:24px; }
-.kpi-card { background:var(--card); border-radius:12px; padding:18px; box-shadow:var(--shadow); text-align:center; }
-.kpi-card .label { font-size:12px; color:var(--text-secondary); margin-bottom:6px; }
+.kpi-card { background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); text-align:center; border:1px solid var(--border); transition:all .25s cubic-bezier(.4,0,.2,1); }
+.kpi-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+.kpi-card .label { font-size:12px; color:var(--text-secondary); margin-bottom:6px; letter-spacing:0.3px; }
 .kpi-card .value { font-size:24px; font-weight:700; }
 .kpi-card .sub { font-size:11px; color:var(--text-secondary); margin-top:4px; }
 .kpi-card.good .value { color:var(--success); }
 .kpi-card.warn .value { color:var(--warning); }
 .kpi-card.bad .value { color:var(--danger); }
 
-.section { background:var(--card); border-radius:12px; padding:24px; margin-bottom:20px; box-shadow:var(--shadow); }
+.section { background:var(--card); border-radius:var(--radius); padding:24px; margin-bottom:20px; box-shadow:var(--shadow); border:1px solid var(--border); }
 .section-title { font-size:16px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .section-title .icon { width:4px; height:20px; background:var(--primary); border-radius:2px; }
 .section-title .badge { font-size:12px; font-weight:400; background:#e8f0fe; color:var(--primary); padding:2px 10px; border-radius:10px; margin-left:8px; }
 
 /* 负责人目标占比条 */
-.owner-bar-container { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
-.owner-bar-item { display:flex; align-items:center; gap:6px; font-size:12px; }
-.owner-bar-dot { width:10px; height:10px; border-radius:50%; }
-.owner-stacked-bar { display:flex; height:22px; border-radius:11px; overflow:hidden; width:100%; margin-bottom:12px; }
-.owner-stacked-bar .seg { height:100%; display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden; min-width:20px; }
+.owner-bar-container { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:18px; align-items:center; }
+.owner-bar-item { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--text-secondary); }
+.owner-bar-dot { width:10px; height:10px; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+.owner-stacked-bar { display:flex; height:24px; border-radius:12px; overflow:hidden; width:100%; margin-bottom:14px; box-shadow:inset 0 1px 3px rgba(0,0,0,0.08); }
+.owner-stacked-bar .seg { height:100%; display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; min-width:20px; }
 
 table { width:100%; border-collapse:collapse; font-size:12px; }
-table thead th { background:#f5f7fa; padding:8px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; }
+table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); letter-spacing:0.3px; }
 table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; }
-table tbody td { padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:center; }
-table tbody tr:hover { background:#f0f6ff; }
+table tbody td { padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:center; transition:background .15s; }
+table tbody tr:hover { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
 table tbody td:first-child { text-align:left; font-weight:600; }
 table tbody td:nth-child(2) { text-align:left; }
 
-.tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; }
-.tag-green { background:#e6f4ea; color:#34a853; }
-.tag-red { background:#fce8e6; color:#ea4335; }
-.tag-yellow { background:#fef7e0; color:#f9ab00; }
-.tag-blue { background:#e8f0fe; color:#1a73e8; }
-.tag-gray { background:#f1f3f4; color:#5f6368; }
-.tag-orange { background:#fff3e0; color:#e65100; }
+.tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; letter-spacing:0.2px; }
+.tag-green { background:#dcfce7; color:#15803d; }
+.tag-red { background:#fee2e2; color:#dc2626; }
+.tag-yellow { background:#fef3c7; color:#d97706; }
+.tag-blue { background:#dbeafe; color:#2563eb; }
+.tag-gray { background:#f1f5f9; color:#64748b; }
+.tag-orange { background:#ffedd5; color:#ea580c; }
 .trend-up { color:var(--success); } .trend-up::before { content:'▲ '; font-size:10px; }
 .trend-down { color:var(--danger); } .trend-down::before { content:'▼ '; font-size:10px; }
 
 .filter-bar { display:flex; gap:10px; margin-bottom:16px; align-items:center; flex-wrap:wrap; }
-.filter-bar select, .filter-bar .search-input { padding:8px 14px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; }
+.filter-bar select, .filter-bar .search-input { padding:8px 14px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; transition:border-color .2s, box-shadow .2s; }
+.filter-bar select:focus, .filter-bar .search-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.08); outline:none; }
 .filter-bar .search-input { width:200px; }
 
 .scroll-table-wrapper { overflow-x:auto; max-height:700px; overflow-y:auto; }
@@ -89,31 +99,34 @@ table tbody td:nth-child(2) { text-align:left; }
 .quadrant-chart-container canvas { width:100%; height:auto; }
 
 /* Case卡片 */
-.case-card { border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:12px; }
-.case-card .case-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-.case-card .brand-name { font-weight:600; font-size:15px; }
-.case-card .metrics { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:8px; margin:10px 0; }
-.case-card .metric { text-align:center; padding:6px; background:#f5f7fa; border-radius:6px; }
-.case-card .metric .mv { font-weight:600; font-size:14px; }
+.case-card { border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:12px; background:#fff; transition:all .25s cubic-bezier(.4,0,.2,1); }
+.case-card:hover { box-shadow:var(--shadow-md); }
+.case-card .case-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.case-card .brand-name { font-weight:700; font-size:16px; color:var(--text); }
+.case-card .metrics { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px; margin:12px 0; }
+.case-card .metric { text-align:center; padding:8px; background:var(--bg); border-radius:8px; border:1px solid var(--border); }
+.case-card .metric .mv { font-weight:700; font-size:15px; }
 .case-card .metric .ml { font-size:11px; color:var(--text-secondary); }
-.case-card .diagnosis { font-size:13px; line-height:1.7; color:var(--text-secondary); padding:8px 12px; background:#fafbfc; border-radius:6px; margin-top:8px; }
-.case-card .diagnosis .issue { padding:3px 0; display:flex; align-items:flex-start; gap:6px; }
+.case-card .diagnosis { font-size:13px; line-height:1.8; color:var(--text-secondary); padding:12px 16px; background:var(--bg); border-radius:8px; margin-top:10px; border:1px solid var(--border); }
+.case-card .diagnosis .issue { padding:4px 0; display:flex; align-items:flex-start; gap:6px; }
 .case-card .diagnosis .issue::before { content:'•'; color:var(--danger); font-weight:bold; flex-shrink:0; }
+.case-card.good-case { border-color:#bbf7d0; background:linear-gradient(135deg,#fff 0%,#f0fdf4 100%); }
 .case-card.good-case .diagnosis .issue::before { content:'★'; color:var(--success); }
 
 /* 活动信息 */
 .act-table { width:100%; border-collapse:collapse; font-size:11px; margin-top:8px; }
-.act-table th { background:#f0f4f8; padding:5px 8px; text-align:left; font-weight:600; border-bottom:1px solid var(--border); }
-.act-table td { padding:5px 8px; border-bottom:1px solid #f0f0f0; }
-.act-table tr:hover { background:#f8fafc; }
-.act-risk { color:var(--danger); font-weight:600; }
-.act-ok { color:var(--success); }
+.act-table th { background:var(--bg); padding:6px 10px; text-align:left; font-weight:700; border-bottom:1px solid var(--border); font-size:11px; color:var(--text-secondary); }
+.act-table td { padding:6px 10px; border-bottom:1px solid #f0f0f0; }
+.act-table tr:hover { background:linear-gradient(90deg,#f0f6ff,#fafbff); }
+.act-risk { color:var(--danger); font-weight:700; }
+.act-ok { color:var(--success); font-weight:500; }
 
 /* 反馈模块 */
-.feedback-block { background:#fff8e1; border:2px solid #ffcc02; border-radius:10px; padding:16px; margin-top:10px; }
-.feedback-block h5 { font-size:13px; margin-bottom:10px; color:#7a5800; font-weight:700; }
+.feedback-block { background:linear-gradient(135deg,#fffbeb 0%,#fef9c3 100%); border:1px solid #fde68a; border-radius:var(--radius); padding:18px; margin-top:12px; }
+.feedback-block h5 { font-size:13px; margin-bottom:10px; color:#92400e; font-weight:700; }
 .feedback-list { margin-bottom:10px; }
-.feedback-item { background:#fff; border:1px solid #f0d060; border-left:4px solid #f9ab00; border-radius:8px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; box-shadow:0 1px 4px rgba(249,171,0,0.1); }
+.feedback-item { background:#fff; border:1px solid #fde68a; border-left:4px solid #f59e0b; border-radius:8px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; box-shadow:0 1px 3px rgba(245,158,11,0.08); transition:box-shadow .2s; }
+.feedback-item:hover { box-shadow:0 2px 8px rgba(245,158,11,0.12); }
 .feedback-item .fb-text { flex:1; line-height:1.7; font-size:13px; color:#222; font-weight:500; }
 .feedback-item .fb-text-inner { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
 .feedback-item .fb-text-inner.expanded { -webkit-line-clamp:unset; overflow:visible; display:block; }
@@ -128,14 +141,14 @@ table tbody td:nth-child(2) { text-align:left; }
 .feedback-input-row { display:flex; gap:8px; align-items:flex-start; }
 .feedback-input { flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:13px; resize:vertical; min-height:44px; font-family:inherit; transition:border-color .2s; }
 .feedback-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,115,232,0.1); }
-.btn { padding:8px 20px; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; transition:all .2s; }
-.btn-primary { background:var(--primary); color:#fff; }
-.btn-primary:hover { background:#1557b0; }
+.btn { padding:8px 20px; border:none; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; transition:all .25s cubic-bezier(.4,0,.2,1); }
+.btn-primary { background:linear-gradient(135deg,#2563eb,#3b82f6); color:#fff; box-shadow:0 2px 8px rgba(37,99,235,0.25); }
+.btn-primary:hover { background:linear-gradient(135deg,#1d4ed8,#2563eb); box-shadow:0 4px 12px rgba(37,99,235,0.35); transform:translateY(-1px); }
 .btn-sm { padding:6px 14px; font-size:12px; }
 .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
-.btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+.btn-outline:hover { border-color:var(--primary); color:var(--primary); background:#eff6ff; }
 
-.toast { position:fixed; top:80px; right:24px; background:#34a853; color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:500; z-index:9999; opacity:0; transform:translateY(-20px); transition:all .3s ease; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+.toast { position:fixed; top:80px; right:24px; background:linear-gradient(135deg,#16a34a,#22c55e); color:#fff; padding:12px 24px; border-radius:10px; font-size:14px; font-weight:600; z-index:9999; opacity:0; transform:translateY(-20px); transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 4px 16px rgba(22,163,74,0.3); }
 .toast.show { opacity:1; transform:translateY(0); }
 
 .all-feedback-section .fb-brand-group { margin-bottom:16px; }
@@ -150,11 +163,11 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 
 /* 达成率条形 */
 .rate-bar { display:inline-flex; align-items:center; gap:6px; min-width:120px; }
-.rate-bar-track { width:70px; height:14px; background:#e8eaed; border-radius:7px; overflow:hidden; display:inline-block; }
-.rate-bar-fill { height:100%; border-radius:7px; display:block; }
-.rate-bar-fill.good { background:#34a853; }
-.rate-bar-fill.mid { background:#f9ab00; }
-.rate-bar-fill.low { background:#ea4335; }
+.rate-bar-track { width:70px; height:14px; background:#e2e8f0; border-radius:7px; overflow:hidden; display:inline-block; }
+.rate-bar-fill { height:100%; border-radius:7px; display:block; transition:width .4s cubic-bezier(.4,0,.2,1); }
+.rate-bar-fill.good { background:linear-gradient(90deg,#22c55e,#16a34a); }
+.rate-bar-fill.mid { background:linear-gradient(90deg,#fbbf24,#d97706); }
+.rate-bar-fill.low { background:linear-gradient(90deg,#f87171,#dc2626); }
 
 /* 表格反馈列 */
 .td-feedback { min-width:260px; max-width:420px; white-space:normal !important; text-align:left !important; }
@@ -171,22 +184,23 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 .td-feedback button { padding:2px 8px; font-size:10px; border:none; border-radius:4px; background:var(--primary); color:#fff; cursor:pointer; margin-left:4px; }
 
 /* 图例 */
-.chart-legend { display:flex; gap:20px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
-.chart-legend-item { display:flex; align-items:center; gap:6px; font-size:13px; }
-.chart-legend-dot { width:12px; height:12px; border-radius:50%; }
+.chart-legend { display:flex; gap:20px; justify-content:center; margin-top:16px; flex-wrap:wrap; padding:12px 16px; background:var(--bg); border-radius:8px; }
+.chart-legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); font-weight:500; }
+.chart-legend-dot { width:12px; height:12px; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
 
 /* 品牌分析分模块 */
 .dim-modules { display:flex; flex-direction:column; gap:10px; margin-top:12px; }
-.dim-module { border:1px solid var(--border); border-radius:8px; overflow:hidden; }
-.dim-module-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#fafbfc; border-bottom:1px solid var(--border); cursor:default; }
-.dim-module-header .dim-title { font-weight:600; font-size:13px; display:flex; align-items:center; gap:6px; }
+.dim-module { border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:box-shadow .2s; }
+.dim-module:hover { box-shadow:var(--shadow); }
+.dim-module-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--bg); border-bottom:1px solid var(--border); cursor:default; }
+.dim-module-header .dim-title { font-weight:700; font-size:13px; display:flex; align-items:center; gap:6px; }
 .dim-module-header .dim-title .dim-icon { font-size:15px; }
-.dim-module-header .dim-status { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:500; }
-.dim-status.status-bad { background:#fce4ec; color:#c62828; }
-.dim-status.status-warn { background:#fff3e0; color:#e65100; }
-.dim-status.status-ok { background:#e8f5e9; color:#2e7d32; }
-.dim-status.status-good { background:#e8f5e9; color:#1b5e20; }
-.dim-module-body { padding:10px 14px; font-size:12px; color:var(--text-secondary); line-height:1.7; }
+.dim-module-header .dim-status { font-size:11px; padding:3px 10px; border-radius:10px; font-weight:600; }
+.dim-status.status-bad { background:#fee2e2; color:#dc2626; }
+.dim-status.status-warn { background:#ffedd5; color:#ea580c; }
+.dim-status.status-ok { background:#dcfce7; color:#16a34a; }
+.dim-status.status-good { background:#dcfce7; color:#15803d; }
+.dim-module-body { padding:12px 16px; font-size:12px; color:var(--text-secondary); line-height:1.8; }
 .dim-module-body .dim-metrics-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
 .dim-module-body .dim-metric-item { display:flex; align-items:center; gap:6px; padding:4px 10px; background:#f5f7fa; border-radius:6px; font-size:12px; }
 .dim-module-body .dim-metric-item .dm-label { color:var(--text-secondary); }
@@ -206,36 +220,38 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 .dim-module.dim-ok .dim-desc-item::before { background:#999; }
 
 /* Case品牌Tab切换 */
-.case-tabs { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:16px; overflow-x:auto; }
-.case-tab { padding:10px 18px; cursor:pointer; font-size:13px; font-weight:500; color:var(--text-secondary); border-bottom:3px solid transparent; transition:all .2s; white-space:nowrap; flex-shrink:0; }
-.case-tab:hover { color:var(--primary); background:#f0f6ff; }
-.case-tab.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; }
-.case-tab.bad-tab.active { color:var(--danger); border-bottom-color:var(--danger); }
-.case-tab.good-tab.active { color:var(--success); border-bottom-color:var(--success); }
+.case-tabs { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:16px; overflow-x:auto; scrollbar-width:thin; }
+.case-tab { padding:10px 18px; cursor:pointer; font-size:13px; font-weight:500; color:var(--text-secondary); border-bottom:3px solid transparent; transition:all .25s cubic-bezier(.4,0,.2,1); white-space:nowrap; flex-shrink:0; }
+.case-tab:hover { color:var(--primary); background:linear-gradient(180deg,transparent 0%,#eff6ff 100%); }
+.case-tab.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; background:linear-gradient(180deg,transparent 60%,#eff6ff 100%); }
+.case-tab.bad-tab.active { color:var(--danger); border-bottom-color:var(--danger); background:linear-gradient(180deg,transparent 60%,#fef2f2 100%); }
+.case-tab.good-tab.active { color:var(--success); border-bottom-color:var(--success); background:linear-gradient(180deg,transparent 60%,#f0fdf4 100%); }
 .case-tab-content { display:none; }
 .case-tab-content.active { display:block; }
 
 /* 弹窗 */
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:10000; display:flex; align-items:center; justify-content:center; }
-.modal { background:#fff; border-radius:12px; padding:24px; min-width:360px; max-width:500px; box-shadow:0 12px 40px rgba(0,0,0,0.2); }
-.modal h4 { margin-bottom:16px; font-size:16px; }
-.modal textarea { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; resize:vertical; min-height:80px; }
-.modal textarea:focus { outline:none; border-color:var(--primary); }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:10000; display:flex; align-items:center; justify-content:center; }
+.modal { background:#fff; border-radius:16px; padding:28px; min-width:360px; max-width:500px; box-shadow:0 20px 60px rgba(0,0,0,0.2); animation:modalIn .2s ease; }
+@keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.modal h4 { margin-bottom:16px; font-size:16px; font-weight:700; }
+.modal textarea { width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; resize:vertical; min-height:80px; transition:border-color .2s, box-shadow .2s; }
+.modal textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
 .modal .modal-btns { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
-.modal .modal-btns .btn { min-width:80px; text-align:center; }
+.modal .modal-btns .btn { min-width:80px; text-align:center; border-radius:8px; }
 
 /* 目标达成柱状图 */
-.achieve-bars-section { background:var(--card); border-radius:12px; padding:20px 24px; margin-bottom:20px; box-shadow:var(--shadow); }
-.achieve-bars-title { font-size:15px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-.achieve-bars-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:18px 28px; }
+.achieve-bars-section { background:var(--card); border-radius:var(--radius); padding:24px; margin-bottom:20px; box-shadow:var(--shadow); border:1px solid var(--border); }
+.achieve-bars-title { font-size:16px; font-weight:700; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+.achieve-bars-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px 28px; }
 .achieve-bar-item { display:flex; flex-direction:column; gap:6px; }
-.achieve-bar-item .ab-label { font-size:12px; font-weight:600; color:var(--text-secondary); }
-.achieve-bar-item .ab-value { font-size:20px; font-weight:800; color:var(--text); }
-.achieve-bar-item .ab-track { height:10px; background:#e8eaed; border-radius:5px; overflow:hidden; position:relative; }
-.achieve-bar-item .ab-fill { height:100%; border-radius:5px; transition:width .5s ease; }
+.achieve-bar-item .ab-label { font-size:12px; font-weight:600; color:var(--text-secondary); letter-spacing:0.3px; }
+.achieve-bar-item .ab-value { font-size:22px; font-weight:800; color:var(--text); }
+.achieve-bar-item .ab-track { height:10px; background:#e2e8f0; border-radius:5px; overflow:hidden; position:relative; }
+.achieve-bar-item .ab-fill { height:100%; border-radius:5px; transition:width .6s cubic-bezier(.4,0,.2,1); }
 .achieve-bar-item .ab-sub { font-size:11px; color:var(--text-secondary); }
 .info-cards-row { display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
-.info-card { background:var(--card); border-radius:12px; padding:18px 24px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:4px; min-width:150px; flex:1; }
+.info-card { background:var(--card); border-radius:var(--radius); padding:20px 24px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:4px; min-width:150px; flex:1; border:1px solid var(--border); transition:all .25s cubic-bezier(.4,0,.2,1); }
+.info-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
 .info-card .ic-label { font-size:12px; color:var(--text-secondary); }
 .info-card .ic-value { font-size:28px; font-weight:800; color:var(--text); }
 .info-card .ic-sub { font-size:11px; color:var(--text-secondary); }
@@ -250,20 +266,20 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 }
 
 /* 身份选择弹窗 */
-.identity-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:99999; display:flex; align-items:center; justify-content:center; }
-.identity-modal { background:#fff; border-radius:16px; padding:32px; min-width:320px; box-shadow:0 20px 60px rgba(0,0,0,0.25); text-align:center; }
-.identity-modal h3 { font-size:20px; margin-bottom:8px; }
+.identity-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); }
+.identity-modal { background:#fff; border-radius:20px; padding:36px; min-width:340px; box-shadow:0 20px 60px rgba(0,0,0,0.25); text-align:center; animation:modalIn .3s ease; }
+.identity-modal h3 { font-size:22px; margin-bottom:8px; font-weight:800; }
 .identity-modal p { color:var(--text-secondary); font-size:13px; margin-bottom:24px; }
 .identity-btn-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.identity-btn { padding:14px 10px; border:2px solid var(--border); border-radius:10px; cursor:pointer; font-size:14px; font-weight:600; background:#fff; transition:all .2s; }
-.identity-btn:hover { border-color:var(--primary); background:#e8f0fe; color:var(--primary); }
-.identity-btn.boss { grid-column:1/-1; background:linear-gradient(135deg,#1a73e8,#4285f4); color:#fff; border-color:transparent; }
-.identity-btn.boss:hover { opacity:0.9; }
-.current-identity { background:rgba(255,255,255,0.25); padding:4px 12px; border-radius:20px; font-size:12px; cursor:pointer; border:1px solid rgba(255,255,255,0.4); }
+.identity-btn { padding:14px 10px; border:2px solid var(--border); border-radius:var(--radius); cursor:pointer; font-size:14px; font-weight:600; background:#fff; transition:all .25s cubic-bezier(.4,0,.2,1); }
+.identity-btn:hover { border-color:var(--primary); background:#eff6ff; color:var(--primary); transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.identity-btn.boss { grid-column:1/-1; background:linear-gradient(135deg,#1e40af,#3b82f6); color:#fff; border-color:transparent; box-shadow:0 4px 16px rgba(37,99,235,0.3); }
+.identity-btn.boss:hover { opacity:0.9; transform:translateY(-2px); box-shadow:0 6px 20px rgba(37,99,235,0.4); }
+.current-identity { background:rgba(255,255,255,0.2); padding:4px 14px; border-radius:20px; font-size:12px; cursor:pointer; border:1px solid rgba(255,255,255,0.3); backdrop-filter:blur(4px); transition:all .2s; }
 .current-identity:hover { background:rgba(255,255,255,0.35); }
 /* 加载状态 */
-.loading-overlay { position:fixed; inset:0; background:rgba(255,255,255,0.9); z-index:9998; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
-.loading-spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
+.loading-overlay { position:fixed; inset:0; background:rgba(248,250,252,0.95); z-index:9998; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; backdrop-filter:blur(4px); }
+.loading-spinner { width:44px; height:44px; border:4px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 
@@ -620,15 +636,15 @@ function buildViewPanel(viewId, ownerFilter, title) {
 
   // === 1. 信息卡 + 四大目标达成率 ===
   html += `<div class="info-cards-row">
-    <div class="info-card">
+    <div class="info-card" style="background:linear-gradient(135deg,#fff 0%,#eff6ff 100%);border-left:4px solid var(--primary);">
       <div class="ic-label">📦 品牌总数</div>
-      <div class="ic-value">${brands.length}</div>
-      <div class="ic-sub">存活 ${survivedCount} / 未存活 ${brands.length-survivedCount}</div>
+      <div class="ic-value" style="color:var(--primary);">${brands.length}</div>
+      <div class="ic-sub">存活 <strong style="color:var(--success);">${survivedCount}</strong> / 未存活 <strong style="color:var(--danger);">${brands.length-survivedCount}</strong></div>
     </div>
-    <div class="info-card">
+    <div class="info-card" style="background:linear-gradient(135deg,#fff 0%,#f0fdf4 100%);border-left:4px solid var(--success);">
       <div class="ic-label">📡 有曝光品牌</div>
-      <div class="ic-value">${activeBrands.length}</div>
-      <div class="ic-sub">无曝光 ${brands.length - activeBrands.length} 个</div>
+      <div class="ic-value" style="color:var(--success);">${activeBrands.length}</div>
+      <div class="ic-sub">无曝光 <strong style="color:var(--text-secondary);">${brands.length - activeBrands.length}</strong> 个</div>
     </div>
   </div>
   <div class="achieve-bars-section">
@@ -941,50 +957,50 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
     </div>`;
 
   // === 四大分类指标模块 ===
-  html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0;">`;
+  html += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0;">`;
 
   // 1. 曝光模块
   const expAchieveCls = exposureAchieveRate>=0.8?'tag-green':exposureAchieveRate>=0.5?'tag-yellow':'tag-red';
-  html += `<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fafbfc;">
-    <div style="font-weight:600;font-size:12px;margin-bottom:8px;color:var(--primary);display:flex;align-items:center;gap:4px;">📡 曝光</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
-      <div><span style="color:var(--text-secondary);">当前曝光</span><br><strong>${(b.dailyExposure||0).toFixed(1)}w</strong></div>
-      <div><span style="color:var(--text-secondary);">曝光环比</span><br>${expGrowth==='new'?'<span class="tag tag-blue" style="font-size:10px;">新上线</span>':`<strong class="${typeof expGrowth==='number'&&expGrowth>=0?'trend-up':'trend-down'}">${pctSigned(typeof expGrowth==='number'?expGrowth:0)}</strong>`}</div>
-      <div><span style="color:var(--text-secondary);">曝光目标</span><br><strong>${estExposure>0?estExposure.toFixed(0)+'w':'-'}</strong></div>
-      <div><span style="color:var(--text-secondary);">曝光目标达成率</span><br><span class="tag ${expAchieveCls}" style="font-size:11px;">${estExposure>0?(exposureAchieveRate*100).toFixed(1)+'%':'-'}</span></div>
+  html += `<div style="border:1px solid #bfdbfe;border-radius:var(--radius);padding:14px 16px;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border-left:4px solid #2563eb;">
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#1e40af;display:flex;align-items:center;gap:6px;">📡 曝光</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">当前曝光</span><br><strong style="font-size:15px;">${(b.dailyExposure||0).toFixed(1)}w</strong></div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">曝光环比</span><br>${expGrowth==='new'?'<span class="tag tag-blue" style="font-size:10px;">新上线</span>':`<strong class="${typeof expGrowth==='number'&&expGrowth>=0?'trend-up':'trend-down'}" style="font-size:14px;">${pctSigned(typeof expGrowth==='number'?expGrowth:0)}</strong>`}</div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">曝光目标</span><br><strong style="font-size:15px;">${estExposure>0?estExposure.toFixed(0)+'w':'-'}</strong></div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">目标达成率</span><br><span class="tag ${expAchieveCls}" style="font-size:12px;">${estExposure>0?(exposureAchieveRate*100).toFixed(1)+'%':'-'}</span></div>
     </div>
   </div>`;
 
   // 2. 核销模块
   const redeemAchieveCls = redeemAchieveRate>=0.8?'tag-green':redeemAchieveRate>=0.4?'tag-yellow':'tag-red';
-  html += `<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fafbfc;">
-    <div style="font-weight:600;font-size:12px;margin-bottom:8px;color:#e65100;display:flex;align-items:center;gap:4px;">🎯 核销</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
-      <div><span style="color:var(--text-secondary);">当前核销</span><br><strong>${fmt(b.dailyRedeem7d||b.dailyRedeem||0)}</strong></div>
-      <div><span style="color:var(--text-secondary);">核销环比</span><br>${gr==='new'?'<span class="tag tag-blue" style="font-size:10px;">新上线</span>':`<strong class="${typeof gr==='number'&&gr>=0?'trend-up':'trend-down'}">${pctSigned(typeof gr==='number'?gr:0)}</strong>`}</div>
-      <div><span style="color:var(--text-secondary);">目标核销</span><br><strong>${redeemTarget>0?fmt(redeemTarget):'-'}</strong></div>
-      <div><span style="color:var(--text-secondary);">核销目标达成率</span><br><span class="tag ${redeemAchieveCls}" style="font-size:11px;">${(redeemAchieveRate*100).toFixed(1)}%</span></div>
+  html += `<div style="border:1px solid #fed7aa;border-radius:var(--radius);padding:14px 16px;background:linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%);border-left:4px solid #ea580c;">
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#c2410c;display:flex;align-items:center;gap:6px;">🎯 核销</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">当前核销</span><br><strong style="font-size:15px;">${fmt(b.dailyRedeem7d||b.dailyRedeem||0)}</strong></div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">核销环比</span><br>${gr==='new'?'<span class="tag tag-blue" style="font-size:10px;">新上线</span>':`<strong class="${typeof gr==='number'&&gr>=0?'trend-up':'trend-down'}" style="font-size:14px;">${pctSigned(typeof gr==='number'?gr:0)}</strong>`}</div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">目标核销</span><br><strong style="font-size:15px;">${redeemTarget>0?fmt(redeemTarget):'-'}</strong></div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">目标达成率</span><br><span class="tag ${redeemAchieveCls}" style="font-size:12px;">${(redeemAchieveRate*100).toFixed(1)}%</span></div>
     </div>
   </div>`;
 
   // 3. 存活模块
   const alive = isBrandAlive(b);
-  html += `<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fafbfc;">
-    <div style="font-weight:600;font-size:12px;margin-bottom:8px;color:${alive?'var(--success)':'var(--danger)'};display:flex;align-items:center;gap:4px;">${alive?'✅':'❌'} 存活</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;">
-      <div><span style="color:var(--text-secondary);">是否存活</span><br><span class="tag ${alive?'tag-green':'tag-red'}">${alive?'存活':'未存活'}</span></div>
-      <div><span style="color:var(--text-secondary);">存活率</span><br><strong>${pct(b.survivalRate)}</strong></div>
-      <div><span style="color:var(--text-secondary);">曝光核销率</span><br><strong>${pct(b.exposureRedeemRate)}</strong></div>
-      <div><span style="color:var(--text-secondary);">目标核销率</span><br><strong>${convTarget>0?pct(convTarget):'-'}</strong></div>
+  html += `<div style="border:1px solid ${alive?'#bbf7d0':'#fecaca'};border-radius:var(--radius);padding:14px 16px;background:linear-gradient(135deg,${alive?'#f0fdf4,#dcfce7':'#fef2f2,#fee2e2'});border-left:4px solid ${alive?'#16a34a':'#dc2626'};">
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:${alive?'#15803d':'#dc2626'};display:flex;align-items:center;gap:6px;">${alive?'✅':'❌'} 存活</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">是否存活</span><br><span class="tag ${alive?'tag-green':'tag-red'}" style="font-size:12px;">${alive?'存活':'未存活'}</span></div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">存活率</span><br><strong style="font-size:15px;">${pct(b.survivalRate)}</strong></div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">曝光核销率</span><br><strong style="font-size:15px;">${pct(b.exposureRedeemRate)}</strong></div>
+      <div style="background:rgba(255,255,255,0.7);border-radius:6px;padding:6px 8px;"><span style="color:var(--text-secondary);font-size:10px;">目标核销率</span><br><strong style="font-size:15px;">${convTarget>0?pct(convTarget):'-'}</strong></div>
     </div>
   </div>`;
 
   html += `</div>`; // 关闭四宫格
 
   // === 详细诊断：五维分类 + 与中位数对比 + 改进指引（默认展开）===
-  html += `<div style="margin-top:10px;">
-    <div style="cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);padding:6px 0;user-select:none;" onclick="toggleDetail(this)">▼ 详细诊断与中位数对比</div>
-    <div class="case-detail-panel" style="display:block;">`;
+  html += `<div style="margin-top:14px;">
+    <div style="cursor:pointer;font-size:13px;font-weight:700;color:var(--primary);padding:8px 12px;user-select:none;background:linear-gradient(90deg,#eff6ff,transparent);border-radius:8px;display:inline-flex;align-items:center;gap:6px;transition:all .2s;" onclick="toggleDetail(this)" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='linear-gradient(90deg,#eff6ff,transparent)'">▼ 详细诊断与中位数对比</div>
+    <div class="case-detail-panel" style="display:block;margin-top:10px;">`;
 
   // 五维分类诊断
   const dimSections = [
@@ -1024,8 +1040,8 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   let allComparisons = [];
 
   dimSections.forEach(dim => {
-    html += `<div style="margin-bottom:14px;">
-      <div style="font-weight:600;font-size:13px;margin-bottom:6px;padding:4px 8px;background:#f5f7fa;border-radius:6px;">${dim.title}</div>
+    html += `<div style="margin-bottom:16px;">
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px;padding:6px 12px;background:linear-gradient(90deg,var(--bg),transparent);border-radius:8px;border-left:3px solid var(--primary);">${dim.title}</div>
       <table class="act-table" style="margin-bottom:4px;">
         <thead><tr><th style="text-align:left;">指标</th><th>当前值</th><th>中位数/阈值</th><th>对比</th><th style="text-align:left;">解读</th></tr></thead>
         <tbody>`;
@@ -1064,16 +1080,16 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   // 综合改进指引（简洁版，避免与上方表格重复）
   const badItems = allComparisons.filter(c => !c.isOk);
   if(badItems.length>0 && !isGood) {
-    html += `<div style="padding:10px 12px;background:#fff5f5;border-radius:6px;border-left:3px solid var(--danger);font-size:12px;line-height:1.8;">
-      <strong style="color:var(--danger);">待优化项（${badItems.length}）：</strong>`;
+    html += `<div style="padding:12px 16px;background:linear-gradient(135deg,#fef2f2,#fee2e2);border-radius:var(--radius);border-left:4px solid var(--danger);font-size:12px;line-height:1.8;margin-top:10px;">
+      <strong style="color:var(--danger);font-size:13px;">待优化项（${badItems.length}）：</strong><div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">`;
     html += badItems.map(c => `<span class="tag tag-red" style="margin:2px 4px;">${c.label}</span>`).join('');
-    html += `</div>`;
+    html += `</div></div>`;
   } else if(isGood) {
     const goodItems = allComparisons.filter(c => c.isOk);
-    html += `<div style="padding:10px 12px;background:#e8f5e9;border-radius:6px;border-left:3px solid var(--success);font-size:12px;line-height:1.8;">
-      <strong style="color:var(--success);">达标项（${goodItems.length}）：</strong>`;
+    html += `<div style="padding:12px 16px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:var(--radius);border-left:4px solid var(--success);font-size:12px;line-height:1.8;margin-top:10px;">
+      <strong style="color:var(--success);font-size:13px;">达标项（${goodItems.length}）：</strong><div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">`;
     html += goodItems.map(c => `<span class="tag tag-green" style="margin:2px 4px;">${c.label}</span>`).join('');
-    html += `</div>`;
+    html += `</div></div>`;
   }
 
   html += `</div></div>`; // 关闭 detail-panel 和外层
@@ -1088,9 +1104,9 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
 
   // === 活动信息展开 ===
   if(brandActs.length>0) {
-    html += `<div style="margin-top:8px;">
-      <div style="cursor:pointer;font-size:13px;font-weight:600;color:#e65100;padding:6px 0;user-select:none;" onclick="toggleDetail(this)">▼ 活动明细（${brandActs.length}个）</div>
-      <div class="case-detail-panel" style="display:block;">`;
+    html += `<div style="margin-top:10px;">
+      <div style="cursor:pointer;font-size:13px;font-weight:700;color:#c2410c;padding:8px 12px;user-select:none;background:linear-gradient(90deg,#fff7ed,transparent);border-radius:8px;display:inline-flex;align-items:center;gap:6px;transition:all .2s;" onclick="toggleDetail(this)" onmouseover="this.style.background='#ffedd5'" onmouseout="this.style.background='linear-gradient(90deg,#fff7ed,transparent)'">▼ 活动明细（${brandActs.length}个）</div>
+      <div class="case-detail-panel" style="display:block;margin-top:8px;">`;
     const wholeStoreActs = brandActs.filter(x=>x.isWholeStore===1);
     if(wholeStoreActs.length>0) {
       html += `<div style="margin-bottom:6px;"><span class="tag tag-orange">含${wholeStoreActs.length}个全场券</span></div>`;
@@ -1215,7 +1231,7 @@ function refreshTable(viewId, ownerFilter) {
         <th rowspan="2" style="text-align:left;">行业</th>
         <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">核销量</th>
         <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">曝光量</th>
-        <th colspan="3" class="group-header" style="border-left:2px solid #c2d7f7;">转化率（曝光核销率）</th>
+        <th colspan="3" class="group-header" style="border-left:2px solid #c2d7f7;">曝光核销率</th>
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">存活</th>
         <th colspan="3" class="group-header" style="border-left:2px solid #e8b4d0;">🎁 惊喜货盘</th>
         <th rowspan="2" style="border-left:2px solid var(--border);">反馈</th>
@@ -1228,7 +1244,7 @@ function refreshTable(viewId, ownerFilter) {
         <th class="sortable" data-sort="expGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光环比</th>
         <th class="sortable" data-sort="estExposure" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光目标(w)</th>
         <th class="sortable" data-sort="exposureAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光目标<br>达成率</th>
-        <th class="sortable" data-sort="exposureRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">当前<br>转化率（曝光核销率）</th>
+        <th class="sortable" data-sort="exposureRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">当前<br>曝光核销率</th>
         <th class="sortable" data-sort="convTarget" data-view="${viewId}" data-owner="${ownerFilter||''}">目标核销率</th>
         <th class="sortable" data-sort="rateAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">核销率目标<br>达成率</th>
         <th class="sortable" data-sort="alive" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">是否存活</th>
@@ -1924,202 +1940,203 @@ function analyzeGoodCase(b, med) {
 
 
 // ============================================================
-// 分渠道曝光核销环比模块（v3）
+// 分渠道曝光核销环比模块（重设计v3：整体视图+统一维度）
 // ============================================================
 function buildChannelBreakdownSection() {
   const gd = CHANNEL_DATA.globalData;
   const ch = gd.channels;
 
   function qoqVal(a,b) { return (b&&b!==0) ? (a-b)/b*100 : null; }
-  function deltaTag(v, inverse, unit) {
-    if(v===null||v===undefined||isNaN(v)||v===0) return '';
-    unit = unit||'pp';
-    const up = inverse ? v<=0 : v>=0;
-    const c2 = up ? '#34a853' : '#ea4335';
-    return '<span style="color:'+c2+';font-size:10px;">'+(v>0?'+':'')+v.toFixed(1)+unit+'</span>';
-  }
   function fmtW(v) { return (v||0).toFixed(1)+'w'; }
   function fmtN(v) { return Math.round(v||0).toLocaleString(); }
-  function calcRateNum(wrt,exp) { return exp>0 ? wrt/(exp*10000)*100 : null; }
-  function calcRate(wrt,exp) { const r=calcRateNum(wrt,exp); return r!==null?r.toFixed(2)+'%':'-'; }
-  function pctOf(a,b) { return b>0 ? (a/b*100).toFixed(1)+'%' : '-'; }
-
-  function qoqTag(v, inverse) {
-    if(v===null||v===undefined) return '<span style="color:#bbb;font-size:11px;">—</span>';
-    const up = inverse ? v<=0 : v>=0;
-    const color = up ? '#34a853' : '#ea4335';
+  function calcRateNum(wrt, exp) { return exp>0 ? wrt/(exp*10000)*100 : 0; }
+  function calcRate(wrt, exp) { return exp>0 ? (wrt/(exp*10000)*100).toFixed(2)+'%' : '-'; }
+  function qoqBadge(v, inverse) {
+    if(v===null||v===undefined) return '<span style="color:#94a3b8;font-size:11px;">—</span>';
+    const up = inverse ? v<0 : v>=0;
+    const color = up ? '#16a34a' : '#dc2626';
     const arrow = v>=0 ? '▲' : '▼';
-    return '<span style="color:'+color+';font-size:12px;font-weight:700;">'+arrow+' '+(v>=0?'+':'')+v.toFixed(1)+'%</span>';
+    return '<span style="color:'+color+';font-size:12px;font-weight:600;">'+arrow+' '+(v>=0?'+':'')+v.toFixed(1)+'%</span>';
+  }
+  function rateDeltaBadge(cur, prev) {
+    const d = cur - prev;
+    if(prev===0 && cur===0) return '<span style="color:#94a3b8;font-size:11px;">—</span>';
+    const color = d>=0 ? '#16a34a' : '#dc2626';
+    return '<span style="color:'+color+';font-size:12px;font-weight:600;">'+(d>=0?'+':'')+d.toFixed(2)+'pp</span>';
   }
 
   // 二选一合计
-  const e2Chs = ['商业支付','面对面','固定入口','其他'];
-  const c2x1 = {exp:0,wrt:0,pExp:0,pWrt:0};
-  e2Chs.forEach(c=>{c2x1.exp+=ch[c].exp;c2x1.wrt+=ch[c].wrt;c2x1.pExp+=ch[c].pExp;c2x1.pWrt+=ch[c].pWrt;});
+  const eff2x1Chs = ['商业支付','面对面','固定入口','其他'];
+  const c2x1 = {exp:0, wrt:0, pExp:0, pWrt:0};
+  eff2x1Chs.forEach(c => {
+    c2x1.exp += ch[c].exp; c2x1.wrt += ch[c].wrt;
+    c2x1.pExp += ch[c].pExp; c2x1.pWrt += ch[c].pWrt;
+  });
   const zbCh = ch['周边'];
   const totExp = c2x1.exp + zbCh.exp;
   const totWrt = c2x1.wrt + zbCh.wrt;
   const ptotExp = c2x1.pExp + zbCh.pExp;
   const ptotWrt = c2x1.pWrt + zbCh.pWrt;
+  const expShare2x1 = totExp>0 ? c2x1.exp/totExp*100 : 0;
+  const expShareZb = totExp>0 ? zbCh.exp/totExp*100 : 0;
+  const wrtShare2x1 = totWrt>0 ? c2x1.wrt/totWrt*100 : 0;
+  const wrtShareZb = totWrt>0 ? zbCh.wrt/totWrt*100 : 0;
 
-  // 核销率及环比
-  const r2x1 = calcRateNum(c2x1.wrt, c2x1.exp);
-  const pr2x1 = calcRateNum(c2x1.pWrt, c2x1.pExp);
-  const rzb = calcRateNum(zbCh.wrt, zbCh.exp);
-  const przb = calcRateNum(zbCh.pWrt, zbCh.pExp);
-  const rQoq2x1 = (r2x1!==null&&pr2x1!==null&&pr2x1!==0) ? (r2x1-pr2x1)/pr2x1*100 : null;
-  const rQoqZb = (rzb!==null&&przb!==null&&przb!==0) ? (rzb-przb)/przb*100 : null;
-
-  const zbSharePct = totExp>0 ? zbCh.exp/totExp*100 : 0;
-  const e2SharePct = totExp>0 ? c2x1.exp/totExp*100 : 0;
-  const pzbSharePct = ptotExp>0 ? zbCh.pExp/ptotExp*100 : 0;
-  const pe2SharePct = ptotExp>0 ? c2x1.pExp/ptotExp*100 : 0;
-  const zbShareWarn = zbSharePct > 40;
+  // 曝光核销率
+  const c2x1Rate = calcRateNum(c2x1.wrt, c2x1.exp);
+  const c2x1PRate = calcRateNum(c2x1.pWrt, c2x1.pExp);
+  const zbRate = calcRateNum(zbCh.wrt, zbCh.exp);
+  const zbPRate = calcRateNum(zbCh.pWrt, zbCh.pExp);
 
   let out = '';
-  out += '<div class="achieve-bars-section" style="margin-bottom:20px;">';
-  out += '<div class="achieve-bars-title" style="margin-bottom:18px;"><span style="width:4px;height:20px;background:#673ab7;border-radius:2px;display:inline-block;margin-right:8px;vertical-align:middle;"></span>分渠道曝光 & 核销<span style="font-size:11px;color:#aaa;font-weight:400;margin-left:8px;">本期 vs 上期 | 0311-0317 vs 0304-0310</span></div>';
+  out += '<div style="background:#fff;border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow-md);border:1px solid var(--border);">';
+  out += '<div style="font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;"><span style="width:4px;height:20px;background:var(--purple);border-radius:2px;display:inline-block;"></span>渠道概览</div>';
 
-  // ═══════════════════════════════════════════
-  // 顶部：曝光构成可视化横条（完整占比一览）
-  // ═══════════════════════════════════════════
-  out += '<div style="margin-bottom:20px;">';
-  out += '<div style="font-size:11px;color:#888;margin-bottom:6px;display:flex;justify-content:space-between;"><span>全渠道曝光构成</span><span>总曝光 本期 '+fmtW(totExp)+' / 上期 '+fmtW(ptotExp)+'</span></div>';
-  // 本期
-  out += '<div style="margin-bottom:6px;">';
-  out += '<div style="font-size:10px;color:#aaa;margin-bottom:3px;">本期</div>';
-  out += '<div style="display:flex;border-radius:6px;overflow:hidden;height:22px;">';
-  out += '<div style="width:'+e2SharePct.toFixed(1)+'%;background:#1a73e8;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;min-width:40px;">二选一 '+e2SharePct.toFixed(1)+'%</div>';
-  out += '<div style="width:'+zbSharePct.toFixed(1)+'%;background:'+(zbShareWarn?'#f44336':'#f9ab00')+';display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;min-width:40px;">周边 '+zbSharePct.toFixed(1)+'%</div>';
-  out += '</div></div>';
-  // 上期
-  out += '<div>';
-  out += '<div style="font-size:10px;color:#aaa;margin-bottom:3px;">上期</div>';
-  out += '<div style="display:flex;border-radius:6px;overflow:hidden;height:14px;">';
-  out += '<div style="width:'+pe2SharePct.toFixed(1)+'%;background:#90bafc;"></div>';
-  out += '<div style="width:'+pzbSharePct.toFixed(1)+'%;background:#fcd980;"></div>';
-  out += '</div>';
-  out += '<div style="display:flex;gap:12px;margin-top:3px;font-size:10px;color:#aaa;"><span>■ 二选一 '+pe2SharePct.toFixed(1)+'%</span><span>■ 周边 '+pzbSharePct.toFixed(1)+'%</span>'+(zbSharePct-pzbSharePct>0?'<span style="color:'+(zbShareWarn?'#f44336':'#e65100')+'">周边占比 +'+(zbSharePct-pzbSharePct).toFixed(1)+'pp ▲</span>':'<span style="color:#34a853">周边占比 '+(zbSharePct-pzbSharePct).toFixed(1)+'pp</span>')+'</div>';
-  out += '</div></div>';
-
-  // ═══════════════════════════════════════════
-  // 双卡片：二选一 vs 非二选一
-  // ═══════════════════════════════════════════
+  // ═══ 一体化占比对比条 ═══
   out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">';
-
-  function bigCard(title, topColor, mainBg, borderWarn,
-      expVal, pExpVal, expShare, pExpShare,
-      wrtVal, pWrtVal, wrtShare, pWrtShare,
-      rateVal, pRateVal, rateQoq, inverse) {
-    const expQ = qoqVal(expVal, pExpVal);
-    const wrtQ = qoqVal(wrtVal, pWrtVal);
-    let c = '';
-    c += '<div style="background:'+mainBg+';border-radius:12px;padding:18px 20px;border-top:4px solid '+topColor+(borderWarn?';box-shadow:0 0 0 2px #f44336':'')+';">';
-    c += '<div style="font-size:13px;font-weight:700;color:'+topColor+';margin-bottom:16px;">'+title+'</div>';
-    c += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-radius:8px;overflow:hidden;">';
-    // 曝光列
-    c += '<div style="background:rgba(0,0,0,0.03);padding:10px 12px;border-right:1px solid rgba(0,0,0,0.06);">';
-    c += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:.5px;">曝 光</div>';
-    c += '<div style="font-size:11px;color:#888;margin-bottom:2px;">占总曝光</div>';
-    c += '<div style="font-size:20px;font-weight:800;color:#1a1a1a;line-height:1;">'+expShare+'</div>';
-    const _esDiff = (parseFloat(expShare)||0)-(parseFloat(pExpShare)||0);
-    c += '<div style="font-size:11px;color:#aaa;margin-top:2px;">上期 '+pExpShare+' '+(_esDiff!==0?deltaTag(_esDiff,inverse):'')+'</div>';
-    c += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:8px 0;"></div>';
-    c += '<div style="font-size:11px;color:#888;">日均 <strong>'+fmtW(expVal)+'</strong></div>';
-    c += '<div style="font-size:11px;margin-top:2px;">'+qoqTag(expQ, inverse)+'<span style="font-size:10px;color:#aaa;margin-left:4px;">上期 '+fmtW(pExpVal)+'</span></div>';
-    c += '</div>';
-    // 核销列
-    c += '<div style="background:rgba(0,0,0,0.03);padding:10px 12px;border-right:1px solid rgba(0,0,0,0.06);">';
-    c += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:.5px;">核 销</div>';
-    c += '<div style="font-size:11px;color:#888;margin-bottom:2px;">占总核销</div>';
-    c += '<div style="font-size:20px;font-weight:800;color:#1a1a1a;line-height:1;">'+wrtShare+'</div>';
-    const _wsDiff = (parseFloat(wrtShare)||0)-(parseFloat(pWrtShare)||0);
-    c += '<div style="font-size:11px;color:#aaa;margin-top:2px;">上期 '+pWrtShare+' '+(_wsDiff!==0?deltaTag(_wsDiff):'')+'</div>';
-    c += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:8px 0;"></div>';
-    c += '<div style="font-size:11px;color:#888;">日均 <strong>'+fmtN(wrtVal)+'</strong></div>';
-    c += '<div style="font-size:11px;margin-top:2px;">'+qoqTag(wrtQ)+'<span style="font-size:10px;color:#aaa;margin-left:4px;">上期 '+fmtN(pWrtVal)+'</span></div>';
-    c += '</div>';
-    // 核销率列
-    c += '<div style="background:rgba(0,0,0,0.03);padding:10px 12px;">';
-    c += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:.5px;">核销率</div>';
-    c += '<div style="font-size:24px;font-weight:900;color:'+topColor+';line-height:1.1;">'+rateVal+'</div>';
-    c += '<div style="font-size:12px;margin-top:6px;">'+qoqTag(rateQoq)+'</div>';
-    c += '<div style="font-size:11px;color:#aaa;margin-top:4px;">上期 '+pRateVal+'</div>';
-    c += '</div>';
-    c += '</div></div>';
-    return c;
-  }
-
-  out += bigCard(
-    '二选一', '#1a73e8', '#f0f7ff', false,
-    c2x1.exp, c2x1.pExp, pctOf(c2x1.exp,totExp), pctOf(c2x1.pExp,ptotExp),
-    c2x1.wrt, c2x1.pWrt, pctOf(c2x1.wrt,totWrt), pctOf(c2x1.pWrt,ptotWrt),
-    r2x1!==null?r2x1.toFixed(2)+'%':'-', pr2x1!==null?pr2x1.toFixed(2)+'%':'-',
-    rQoq2x1, false
-  );
-  out += bigCard(
-    '非二选一（周边）'+(zbShareWarn?' <span style="font-size:11px;background:#fde8e8;color:#f44336;padding:2px 6px;border-radius:4px;font-weight:400;">⚠ 占比偏高</span>':''),
-    zbShareWarn?'#f44336':'#e65100', '#fffde7', zbShareWarn,
-    zbCh.exp, zbCh.pExp, pctOf(zbCh.exp,totExp), pctOf(zbCh.pExp,ptotExp),
-    zbCh.wrt, zbCh.pWrt, pctOf(zbCh.wrt,totWrt), pctOf(zbCh.pWrt,ptotWrt),
-    rzb!==null?rzb.toFixed(2)+'%':'-', przb!==null?przb.toFixed(2)+'%':'-',
-    rQoqZb, true
-  );
-  out += '</div>'; // end dual card grid
-
-  // ═══════════════════════════════════════════
-  // 子渠道折叠：占比为主，绝对值+核销率为辅
-  // ═══════════════════════════════════════════
-  out += '<div style="border-top:1px solid #e8eaed;padding-top:12px;">';
-  out += '<div style="cursor:pointer;font-size:12px;color:#888;user-select:none;margin-bottom:10px;" onclick="toggleSubChDetail(this)">▸ 展开子渠道明细</div>';
-  out += '<div style="display:none;">';
-
-  const subChs = [
-    {name:'商业支付', color:'#1a73e8', bg:'#e8f0fe'},
-    {name:'面对面',   color:'#0d7a1a', bg:'#e6f4ea'},
-    {name:'固定入口', color:'#5c35cc', bg:'#f0ebff'},
-    {name:'其他',     color:'#888',    bg:'#f5f5f5', note:true},
-    {name:'周边',     color:'#e65100', bg:'#fff3e0', inverse:true},
-  ];
-
-  out += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">';
-  subChs.forEach(r => {
-    const d = ch[r.name];
-    const eShare = pctOf(d.exp, totExp);
-    const wShare = pctOf(d.wrt, totWrt);
-    const peShare = pctOf(d.pExp, ptotExp);
-    const pwShare = pctOf(d.pWrt, ptotWrt);
-    const rate = r.note ? null : calcRateNum(d.wrt, d.exp);
-    const prate = r.note ? null : calcRateNum(d.pWrt, d.pExp);
-    const rQoq = (rate!==null&&prate!==null&&prate!==0) ? (rate-prate)/prate*100 : null;
-    out += '<div style="background:'+r.bg+';border-radius:8px;padding:10px 12px;">';
-    out += '<div style="font-size:12px;font-weight:700;color:'+r.color+';margin-bottom:8px;">'+r.name+(r.note?' <span style="font-size:10px;color:#e65100;font-weight:400;">⚠数据口径</span>':'')+'</div>';
-    // 占比行
-    out += '<div style="font-size:10px;color:#888;margin-bottom:2px;">曝光占比</div>';
-    out += '<div style="font-size:16px;font-weight:800;color:#1a1a1a;">'+eShare+'</div>';
-    out += '<div style="font-size:10px;color:#aaa;">上期 '+peShare+' '+qoqTag(qoqVal(parseFloat(eShare),parseFloat(peShare)), r.inverse)+'</div>';
-    out += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:6px 0;"></div>';
-    // 核销占比
-    out += '<div style="font-size:10px;color:#888;margin-bottom:2px;">核销占比</div>';
-    out += '<div style="font-size:16px;font-weight:800;color:#1a1a1a;">'+wShare+'</div>';
-    out += '<div style="font-size:10px;color:#aaa;">上期 '+pwShare+' '+qoqTag(qoqVal(parseFloat(wShare),parseFloat(pwShare)))+'</div>';
-    out += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:6px 0;"></div>';
-    // 绝对值 + 核销率
-    out += '<div style="font-size:10px;color:#aaa;">曝 '+fmtW(d.exp)+' &nbsp;核 '+fmtN(d.wrt)+'</div>';
-    if(!r.note) {
-      out += '<div style="font-size:11px;margin-top:3px;">核销率 <strong style="color:'+r.color+'">'+calcRate(d.wrt,d.exp)+'</strong> '+qoqTag(rQoq)+'</div>';
-    }
-    out += '</div>';
-  });
+  // 曝光占比
+  out += '<div style="background:var(--bg);border-radius:10px;padding:12px 16px;">';
+  out += '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">曝光占比</div>';
+  out += '<div style="display:flex;height:28px;border-radius:14px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.08);">';
+  out += '<div style="width:'+expShare2x1.toFixed(1)+'%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;min-width:50px;">'+expShare2x1.toFixed(1)+'%</div>';
+  out += '<div style="width:'+expShareZb.toFixed(1)+'%;background:linear-gradient(135deg,#ea580c,#f97316);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;min-width:50px;">'+expShareZb.toFixed(1)+'%</div>';
   out += '</div>';
-  out += '</div></div>'; // end collapse + section
-  out += '</div>'; // end achieve-bars-section
+  out += '<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--text-secondary);"><span>二选一 '+fmtW(c2x1.exp)+'</span><span>周边 '+fmtW(zbCh.exp)+'</span></div>';
+  out += '</div>';
+  // 核销占比
+  out += '<div style="background:var(--bg);border-radius:10px;padding:12px 16px;">';
+  out += '<div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">核销占比</div>';
+  out += '<div style="display:flex;height:28px;border-radius:14px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,0.08);">';
+  out += '<div style="width:'+wrtShare2x1.toFixed(1)+'%;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;min-width:50px;">'+wrtShare2x1.toFixed(1)+'%</div>';
+  out += '<div style="width:'+wrtShareZb.toFixed(1)+'%;background:linear-gradient(135deg,#ea580c,#f97316);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;min-width:50px;">'+wrtShareZb.toFixed(1)+'%</div>';
+  out += '</div>';
+  out += '<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--text-secondary);"><span>二选一 '+fmtN(c2x1.wrt)+'</span><span>周边 '+fmtN(zbCh.wrt)+'</span></div>';
+  out += '</div>';
+  out += '</div>';
+
+  // ═══ 整体一览表：二选一 vs 非二选一 ═══
+  out += '<div style="overflow-x:auto;margin-bottom:24px;">';
+  out += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+  out += '<thead><tr>';
+  out += '<th style="text-align:left;padding:10px 12px;background:var(--bg);border-bottom:2px solid var(--border);font-weight:700;font-size:11px;min-width:80px;"></th>';
+  out += '<th colspan="2" style="padding:10px;background:#eff6ff;border-bottom:2px solid #bfdbfe;font-weight:700;color:#2563eb;text-align:center;font-size:12px;">曝光量</th>';
+  out += '<th colspan="2" style="padding:10px;background:#f0fdf4;border-bottom:2px solid #bbf7d0;font-weight:700;color:#16a34a;text-align:center;font-size:12px;">核销量</th>';
+  out += '<th colspan="2" style="padding:10px;background:#f5f3ff;border-bottom:2px solid #ddd6fe;font-weight:700;color:#7c3aed;text-align:center;font-size:12px;">曝光核销率</th>';
+  out += '</tr><tr>';
+  out += '<th style="padding:6px 12px;background:var(--bg);border-bottom:1px solid var(--border);"></th>';
+  ['本期','环比','本期','环比','本期','环比'].forEach((h,i) => {
+    const bgs = ['#eff6ff','#eff6ff','#f0fdf4','#f0fdf4','#f5f3ff','#f5f3ff'];
+    out += '<th style="padding:6px 8px;background:'+bgs[i]+';border-bottom:1px solid var(--border);font-size:10px;font-weight:500;text-align:center;">'+h+'</th>';
+  });
+  out += '</tr></thead><tbody>';
+
+  // 行：二选一
+  out += '<tr style="border-bottom:1px solid var(--border);">';
+  out += '<td style="padding:10px 12px;text-align:left;font-weight:700;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2563eb;margin-right:8px;vertical-align:middle;"></span>二选一<div style="font-size:10px;font-weight:400;color:var(--text-secondary);margin-top:2px;">占比 曝光'+expShare2x1.toFixed(1)+'% / 核销'+wrtShare2x1.toFixed(1)+'%</div></td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#fafbfe;"><div style="font-size:18px;font-weight:800;color:#1e40af;">'+fmtW(c2x1.exp)+'</div><div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">上期 '+fmtW(c2x1.pExp)+'</div></td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#fafbfe;">'+qoqBadge(qoqVal(c2x1.exp,c2x1.pExp))+'</td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#f8fdf9;"><div style="font-size:18px;font-weight:800;color:#15803d;">'+fmtN(c2x1.wrt)+'</div><div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">上期 '+fmtN(c2x1.pWrt)+'</div></td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#f8fdf9;">'+qoqBadge(qoqVal(c2x1.wrt,c2x1.pWrt))+'</td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#faf8fe;"><div style="font-size:18px;font-weight:800;color:#7c3aed;">'+c2x1Rate.toFixed(2)+'%</div><div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">上期 '+c2x1PRate.toFixed(2)+'%</div></td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#faf8fe;">'+rateDeltaBadge(c2x1Rate, c2x1PRate)+'</td>';
+  out += '</tr>';
+
+  // 行：非二选一（周边）
+  const zbShareWarn = expShareZb > 40;
+  out += '<tr style="border-bottom:1px solid var(--border);">';
+  out += '<td style="padding:10px 12px;text-align:left;font-weight:700;font-size:13px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ea580c;margin-right:8px;vertical-align:middle;"></span>非二选一'+(zbShareWarn?'<span class="tag tag-red" style="font-size:9px;margin-left:6px;">占比偏高</span>':'')+'<div style="font-size:10px;font-weight:400;color:var(--text-secondary);margin-top:2px;">占比 曝光'+expShareZb.toFixed(1)+'% / 核销'+wrtShareZb.toFixed(1)+'%</div></td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#fafbfe;"><div style="font-size:18px;font-weight:800;color:#c2410c;">'+fmtW(zbCh.exp)+'</div><div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">上期 '+fmtW(zbCh.pExp)+'</div></td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#fafbfe;">'+qoqBadge(qoqVal(zbCh.exp,zbCh.pExp), true)+'</td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#f8fdf9;"><div style="font-size:18px;font-weight:800;color:#c2410c;">'+fmtN(zbCh.wrt)+'</div><div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">上期 '+fmtN(zbCh.pWrt)+'</div></td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#f8fdf9;">'+qoqBadge(qoqVal(zbCh.wrt,zbCh.pWrt))+'</td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#faf8fe;"><div style="font-size:18px;font-weight:800;color:#ea580c;">'+zbRate.toFixed(2)+'%</div><div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">上期 '+zbPRate.toFixed(2)+'%</div></td>';
+  out += '<td style="padding:10px 8px;text-align:center;background:#faf8fe;">'+rateDeltaBadge(zbRate, zbPRate)+'</td>';
+  out += '</tr>';
+
+  // 合计行
+  const totRate = calcRateNum(totWrt, totExp);
+  const ptotRate = calcRateNum(ptotWrt, ptotExp);
+  out += '<tr style="background:var(--bg);font-weight:700;">';
+  out += '<td style="padding:10px 12px;text-align:left;font-size:12px;border-top:2px solid var(--border);">合计</td>';
+  out += '<td style="padding:10px 8px;text-align:center;border-top:2px solid var(--border);font-size:14px;">'+fmtW(totExp)+'</td>';
+  out += '<td style="padding:10px 8px;text-align:center;border-top:2px solid var(--border);">'+qoqBadge(qoqVal(totExp,ptotExp))+'</td>';
+  out += '<td style="padding:10px 8px;text-align:center;border-top:2px solid var(--border);font-size:14px;">'+fmtN(totWrt)+'</td>';
+  out += '<td style="padding:10px 8px;text-align:center;border-top:2px solid var(--border);">'+qoqBadge(qoqVal(totWrt,ptotWrt))+'</td>';
+  out += '<td style="padding:10px 8px;text-align:center;border-top:2px solid var(--border);font-size:14px;">'+totRate.toFixed(2)+'%</td>';
+  out += '<td style="padding:10px 8px;text-align:center;border-top:2px solid var(--border);">'+rateDeltaBadge(totRate, ptotRate)+'</td>';
+  out += '</tr>';
+
+  out += '</tbody></table></div>';
+
+  // ═══ 分渠道详情（整体表格，只保留标题） ═══
+  out += '<div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px;display:flex;align-items:center;gap:8px;">各渠道详情</div>';
+  out += '<div style="overflow-x:auto;">';
+  out += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+  out += '<thead><tr>';
+  out += '<th style="text-align:left;padding:8px 10px;background:var(--bg);border-bottom:2px solid var(--border);font-weight:700;font-size:11px;">渠道</th>';
+  out += '<th style="padding:8px;background:var(--bg);border-bottom:2px solid var(--border);font-size:10px;text-align:center;">曝光占比</th>';
+  out += '<th style="padding:8px;background:var(--bg);border-bottom:2px solid var(--border);font-size:10px;text-align:center;">核销占比</th>';
+  out += '<th colspan="2" style="padding:8px;background:#eff6ff;border-bottom:2px solid #bfdbfe;font-size:11px;font-weight:600;color:#2563eb;text-align:center;">曝光量</th>';
+  out += '<th colspan="2" style="padding:8px;background:#f0fdf4;border-bottom:2px solid #bbf7d0;font-size:11px;font-weight:600;color:#16a34a;text-align:center;">核销量</th>';
+  out += '<th colspan="2" style="padding:8px;background:#f5f3ff;border-bottom:2px solid #ddd6fe;font-size:11px;font-weight:600;color:#7c3aed;text-align:center;">曝光核销率</th>';
+  out += '</tr><tr>';
+  out += '<th style="padding:4px 10px;background:var(--bg);border-bottom:1px solid var(--border);"></th>';
+  out += '<th style="padding:4px;background:var(--bg);border-bottom:1px solid var(--border);"></th>';
+  out += '<th style="padding:4px;background:var(--bg);border-bottom:1px solid var(--border);"></th>';
+  ['本期','环比','本期','环比','本期','环比'].forEach((h,i) => {
+    const bgs = ['#eff6ff','#eff6ff','#f0fdf4','#f0fdf4','#f5f3ff','#f5f3ff'];
+    out += '<th style="padding:4px 6px;background:'+bgs[i]+';border-bottom:1px solid var(--border);font-size:10px;font-weight:400;text-align:center;">'+h+'</th>';
+  });
+  out += '</tr></thead><tbody>';
+
+  const subRows = [
+    { name:'商业支付', color:'#2563eb', bg:'#fafbfe' },
+    { name:'面对面',   color:'#16a34a', bg:'#f8fdf9' },
+    { name:'固定入口', color:'#7c3aed', bg:'#faf8fe' },
+    { name:'周边',     color:'#ea580c', bg:'#fffaf7' },
+    { name:'其他',     color:'#64748b', bg:'#f8fafc', anomaly:true },
+  ];
+  subRows.forEach(r => {
+    const d = ch[r.name];
+    const expQ = qoqVal(d.exp, d.pExp);
+    const wrtQ = qoqVal(d.wrt, d.pWrt);
+    const expPct = totExp>0 ? d.exp/totExp*100 : 0;
+    const wrtPct = totWrt>0 ? d.wrt/totWrt*100 : 0;
+    const curRate = calcRateNum(d.wrt, d.exp);
+    const prevRate = calcRateNum(d.pWrt, d.pExp);
+
+    out += '<tr style="border-bottom:1px solid var(--border);background:'+r.bg+';">';
+    out += '<td style="padding:8px 10px;text-align:left;font-weight:600;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+r.color+';margin-right:6px;vertical-align:middle;"></span>'+r.name+'</td>';
+    // 曝光占比（带迷你进度条）
+    out += '<td style="padding:8px 6px;text-align:center;"><div style="font-weight:600;color:'+r.color+';">'+expPct.toFixed(1)+'%</div><div style="height:3px;background:#e2e8f0;border-radius:2px;margin-top:3px;overflow:hidden;"><div style="width:'+Math.min(expPct*2,100)+'%;height:100%;background:'+r.color+';border-radius:2px;"></div></div></td>';
+    // 核销占比
+    out += '<td style="padding:8px 6px;text-align:center;"><div style="font-weight:600;color:'+r.color+';">'+wrtPct.toFixed(1)+'%</div><div style="height:3px;background:#e2e8f0;border-radius:2px;margin-top:3px;overflow:hidden;"><div style="width:'+Math.min(wrtPct*2,100)+'%;height:100%;background:'+r.color+';border-radius:2px;opacity:0.6;"></div></div></td>';
+    // 曝光本期+环比
+    out += '<td style="padding:8px 6px;text-align:center;"><strong>'+fmtW(d.exp)+'</strong><div style="font-size:10px;color:var(--text-secondary);">上期 '+fmtW(d.pExp)+'</div></td>';
+    out += '<td style="padding:8px 6px;text-align:center;">'+qoqBadge(expQ, r.name==='周边')+'</td>';
+    // 核销本期+环比
+    out += '<td style="padding:8px 6px;text-align:center;"><strong>'+fmtN(d.wrt)+'</strong><div style="font-size:10px;color:var(--text-secondary);">上期 '+fmtN(d.pWrt)+'</div></td>';
+    out += '<td style="padding:8px 6px;text-align:center;">'+qoqBadge(wrtQ)+'</td>';
+    // 曝光核销率本期+环比
+    if(r.anomaly) {
+      out += '<td style="padding:8px 6px;text-align:center;color:#94a3b8;" colspan="2">口径异常</td>';
+    } else {
+      out += '<td style="padding:8px 6px;text-align:center;"><strong style="color:'+r.color+';">'+curRate.toFixed(2)+'%</strong><div style="font-size:10px;color:var(--text-secondary);">上期 '+prevRate.toFixed(2)+'%</div></td>';
+      out += '<td style="padding:8px 6px;text-align:center;">'+rateDeltaBadge(curRate, prevRate)+'</td>';
+    }
+    out += '</tr>';
+  });
+  out += '</tbody></table></div>';
+
+  out += '</div>';
   return out;
 }
 
+// toggleSubChannels removed - channels now shown inline
+
 
 // ============================================================
-// 品牌渠道诊断（v3）：固定指标 × 分渠道 × 本期 vs 上期
+// 品牌渠道诊断（重设计）：未存活品牌分渠道对比
 // ============================================================
 function buildBrandChannelDiagnosis(brandName, cd) {
   if(!cd) return '';
@@ -2127,177 +2144,150 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   function qoqVal(a,b) { return (b&&b!==0) ? (a-b)/b*100 : null; }
   function fmtW(v) { return (v||0).toFixed(1)+'w'; }
   function fmtN(v) { return Math.round(v||0).toLocaleString(); }
-  function calcRateNum(wrt,exp) { return exp>0 ? wrt/(exp*10000)*100 : null; }
-  function calcRate(wrt,exp) { const r=calcRateNum(wrt,exp); return r!==null?r.toFixed(2)+'%':'-'; }
+  function calcRate(wrt, exp) { return exp>0 ? (wrt/(exp*10000)*100).toFixed(2)+'%' : '-'; }
+  function calcRateNum(wrt, exp) { return exp>0 ? wrt/(exp*10000)*100 : 0; }
   function pctOf(a,b) { return b>0 ? (a/b*100).toFixed(1)+'%' : '-'; }
-  function delta(a,b) { return b!==null&&a!==null ? a-b : null; }
-
-  function qoqTag(v, inverse) {
-    if(v===null||v===undefined) return '<span style="color:#ccc;font-size:10px;">—</span>';
-    const up = inverse ? v<=0 : v>=0;
-    const c = up ? '#34a853' : '#ea4335';
-    return '<span style="color:'+c+';font-size:11px;font-weight:700;">'+(v>=0?'▲ +':'▼ ')+v.toFixed(1)+'%</span>';
-  }
-  function deltaTag(v, inverse, unit) {
-    if(v===null||v===undefined) return '';
-    unit = unit||'pp';
-    const up = inverse ? v<=0 : v>=0;
-    const c = up ? '#34a853' : '#ea4335';
-    return '<span style="color:'+c+';font-size:10px;">'+(v>=0?'+':'')+v.toFixed(1)+unit+'</span>';
-  }
+  function pctOfNum(a,b) { return b>0 ? a/b*100 : 0; }
+  function deltaClass(v) { return v>=0 ? 'color:#16a34a;font-weight:600;' : 'color:#dc2626;font-weight:600;'; }
+  function deltaStr(v) { if(v===null||v===undefined) return '—'; return (v>=0?'+':'')+v.toFixed(1); }
 
   const chs = cd.chData;
-  const CHANNELS = ['商业支付','面对面','固定入口','周边','其他'];
-
-  // 汇总数值
-  let totExp=0,totWrt=0,ptotExp=0,ptotWrt=0;
-  CHANNELS.forEach(c=>{
-    totExp+=(chs[c]||{}).exp||0; totWrt+=(chs[c]||{}).wrt||0;
-    ptotExp+=(chs[c]||{}).pExp||0; ptotWrt+=(chs[c]||{}).pWrt||0;
-  });
-
-  // 二选一合计
-  const e2Chs=['商业支付','面对面','固定入口','其他'];
-  const s2={exp:0,wrt:0,pExp:0,pWrt:0};
-  e2Chs.forEach(c=>{s2.exp+=(chs[c]||{}).exp||0;s2.wrt+=(chs[c]||{}).wrt||0;s2.pExp+=(chs[c]||{}).pExp||0;s2.pWrt+=(chs[c]||{}).pWrt||0;});
-  const zbCh = chs['周边']||{};
-
-  const zbShare = totExp>0 ? zbCh.exp/totExp*100 : 0;
-  const pZbShare = ptotExp>0 ? zbCh.pExp/ptotExp*100 : 0;
+  const zbShare = cd.zbShare||0;
+  const pZbShare = cd.pZbShare||0;
   const zbDelta = zbShare - pZbShare;
 
-  // 诊断标签
-  const s2Qoq = qoqVal(s2.exp, s2.pExp);
-  const isZbDilution = zbShare > 50 && zbDelta > 5 && (cd.wrtQoq===null||cd.wrtQoq<=0);
-  const isEff2x1Low = s2.exp < 5 && totExp > 10;
-  const isNearAlive = !isZbDilution && !isEff2x1Low && cd.wrtQoq>0 && cd.survivalRate>=0.7;
+  // 渠道列表
+  const channels = ['商业支付','面对面','固定入口','周边'];
+  const chColors = {'商业支付':'#2563eb','面对面':'#16a34a','固定入口':'#7c3aed','周边':'#ea580c'};
 
-  let diagType, diagColor;
-  if(isZbDilution){diagType='周边曝光稀释';diagColor='#c62828';}
-  else if(isEff2x1Low){diagType='二选一曝光不足';diagColor='#e65100';}
-  else if(isNearAlive){diagType='改善中（临界）';diagColor='#1565c0';}
-  else{diagType='整体下滑';diagColor='#5c35cc';}
+  // 二选一合计
+  const eff2x1Chs = ['商业支付','面对面','固定入口','其他'];
+  const s2x1 = {exp:0,wrt:0,pExp:0,pWrt:0};
+  eff2x1Chs.forEach(c => {
+    s2x1.exp += (chs[c]||{}).exp||0; s2x1.wrt += (chs[c]||{}).wrt||0;
+    s2x1.pExp += (chs[c]||{}).pExp||0; s2x1.pWrt += (chs[c]||{}).pWrt||0;
+  });
 
   let out = '';
-  out += '<div style="margin-top:14px;border-top:1px dashed #e0e0e0;padding-top:14px;">';
+  out += '<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">';
+  out += '<div style="font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">分渠道诊断 <span style="font-size:11px;font-weight:400;color:var(--text-secondary);">判断核销率低是否由曝光分配造成</span></div>';
 
-  // 诊断标签
-  out += '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">';
-  out += '<span style="font-size:11px;font-weight:700;background:'+diagColor+';color:#fff;padding:3px 10px;border-radius:4px;">'+diagType+'</span>';
-  out += '<span style="font-size:12px;color:#666;">渠道曝光分配诊断</span></div>';
+  // ═══ 曝光占比变化条 ═══
+  out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+  // 本期
+  const e2Pct = Math.max(0, Math.min(100-zbShare, 100));
+  const zbPct = Math.max(0, Math.min(zbShare, 100));
+  out += '<div style="background:var(--bg);border-radius:8px;padding:10px 14px;">';
+  out += '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:6px;"><span>本期曝光构成</span></div>';
+  out += '<div style="display:flex;height:12px;border-radius:6px;overflow:hidden;">';
+  out += '<div style="width:'+e2Pct+'%;background:#2563eb;" title="二选一"></div>';
+  out += '<div style="width:'+zbPct+'%;background:'+(zbShare>50?'#dc2626':'#ea580c')+'" title="周边"></div>';
+  out += '</div>';
+  out += '<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px;"><span style="color:#2563eb;font-weight:600;">二选一 '+e2Pct.toFixed(1)+'%</span><span style="color:'+(zbShare>50?'#dc2626':'#ea580c')+';font-weight:600;">周边 '+zbPct.toFixed(1)+'%</span></div>';
+  out += '</div>';
+  // 上期
+  const pe2Pct = Math.max(0, Math.min(100-pZbShare, 100));
+  const pzbPct = Math.max(0, Math.min(pZbShare, 100));
+  out += '<div style="background:var(--bg);border-radius:8px;padding:10px 14px;">';
+  out += '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:6px;"><span>上期曝光构成</span><span style="font-weight:600;color:'+(zbDelta>5?'#dc2626':zbDelta<-5?'#16a34a':'var(--text-secondary)')+';">周边占比'+(zbDelta>=0?'+':'')+zbDelta.toFixed(1)+'pp</span></div>';
+  out += '<div style="display:flex;height:12px;border-radius:6px;overflow:hidden;">';
+  out += '<div style="width:'+pe2Pct+'%;background:#2563eb;opacity:0.5;"></div>';
+  out += '<div style="width:'+pzbPct+'%;background:#ea580c;opacity:0.5;"></div>';
+  out += '</div>';
+  out += '<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px;"><span style="color:#2563eb;">二选一 '+pe2Pct.toFixed(1)+'%</span><span style="color:#ea580c;">周边 '+pzbPct.toFixed(1)+'%</span></div>';
+  out += '</div>';
+  out += '</div>';
 
-  // ═══════════════════════════════════════════
-  // 分渠道对比表：曝光占比 | 核销占比 | 核销率
-  // 每个渠道：本期 vs 上期，变化量高亮
-  // ═══════════════════════════════════════════
-  const chRows = [
-    {name:'商业支付', color:'#1a73e8', bg:'#e8f0fe', isZb:false, anomaly:false},
-    {name:'面对面',   color:'#0d7a1a', bg:'#e6f4ea', isZb:false, anomaly:false},
-    {name:'固定入口', color:'#5c35cc', bg:'#f0ebff', isZb:false, anomaly:false},
-    {name:'周边',     color:'#e65100', bg:'#fff3e0', isZb:true,  anomaly:false},
-    {name:'其他',     color:'#888',    bg:'#f5f5f5', isZb:false, anomaly:true},
-  ];
-
+  // ═══ 核心对比表：曝光/核销/核销率 × 渠道 × 本期上期 ═══
   out += '<div style="overflow-x:auto;">';
   out += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-
-  // 表头
-  out += '<thead>';
-  out += '<tr style="background:#f8f9fa;">';
-  out += '<th style="padding:8px 10px;text-align:left;font-weight:700;color:#333;border-bottom:2px solid #e0e0e0;min-width:70px;">渠道</th>';
-  ['曝光占比','核销占比','曝光核销率'].forEach(h => {
-    out += '<th colspan="3" style="padding:8px 10px;text-align:center;font-weight:700;color:#333;border-bottom:2px solid #e0e0e0;border-left:1px solid #e0e0e0;">'+h+'</th>';
+  out += '<thead><tr>';
+  out += '<th style="text-align:left;padding:8px 10px;background:var(--bg);border-bottom:2px solid var(--border);font-size:11px;font-weight:700;">渠道</th>';
+  out += '<th colspan="3" style="padding:8px 10px;background:#eff6ff;border-bottom:2px solid #bfdbfe;font-size:11px;font-weight:700;color:#2563eb;text-align:center;">曝光量(w)</th>';
+  out += '<th colspan="3" style="padding:8px 10px;background:#f0fdf4;border-bottom:2px solid #bbf7d0;font-size:11px;font-weight:700;color:#16a34a;text-align:center;">核销量</th>';
+  out += '<th colspan="3" style="padding:8px 10px;background:#f5f3ff;border-bottom:2px solid #ddd6fe;font-size:11px;font-weight:700;color:#7c3aed;text-align:center;">曝光核销率</th>';
+  out += '</tr><tr>';
+  out += '<th style="padding:6px 10px;background:var(--bg);border-bottom:1px solid var(--border);font-size:10px;"></th>';
+  ['本期','上期','变化','本期','上期','变化','本期','上期','变化'].forEach((h,i) => {
+    const bgs = ['#eff6ff','#eff6ff','#eff6ff','#f0fdf4','#f0fdf4','#f0fdf4','#f5f3ff','#f5f3ff','#f5f3ff'];
+    out += '<th style="padding:6px 8px;background:'+bgs[i]+';border-bottom:1px solid var(--border);font-size:10px;font-weight:500;text-align:center;">'+h+'</th>';
   });
-  out += '</tr>';
-  out += '<tr style="background:#f8f9fa;">';
-  out += '<th style="padding:4px 10px;border-bottom:1px solid #e0e0e0;"></th>';
-  for(let i=0;i<3;i++){
-    out += '<th style="padding:4px 8px;text-align:right;color:#888;font-weight:400;border-left:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;">本期</th>';
-    out += '<th style="padding:4px 8px;text-align:right;color:#bbb;font-weight:400;border-bottom:1px solid #e0e0e0;">上期</th>';
-    out += '<th style="padding:4px 8px;text-align:center;color:#888;font-weight:400;border-bottom:1px solid #e0e0e0;">变化</th>';
-  }
-  out += '</tr>';
-  out += '</thead><tbody>';
+  out += '</tr></thead><tbody>';
 
-  chRows.forEach((r,idx) => {
-    const d = chs[r.name]||{};
-    const hasData = (d.exp||0)+(d.wrt||0)+(d.pExp||0)+(d.pWrt||0) > 0;
-    if(!hasData) return;
+  // 各渠道行
+  channels.forEach(chName => {
+    const d = chs[chName]||{};
+    const expQoq = qoqVal(d.exp, d.pExp);
+    const wrtQoq = qoqVal(d.wrt, d.pWrt);
+    const curRate = calcRateNum(d.wrt, d.exp);
+    const prevRate = calcRateNum(d.pWrt, d.pExp);
+    const rateDelta = curRate - prevRate;
+    const expShare = cd.totExp>0 ? (d.exp/cd.totExp*100).toFixed(1) : '0';
 
-    const eShare = totExp>0 ? d.exp/totExp*100 : 0;
-    const peShare = ptotExp>0 ? d.pExp/ptotExp*100 : 0;
-    const wShare = totWrt>0 ? d.wrt/totWrt*100 : 0;
-    const pwShare = ptotWrt>0 ? d.pWrt/ptotWrt*100 : 0;
-    const rate = calcRateNum(d.wrt, d.exp);
-    const prate = calcRateNum(d.pWrt, d.pExp);
-    const anomalyRate = r.anomaly && d.exp < 0.1 && (d.wrt||0) > 100;
-
-    const eDelta = eShare - peShare;
-    const wDelta = wShare - pwShare;
-    const rateDelta = (rate!==null&&prate!==null) ? rate-prate : null;
-
-    const rowBg = idx%2===0 ? '#fff' : '#fafafa';
-    out += '<tr style="background:'+rowBg+';border-bottom:1px solid #f0f0f0;">';
-    out += '<td style="padding:8px 10px;"><span style="font-weight:700;color:'+r.color+';">'+r.name+'</span>'+(r.isZb?'<br><span style="font-size:10px;color:#e65100;background:#fff3e0;padding:1px 5px;border-radius:3px;">非二选一</span>':'')+(r.anomaly?'<br><span style="font-size:10px;color:#e65100;">⚠数据口径</span>':'')+'</td>';
-
-    // 曝光占比
-    out += '<td style="padding:8px;text-align:right;border-left:1px solid #f0f0f0;"><strong style="color:'+(r.isZb&&eShare>40?'#c62828':'#1a1a1a')+'">'+eShare.toFixed(1)+'%</strong></td>';
-    out += '<td style="padding:8px;text-align:right;color:#aaa;">'+peShare.toFixed(1)+'%</td>';
-    out += '<td style="padding:8px;text-align:center;">'+deltaTag(eDelta, r.isZb)+'</td>';
-
-    // 核销占比
-    out += '<td style="padding:8px;text-align:right;border-left:1px solid #f0f0f0;"><strong>'+wShare.toFixed(1)+'%</strong></td>';
-    out += '<td style="padding:8px;text-align:right;color:#aaa;">'+pwShare.toFixed(1)+'%</td>';
-    out += '<td style="padding:8px;text-align:center;">'+deltaTag(wDelta)+'</td>';
-
+    out += '<tr style="border-bottom:1px solid var(--border);">';
+    out += '<td style="padding:8px 10px;text-align:left;font-weight:600;font-size:12px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(chColors[chName]||'#94a3b8')+';margin-right:6px;vertical-align:middle;"></span>'+chName+'<span style="color:var(--text-secondary);font-size:10px;font-weight:400;margin-left:4px;">('+expShare+'%)</span></td>';
+    // 曝光
+    out += '<td style="padding:8px;text-align:center;background:#fafbfe;font-weight:600;">'+fmtW(d.exp)+'</td>';
+    out += '<td style="padding:8px;text-align:center;background:#fafbfe;color:var(--text-secondary);">'+fmtW(d.pExp)+'</td>';
+    out += '<td style="padding:8px;text-align:center;background:#fafbfe;'+deltaClass(expQoq||0)+'">'+(expQoq!==null?deltaStr(expQoq)+'%':'—')+'</td>';
+    // 核销
+    out += '<td style="padding:8px;text-align:center;background:#f8fdf9;font-weight:600;">'+fmtN(d.wrt)+'</td>';
+    out += '<td style="padding:8px;text-align:center;background:#f8fdf9;color:var(--text-secondary);">'+fmtN(d.pWrt)+'</td>';
+    out += '<td style="padding:8px;text-align:center;background:#f8fdf9;'+deltaClass(wrtQoq||0)+'">'+(wrtQoq!==null?deltaStr(wrtQoq)+'%':'—')+'</td>';
     // 核销率
-    if(anomalyRate) {
-      out += '<td style="padding:8px;text-align:right;border-left:1px solid #f0f0f0;color:#e65100;font-size:10px;">⚠异常</td>';
-      out += '<td style="padding:8px;text-align:right;color:#aaa;">—</td>';
-      out += '<td style="padding:8px;"></td>';
-    } else {
-      out += '<td style="padding:8px;text-align:right;border-left:1px solid #f0f0f0;"><strong style="color:'+(r.isZb?'#e65100':'#1a73e8')+'">'+(rate!==null?rate.toFixed(2)+'%':'-')+'</strong></td>';
-      out += '<td style="padding:8px;text-align:right;color:#aaa;">'+(prate!==null?prate.toFixed(2)+'%':'-')+'</td>';
-      out += '<td style="padding:8px;text-align:center;">'+deltaTag(rateDelta, r.isZb, 'pp')+'</td>';
-    }
+    out += '<td style="padding:8px;text-align:center;background:#faf8fe;font-weight:600;">'+curRate.toFixed(2)+'%</td>';
+    out += '<td style="padding:8px;text-align:center;background:#faf8fe;color:var(--text-secondary);">'+prevRate.toFixed(2)+'%</td>';
+    out += '<td style="padding:8px;text-align:center;background:#faf8fe;'+deltaClass(rateDelta)+'">'+(rateDelta>=0?'+':'')+rateDelta.toFixed(2)+'pp</td>';
     out += '</tr>';
   });
 
-  // 二选一合计行
-  const s2eShare = totExp>0 ? s2.exp/totExp*100 : 0;
-  const ps2eShare = ptotExp>0 ? s2.pExp/ptotExp*100 : 0;
-  const s2wShare = totWrt>0 ? s2.wrt/totWrt*100 : 0;
-  const ps2wShare = ptotWrt>0 ? s2.pWrt/ptotWrt*100 : 0;
-  const s2Rate = calcRateNum(s2.wrt, s2.exp);
-  const ps2Rate = calcRateNum(s2.pWrt, s2.pExp);
-  out += '<tr style="background:#dce8fb;font-weight:700;border-top:2px solid #1a73e8;">';
-  out += '<td style="padding:8px 10px;color:#1a73e8;">二选一合计</td>';
-  out += '<td style="padding:8px;text-align:right;border-left:1px solid #c5d8f5;"><strong>'+s2eShare.toFixed(1)+'%</strong></td>';
-  out += '<td style="padding:8px;text-align:right;color:#888;">'+ps2eShare.toFixed(1)+'%</td>';
-  out += '<td style="padding:8px;text-align:center;">'+deltaTag(s2eShare-ps2eShare)+'</td>';
-  out += '<td style="padding:8px;text-align:right;border-left:1px solid #c5d8f5;"><strong>'+s2wShare.toFixed(1)+'%</strong></td>';
-  out += '<td style="padding:8px;text-align:right;color:#888;">'+ps2wShare.toFixed(1)+'%</td>';
-  out += '<td style="padding:8px;text-align:center;">'+deltaTag(s2wShare-ps2wShare)+'</td>';
-  out += '<td style="padding:8px;text-align:right;border-left:1px solid #c5d8f5;"><strong style="color:#1a73e8;">'+(s2Rate!==null?s2Rate.toFixed(2)+'%':'-')+'</strong></td>';
-  out += '<td style="padding:8px;text-align:right;color:#888;">'+(ps2Rate!==null?ps2Rate.toFixed(2)+'%':'-')+'</td>';
-  out += '<td style="padding:8px;text-align:center;">'+deltaTag(s2Rate!==null&&ps2Rate!==null?s2Rate-ps2Rate:null)+'</td>';
+  // 合计行：二选一
+  const s2x1Rate = calcRateNum(s2x1.wrt, s2x1.exp);
+  const s2x1PRate = calcRateNum(s2x1.pWrt, s2x1.pExp);
+  const s2x1RateDelta = s2x1Rate - s2x1PRate;
+  out += '<tr style="border-top:2px solid var(--border);font-weight:700;background:var(--bg);">';
+  out += '<td style="padding:8px 10px;text-align:left;font-size:12px;color:#2563eb;">二选一合计</td>';
+  out += '<td style="padding:8px;text-align:center;">'+fmtW(s2x1.exp)+'</td>';
+  out += '<td style="padding:8px;text-align:center;color:var(--text-secondary);">'+fmtW(s2x1.pExp)+'</td>';
+  out += '<td style="padding:8px;text-align:center;'+deltaClass(qoqVal(s2x1.exp,s2x1.pExp)||0)+'">'+(qoqVal(s2x1.exp,s2x1.pExp)!==null?deltaStr(qoqVal(s2x1.exp,s2x1.pExp))+'%':'—')+'</td>';
+  out += '<td style="padding:8px;text-align:center;">'+fmtN(s2x1.wrt)+'</td>';
+  out += '<td style="padding:8px;text-align:center;color:var(--text-secondary);">'+fmtN(s2x1.pWrt)+'</td>';
+  out += '<td style="padding:8px;text-align:center;'+deltaClass(qoqVal(s2x1.wrt,s2x1.pWrt)||0)+'">'+(qoqVal(s2x1.wrt,s2x1.pWrt)!==null?deltaStr(qoqVal(s2x1.wrt,s2x1.pWrt))+'%':'—')+'</td>';
+  out += '<td style="padding:8px;text-align:center;">'+s2x1Rate.toFixed(2)+'%</td>';
+  out += '<td style="padding:8px;text-align:center;color:var(--text-secondary);">'+s2x1PRate.toFixed(2)+'%</td>';
+  out += '<td style="padding:8px;text-align:center;'+deltaClass(s2x1RateDelta)+'">'+(s2x1RateDelta>=0?'+':'')+s2x1RateDelta.toFixed(2)+'pp</td>';
   out += '</tr>';
 
   out += '</tbody></table></div>';
-  out += '</div>'; // end container
-  return out;
-}
 
-function toggleSubChDetail(btn) {
-  const el = btn.nextElementSibling;
-  if(!el) return;
-  if(el.style.display==='none'||el.style.display==='') {
-    el.style.display='block';
-    btn.textContent='▾ 收起子渠道明细';
+  // ═══ 诊断结论 ═══
+  const zbCh = chs['周边']||{};
+  const eff2x1Qoq = qoqVal(s2x1.exp, s2x1.pExp);
+  const isZbDilution = zbShare > 50 && zbDelta > 5 && (cd.wrtQoq===null || cd.wrtQoq<=0);
+  const isEff2x1Low = s2x1.exp < 5 && cd.totExp > 10;
+  const isExpShiftCausingLowRate = zbShare > 50 && s2x1Rate > calcRateNum(zbCh.wrt, zbCh.exp) * 3;
+
+  let diagColor, diagBg, diagIcon, diagMsg;
+  if(isZbDilution || isExpShiftCausingLowRate) {
+    diagColor='#dc2626'; diagBg='#fef2f2'; diagIcon='⚠';
+    diagMsg = '核销率低的核心原因是<strong>曝光分配不合理</strong>：周边渠道占据'+zbShare.toFixed(1)+'%曝光（环比'+(zbDelta>=0?'+':'')+zbDelta.toFixed(1)+'pp），但周边曝光核销率仅'+calcRate(zbCh.wrt,zbCh.exp)+'，远低于二选一的'+s2x1Rate.toFixed(2)+'%。大量无效曝光稀释了整体核销率。<strong>建议</strong>：将曝光资源向商业支付/面对面等高转化渠道倾斜。';
+  } else if(isEff2x1Low) {
+    diagColor='#ea580c'; diagBg='#fff7ed'; diagIcon='⚡';
+    diagMsg = '二选一有效曝光仅'+fmtW(s2x1.exp)+'（占总曝光'+pctOf(s2x1.exp,cd.totExp)+'），曝光供给不足是核销量低的主要瓶颈。<strong>建议</strong>：扩大商业支付/面对面渠道的曝光覆盖。';
+  } else if(s2x1RateDelta < -0.5) {
+    diagColor='#7c3aed'; diagBg='#f5f3ff'; diagIcon='📉';
+    diagMsg = '二选一核销率下降'+Math.abs(s2x1RateDelta).toFixed(2)+'pp（'+s2x1PRate.toFixed(2)+'% → '+s2x1Rate.toFixed(2)+'%），曝光分配变化不大，核销率下降主要由<strong>转化效率下降</strong>导致，非曝光分配问题。需排查活动下线、货盘变化或用户体验。';
   } else {
-    el.style.display='none';
-    btn.textContent='▸ 展开子渠道明细';
+    diagColor='#2563eb'; diagBg='#eff6ff'; diagIcon='ℹ';
+    diagMsg = '各渠道曝光分配相对稳定，二选一核销率'+(s2x1RateDelta>=0?'提升':'下降')+Math.abs(s2x1RateDelta).toFixed(2)+'pp。整体表现'+(cd.wrtQoq!==null&&cd.wrtQoq>0?'呈改善趋势':'需持续关注')+'。';
   }
+
+  out += '<div style="margin-top:14px;padding:12px 16px;background:'+diagBg+';border-left:4px solid '+diagColor+';border-radius:0 8px 8px 0;font-size:13px;line-height:1.8;">';
+  out += '<span style="font-weight:700;color:'+diagColor+';">'+diagIcon+' 诊断结论</span><br>'+diagMsg;
+  out += '</div>';
+
+  out += '</div>';
+  return out;
 }
 
 // === 工具函数 ===
@@ -2308,17 +2298,19 @@ function pctSigned(n) { if(isNaN(n)||n===null) return '-'; return (n>=0?'+':'')+
 // === 目标达成柱状图辅助 ===
 function buildAchieveBar(label, rate, subText, goodThreshold=0.6, warnThreshold=0.3, qoq=null) {
   const pctVal = Math.min(rate * 100, 100);
-  const color = rate>=goodThreshold ? '#34a853' : rate>=warnThreshold ? '#f9ab00' : '#ea4335';
+  const color = rate>=goodThreshold ? '#16a34a' : rate>=warnThreshold ? '#d97706' : '#dc2626';
+  const bgGrad = rate>=goodThreshold ? 'linear-gradient(90deg,#22c55e,#16a34a)' : rate>=warnThreshold ? 'linear-gradient(90deg,#fbbf24,#d97706)' : 'linear-gradient(90deg,#f87171,#dc2626)';
   let qoqHtml = '';
   if(qoq !== null && qoq !== undefined) {
-    const qoqColor = qoq >= 0 ? '#34a853' : '#ea4335';
+    const qoqColor = qoq >= 0 ? '#16a34a' : '#dc2626';
     const qoqSign = qoq >= 0 ? '+' : '';
-    qoqHtml = `<span style="font-size:11px;color:${qoqColor};font-weight:600;margin-left:6px;">${qoqSign}${qoq.toFixed(1)}% 环比</span>`;
+    const qoqArrow = qoq >= 0 ? '▲' : '▼';
+    qoqHtml = `<span style="font-size:11px;color:${qoqColor};font-weight:700;margin-left:8px;background:${qoq>=0?'#f0fdf4':'#fef2f2'};padding:2px 8px;border-radius:10px;">${qoqArrow} ${qoqSign}${qoq.toFixed(1)}%</span>`;
   }
   return `<div class="achieve-bar-item">
     <div class="ab-label">${label}</div>
     <div class="ab-value" style="color:${color};">${isNaN(rate)||rate===0&&subText==='暂无数据'?'-':(rate*100).toFixed(1)+'%'}${qoqHtml}</div>
-    <div class="ab-track"><div class="ab-fill" style="width:${pctVal}%;background:${color};"></div></div>
+    <div class="ab-track"><div class="ab-fill" style="width:${pctVal}%;background:${bgGrad};"></div></div>
     <div class="ab-sub">${subText}</div>
   </div>`;
 }
