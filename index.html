@@ -1430,8 +1430,7 @@ function refreshTable(viewId, ownerFilter) {
     const totalRedeem = merged.reduce((s,m)=>s+(m.dailyRedeem||0),0);
     const totalOldExpPct = totalExposure>0 ? totalOldExposure/totalExposure : 0;
     const totalOldRedeemPct = totalRedeem>0 ? totalOldRedeem/totalRedeem : 0;
-    const validOldExpRedeemRates = merged.filter(m=>m.oldExpRedeemRate>0).map(m=>m.oldExpRedeemRate);
-    const avgOldExpRedeemRate = validOldExpRedeemRates.length>0 ? validOldExpRedeemRates.reduce((s,v)=>s+v,0)/validOldExpRedeemRates.length : 0;
+    const weightedOldExpRedeemRate = totalOldExposure>0 ? totalOldRedeem/(totalOldExposure*10000)*100 : 0;
 
     // 老客汇总条
     const summaryEl = document.getElementById('oldCustomerSummary-'+viewId);
@@ -1439,7 +1438,7 @@ function refreshTable(viewId, ownerFilter) {
       summaryEl.innerHTML = `<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
         <span><strong>老客曝光合计：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${totalOldExposure.toFixed(1)}w</span></span>
         <span><strong>老客核销合计：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${fmt(totalOldRedeem)}</span></span>
-        <span><strong>老客曝光核销率均值：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${pct(avgOldExpRedeemRate)}</span></span>
+        <span><strong>老客曝光核销率：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${pct(weightedOldExpRedeemRate)}</span></span>
         <span style="color:var(--text-secondary);font-size:12px;">|</span>
         <span><strong>老客曝光占比：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${(totalOldExpPct*100).toFixed(1)}%</span>
         <span style="color:var(--text-secondary);font-size:12px;margin-left:4px;">(${totalOldExposure.toFixed(1)}w / ${totalExposure.toFixed(1)}w)</span></span>
@@ -1476,19 +1475,11 @@ function refreshTable(viewId, ownerFilter) {
       </tr>`;
     }).join('');
   } else {
-    // 整体数据汇总
-    const totalExposureAll = merged.reduce((s,m)=>s+(m.dailyExposure||0),0);
-    const totalRedeemAll = merged.reduce((s,m)=>s+(m.dailyRedeem||0),0);
-    const validExpRedeemRates = merged.filter(m=>(m.exposureRedeemRate||0)>0 && !m.abnormal).map(m=>m.exposureRedeemRate);
-    const avgExpRedeemRate = validExpRedeemRates.length>0 ? validExpRedeemRates.reduce((s,v)=>s+v,0)/validExpRedeemRates.length : 0;
+    // 整体数据 — 汇总条隐藏（渠道概览已展示）
     const summaryEl = document.getElementById('oldCustomerSummary-'+viewId);
     if(summaryEl) {
-      summaryEl.innerHTML = `<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
-        <span><strong>曝光合计：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${totalExposureAll.toFixed(1)}w</span></span>
-        <span><strong>核销合计：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${fmt(totalRedeemAll)}</span></span>
-        <span><strong>曝光核销率均值：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${pct(avgExpRedeemRate)}</span></span>
-      </div>`;
-      summaryEl.style.display = '';
+      summaryEl.innerHTML = '';
+      summaryEl.style.display = 'none';
     }
 
     tbody.innerHTML = merged.map(m=>{
@@ -2164,13 +2155,7 @@ function buildChannelBreakdownSection() {
     out += '</div>';
   }
 
-  // ═══ 合计行 - 紧凑横条 ═══
-  out += '<div style="display:flex;align-items:center;gap:20px;padding:10px 16px;background:#f1f5f9;border-radius:8px;margin-bottom:18px;flex-wrap:wrap;">';
-  out += '<span style="font-size:12px;font-weight:700;color:#475569;">合计（全渠道）</span>';
-  out += '<span style="font-size:12px;color:#64748b;">曝光 <strong style="color:#1e293b;">'+fmtW(totExp)+'</strong> '+qoqBadge(qoqVal(totExp,ptotExp))+'</span>';
-  out += '<span style="font-size:12px;color:#64748b;">核销 <strong style="color:#1e293b;">'+fmtN(totWrt)+'</strong> '+qoqBadge(qoqVal(totWrt,ptotWrt))+'</span>';
-  out += '<span style="font-size:12px;color:#64748b;">核销率 <strong style="color:#1e293b;">'+totRate.toFixed(2)+'%</strong> '+rateDeltaBadge(totRate, ptotRate)+'</span>';
-  out += '</div>';
+
 
   // ═══ 子渠道明细表（统一灰色调，弱化差异） ═══
   out += '<div style="margin-top:4px;">';
