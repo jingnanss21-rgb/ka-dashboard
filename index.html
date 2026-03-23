@@ -1438,7 +1438,7 @@ function refreshTable(viewId, ownerFilter) {
       summaryEl.innerHTML = `<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
         <span><strong>老客曝光合计：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${totalOldExposure.toFixed(1)}w</span></span>
         <span><strong>老客核销合计：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${fmt(totalOldRedeem)}</span></span>
-        <span><strong>老客曝光核销率：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${pct(weightedOldExpRedeemRate)}</span></span>
+        <span><strong>老客曝光核销率：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${weightedOldExpRedeemRate.toFixed(2)}%</span></span>
         <span style="color:var(--text-secondary);font-size:12px;">|</span>
         <span><strong>老客曝光占比：</strong><span style="font-size:16px;font-weight:700;color:var(--primary);">${(totalOldExpPct*100).toFixed(1)}%</span>
         <span style="color:var(--text-secondary);font-size:12px;margin-left:4px;">(${totalOldExposure.toFixed(1)}w / ${totalExposure.toFixed(1)}w)</span></span>
