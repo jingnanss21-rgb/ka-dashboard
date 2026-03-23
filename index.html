@@ -2222,9 +2222,9 @@ function buildChannelBreakdownSection() {
   // 非二选一分组
   out += renderSubRow('周边（非二选一）', zbCh, {isGroupLabel:true, expInverse:true});
   out += renderSubRow('周边', zbCh, {expInverse:true});
-  // 支付有礼（作为子渠道）
+  // 支付有礼（与摇一摇、周边并列的渠道）
   if(payReward.exp > 0 || payReward.wrt > 0) {
-    out += renderSubRow('支付有礼', payReward, {});
+    out += renderSubRow('支付有礼', payReward, {isGroupLabel:true});
   }
 
   out += '</tbody></table></div>';
