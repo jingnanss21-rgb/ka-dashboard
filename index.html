@@ -2219,21 +2219,29 @@ function buildChannelBreakdownSection(ownerFilter) {
 
   // ═══ 曝光占比堆叠条形图（本期 vs 上期） ═══
   out += '<div style="background:#f8fafc;border-radius:10px;padding:18px 20px;margin-bottom:20px;">';
-  out += '<div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:16px;">曝光占比分布</div>';
+  out += '<div style="font-size:13px;font-weight:700;color:#334155;margin-bottom:6px;">曝光占比分布</div>';
 
-  // 堆叠条数据
+  // 整体曝光变化概览（绝对值拆解）
+  const totalExpDelta = totExp - ptotExp;
+  const expDeltaColor = totalExpDelta>=0 ? '#16a34a' : '#dc2626';
+  out += '<div style="font-size:12px;color:#64748b;margin-bottom:14px;line-height:1.7;">';
+  out += '整体曝光 <strong style="color:#1e293b;">'+fmtW(totExp)+'</strong>';
+  out += ' <span style="color:'+expDeltaColor+';font-weight:700;">（'+(totalExpDelta>=0?'+':'')+totalExpDelta.toFixed(1)+'w）</span>';
+  out += '</div>';
+
+  // 堆叠条数据（含绝对值）
   const stackSegs = [
-    {label:'摇一摇', cur:expShare2x1, prev:pExpShare2x1, color:'#2563eb'},
-    {label:'周边', cur:expShareZb, prev:pExpShareZb, color:'#ea580c'},
-    {label:'支付有礼', cur:expSharePay, prev:pExpSharePay, color:'#7c3aed'}
+    {label:'摇一摇', cur:expShare2x1, prev:pExpShare2x1, color:'#2563eb', absExp:c2x1.exp, absPExp:c2x1.pExp},
+    {label:'周边', cur:expShareZb, prev:pExpShareZb, color:'#ea580c', absExp:zbCh.exp, absPExp:zbCh.pExp},
+    {label:'支付有礼', cur:expSharePay, prev:pExpSharePay, color:'#7c3aed', absExp:payReward.exp, absPExp:payReward.pExp}
   ];
 
   // 本期堆叠条
-  out += '<div style="margin-bottom:4px;font-size:11px;font-weight:600;color:#475569;">本期</div>';
+  out += '<div style="margin-bottom:4px;font-size:11px;font-weight:600;color:#475569;">本期 '+fmtW(totExp)+'</div>';
   out += '<div style="display:flex;height:32px;border-radius:6px;overflow:hidden;background:#e2e8f0;margin-bottom:2px;">';
   stackSegs.forEach(seg => {
     if(seg.cur > 0) {
-      out += '<div style="width:'+seg.cur+'%;background:'+seg.color+';display:flex;align-items:center;justify-content:center;transition:width 0.6s ease;position:relative;'+(seg.cur<5?'min-width:2px;':'')+'\" title="'+seg.label+': '+seg.cur.toFixed(1)+'%">';
+      out += '<div style="width:'+seg.cur+'%;background:'+seg.color+';display:flex;align-items:center;justify-content:center;transition:width 0.6s ease;position:relative;'+(seg.cur<5?'min-width:2px;':'')+'\" title="'+seg.label+': '+seg.cur.toFixed(1)+'% ('+fmtW(seg.absExp)+')">';
       if(seg.cur >= 8) {
         out += '<span style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap;">'+seg.label+' '+seg.cur.toFixed(1)+'%</span>';
       } else if(seg.cur >= 4) {
@@ -2245,13 +2253,13 @@ function buildChannelBreakdownSection(ownerFilter) {
   out += '</div>';
 
   // 上期堆叠条
-  out += '<div style="margin-bottom:4px;margin-top:8px;font-size:11px;font-weight:600;color:#94a3b8;">上期</div>';
+  out += '<div style="margin-bottom:4px;margin-top:8px;font-size:11px;font-weight:600;color:#94a3b8;">上期 '+fmtW(ptotExp)+'</div>';
   out += '<div style="display:flex;height:24px;border-radius:6px;overflow:hidden;background:#e2e8f0;margin-bottom:2px;">';
   const hasPrev = stackSegs.some(s=>s.prev>0);
   if(hasPrev) {
     stackSegs.forEach(seg => {
       if(seg.prev > 0) {
-        out += '<div style="width:'+seg.prev+'%;background:'+seg.color+';opacity:0.45;display:flex;align-items:center;justify-content:center;transition:width 0.6s ease;'+(seg.prev<5?'min-width:2px;':'')+'\" title="'+seg.label+': '+seg.prev.toFixed(1)+'%">';
+        out += '<div style="width:'+seg.prev+'%;background:'+seg.color+';opacity:0.45;display:flex;align-items:center;justify-content:center;transition:width 0.6s ease;'+(seg.prev<5?'min-width:2px;':'')+'\" title="'+seg.label+': '+seg.prev.toFixed(1)+'% ('+fmtW(seg.absPExp)+')">';
         if(seg.prev >= 8) {
           out += '<span style="font-size:9px;font-weight:700;color:#fff;white-space:nowrap;">'+seg.label+' '+seg.prev.toFixed(1)+'%</span>';
         } else if(seg.prev >= 4) {
@@ -2265,24 +2273,49 @@ function buildChannelBreakdownSection(ownerFilter) {
   }
   out += '</div>';
 
-  // 图例 + 变化说明
-  out += '<div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;">';
+  // 图例 + 绝对值 + 变化说明
+  out += '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">';
   stackSegs.forEach(seg => {
-    const d = seg.cur - seg.prev;
-    const dColor = d>0 ? '#16a34a' : (d<0 ? '#dc2626' : '#94a3b8');
-    const dText = seg.prev>0 ? ((d>=0?'+':'')+d.toFixed(1)+'pp') : (seg.cur>0 ? '新增' : '');
-    out += '<span style="display:flex;align-items:center;gap:4px;font-size:11px;">';
+    const absDelta = seg.absExp - seg.absPExp;
+    const absDeltaColor = absDelta>=0 ? '#16a34a' : '#dc2626';
+    const pctDelta = seg.cur - seg.prev;
+    const pctDeltaColor = pctDelta>0 ? '#16a34a' : (pctDelta<0 ? '#dc2626' : '#94a3b8');
+    const isNew = seg.absPExp<=0 && seg.absExp>0;
+    out += '<div style="flex:1;min-width:120px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;">';
+    out += '<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">';
     out += '<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:'+seg.color+';"></span>';
-    out += '<span style="color:#475569;font-weight:500;">'+seg.label+' '+seg.cur.toFixed(1)+'%</span>';
-    if(dText) out += '<span style="color:'+dColor+';font-weight:700;font-size:10px;">'+dText+'</span>';
-    out += '</span>';
+    out += '<span style="font-size:12px;font-weight:600;color:#334155;">'+seg.label+'</span>';
+    out += '</div>';
+    // 绝对值
+    out += '<div style="font-size:15px;font-weight:800;color:#1e293b;">'+fmtW(seg.absExp)+'</div>';
+    out += '<div style="display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;">';
+    if(isNew) {
+      out += '<span style="font-size:10px;font-weight:700;color:#7c3aed;">新增渠道</span>';
+    } else {
+      out += '<span style="font-size:10px;color:'+absDeltaColor+';font-weight:700;">'+(absDelta>=0?'+':'')+absDelta.toFixed(1)+'w</span>';
+    }
+    out += '</div>';
+    // 占比
+    out += '<div style="margin-top:4px;font-size:11px;color:#64748b;">占比 <strong style="color:'+seg.color+';">'+seg.cur.toFixed(1)+'%</strong>';
+    if(!isNew) {
+      out += ' <span style="color:'+pctDeltaColor+';font-weight:600;">'+(pctDelta>=0?'+':'')+pctDelta.toFixed(1)+'pp</span>';
+    }
+    out += '</div>';
+    out += '</div>';
   });
   out += '</div>';
 
-  // 支付有礼新增提示
+  // 支付有礼新增提示（逻辑修正：只有当整体增量小于支付有礼增量时才说稀释）
   if(pExpSharePay <= 0 && expSharePay > 0) {
+    const payAbsExp = payReward.exp;
+    const otherChannelGrowth = totalExpDelta - payAbsExp;
     out += '<div style="margin-top:10px;padding:8px 12px;background:#f5f3ff;border-left:3px solid #7c3aed;border-radius:0 6px 6px 0;font-size:11px;color:#6d28d9;line-height:1.6;">';
-    out += '<strong>📌 新增渠道</strong>：支付有礼为本期新增，上期占比为0%，本期贡献 '+expSharePay.toFixed(1)+'%，对其他渠道占比产生稀释效应。';
+    out += '<strong>📌 新增渠道</strong>：支付有礼为本期新增（'+fmtW(payAbsExp)+'），占比 '+expSharePay.toFixed(1)+'%。';
+    if(otherChannelGrowth >= 0) {
+      out += '其他渠道曝光同样增长了 '+otherChannelGrowth.toFixed(1)+'w，整体曝光是增量扩展而非此消彼长。';
+    } else {
+      out += '其他渠道曝光减少 '+Math.abs(otherChannelGrowth).toFixed(1)+'w，支付有礼对其他渠道占比有稀释效应。';
+    }
     out += '</div>';
   }
   out += '</div>';
@@ -2422,10 +2455,15 @@ function buildBrandChannelDiagnosis(brandName, cd) {
     s2x1.pExp += (chs[c]||{}).pExp||0; s2x1.pWrt += (chs[c]||{}).pWrt||0;
   });
   const zbCh = chs['周边']||{};
-  const totExp = cd.totExp || (s2x1.exp + (zbCh.exp||0));
+  // 品牌级分渠道总量（摇一摇+周边，不含支付有礼）
+  const chTotExp = s2x1.exp + (zbCh.exp||0);
+  const totExp = chTotExp;
   const totWrt = s2x1.wrt + (zbCh.wrt||0);
+  // 品牌整体曝光（含支付有礼等其他渠道）
+  const brandTotExp = cd.totExp || chTotExp;
+  const payGapExp = brandTotExp - chTotExp; // 支付有礼等其他渠道的曝光
 
-  // 占比
+  // 占比（分母为摇一摇+周边总和，确保加总=100%）
   const expShare2x1 = totExp>0 ? s2x1.exp/totExp*100 : 0;
   const expShareZb = totExp>0 ? (zbCh.exp||0)/totExp*100 : 0;
 
@@ -2490,7 +2528,7 @@ function buildBrandChannelDiagnosis(brandName, cd) {
     return c;
   }
 
-  // 上期占比
+  // 上期占比（分母也用摇一摇+周边总和）
   const ptotExp = s2x1.pExp + (zbCh.pExp||0);
   const pExpShare2x1 = ptotExp>0 ? s2x1.pExp/ptotExp*100 : 0;
   const pExpShareZb = ptotExp>0 ? (zbCh.pExp||0)/ptotExp*100 : 0;
@@ -2502,11 +2540,20 @@ function buildBrandChannelDiagnosis(brandName, cd) {
 
   // ═══ 分渠道曝光占比堆叠条形图 ═══
   out += '<div style="background:#f8fafc;border-radius:8px;padding:14px 16px;margin-bottom:14px;">';
-  out += '<div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:10px;">曝光占比分布</div>';
+  out += '<div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px;">曝光占比分布</div>';
+
+  // 品牌整体曝光变化
+  const chExpDelta = totExp - ptotExp;
+  const chExpDeltaColor = chExpDelta>=0 ? '#16a34a' : '#dc2626';
+  out += '<div style="font-size:11px;color:#64748b;margin-bottom:10px;">渠道曝光 <strong style="color:#1e293b;">'+fmtW(totExp)+'</strong> <span style="color:'+chExpDeltaColor+';font-weight:700;">'+(chExpDelta>=0?'+':'')+chExpDelta.toFixed(1)+'w</span>';
+  if(payGapExp > 0.01) {
+    out += '<span style="color:#94a3b8;font-size:10px;margin-left:6px;">（另有支付有礼等 '+fmtW(payGapExp)+'）</span>';
+  }
+  out += '</div>';
 
   const brandStackSegs = [
-    {label:'摇一摇', cur:expShare2x1, prev:pExpShare2x1, color:'#2563eb'},
-    {label:'周边', cur:expShareZb, prev:pExpShareZb, color:'#ea580c'}
+    {label:'摇一摇', cur:expShare2x1, prev:pExpShare2x1, color:'#2563eb', absExp:s2x1.exp, absPExp:s2x1.pExp},
+    {label:'周边', cur:expShareZb, prev:pExpShareZb, color:'#ea580c', absExp:zbCh.exp||0, absPExp:zbCh.pExp||0}
   ];
 
   // 本期堆叠条
@@ -2515,7 +2562,7 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   brandStackSegs.forEach(seg => {
     if(seg.cur > 0) {
       const isWarn = seg.label==='周边' && seg.cur > 50;
-      out += '<div style="width:'+seg.cur+'%;background:'+(isWarn?'#dc2626':seg.color)+';display:flex;align-items:center;justify-content:center;transition:width 0.6s ease;" title="'+seg.label+': '+seg.cur.toFixed(1)+'%">';
+      out += '<div style="width:'+seg.cur+'%;background:'+(isWarn?'#dc2626':seg.color)+';display:flex;align-items:center;justify-content:center;transition:width 0.6s ease;" title="'+seg.label+': '+seg.cur.toFixed(1)+'% ('+fmtW(seg.absExp)+')">';
       if(seg.cur >= 10) {
         out += '<span style="font-size:10px;font-weight:700;color:#fff;white-space:nowrap;">'+seg.label+' '+seg.cur.toFixed(1)+'%</span>';
       } else if(seg.cur >= 5) {
@@ -2533,7 +2580,7 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   if(brandHasPrev) {
     brandStackSegs.forEach(seg => {
       if(seg.prev > 0) {
-        out += '<div style="width:'+seg.prev+'%;background:'+seg.color+';opacity:0.45;display:flex;align-items:center;justify-content:center;" title="'+seg.label+': '+seg.prev.toFixed(1)+'%">';
+        out += '<div style="width:'+seg.prev+'%;background:'+seg.color+';opacity:0.45;display:flex;align-items:center;justify-content:center;" title="'+seg.label+': '+seg.prev.toFixed(1)+'% ('+fmtW(seg.absPExp)+')">';
         if(seg.prev >= 10) {
           out += '<span style="font-size:9px;font-weight:700;color:#fff;white-space:nowrap;">'+seg.label+' '+seg.prev.toFixed(1)+'%</span>';
         } else if(seg.prev >= 5) {
@@ -2547,24 +2594,29 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   }
   out += '</div>';
 
-  // 图例 + 变化
-  out += '<div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">';
+  // 图例 + 绝对值 + 变化
+  out += '<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">';
   brandStackSegs.forEach(seg => {
-    const d = seg.cur - seg.prev;
-    const dColor = d>0 ? '#16a34a' : (d<0 ? '#dc2626' : '#94a3b8');
-    const dText = seg.prev>0 ? ((d>=0?'+':'')+d.toFixed(1)+'pp') : (seg.cur>0 ? '新增' : '');
-    out += '<span style="display:flex;align-items:center;gap:3px;font-size:10px;">';
+    const absDelta = seg.absExp - seg.absPExp;
+    const absDeltaColor = absDelta>=0 ? '#16a34a' : '#dc2626';
+    const pctDelta = seg.cur - seg.prev;
+    const pctDeltaColor = pctDelta>0 ? '#16a34a' : (pctDelta<0 ? '#dc2626' : '#94a3b8');
+    out += '<div style="flex:1;min-width:100px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 8px;">';
+    out += '<div style="display:flex;align-items:center;gap:3px;margin-bottom:2px;">';
     out += '<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+seg.color+';"></span>';
-    out += '<span style="color:#475569;font-weight:500;">'+seg.label+' '+seg.cur.toFixed(1)+'%</span>';
-    if(dText) out += '<span style="color:'+dColor+';font-weight:700;font-size:9px;">'+dText+'</span>';
-    out += '</span>';
+    out += '<span style="font-size:11px;font-weight:600;color:#334155;">'+seg.label+'</span>';
+    out += '</div>';
+    out += '<div style="font-size:14px;font-weight:800;color:#1e293b;">'+fmtW(seg.absExp)+'</div>';
+    out += '<div style="font-size:10px;color:'+absDeltaColor+';font-weight:700;">'+(absDelta>=0?'+':'')+absDelta.toFixed(1)+'w</div>';
+    out += '<div style="font-size:10px;color:#64748b;">占比 <strong style="color:'+seg.color+';">'+seg.cur.toFixed(1)+'%</strong> <span style="color:'+pctDeltaColor+';font-weight:600;">'+(pctDelta>=0?'+':'')+pctDelta.toFixed(1)+'pp</span></div>';
+    out += '</div>';
   });
   out += '</div>';
 
   // 周边占比>50%警告
   if(expShareZb > 50) {
     out += '<div style="margin-top:8px;padding:6px 10px;background:#fef2f2;border-left:3px solid #dc2626;border-radius:0 4px 4px 0;font-size:10px;color:#991b1b;line-height:1.5;">';
-    out += '<strong>⚠ 曝光分配不合理</strong>：周边占据 '+expShareZb.toFixed(1)+'% 曝光，转化效率远低于摇一摇，低效曝光稀释了整体核销率。';
+    out += '<strong>⚠ 曝光分配不合理</strong>：周边占据 '+expShareZb.toFixed(1)+'% 曝光（'+fmtW(zbCh.exp||0)+'），转化效率远低于摇一摇，低效曝光稀释了整体核销率。';
     out += '</div>';
   }
   out += '</div>';
@@ -2623,7 +2675,7 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   const s2x1RateDelta = s2x1Rate - s2x1PRate;
 
   const isZbDilution = zbShare > 50 && zbDelta > 5 && (cd.wrtQoq===null || cd.wrtQoq<=0);
-  const isEff2x1Low = s2x1.exp < 5 && cd.totExp > 10;
+  const isEff2x1Low = s2x1.exp < 5 && brandTotExp > 10;
   const isExpShiftCausingLowRate = zbShare > 50 && s2x1Rate > calcRateNum(zbCh.wrt, zbCh.exp) * 3;
 
   let diagColor, diagBg, diagIcon, diagMsg;
@@ -2632,7 +2684,7 @@ function buildBrandChannelDiagnosis(brandName, cd) {
     diagMsg = '核销率低的核心原因是<strong>曝光分配不合理</strong>：周边渠道占据'+zbShare.toFixed(1)+'%曝光（环比'+(zbDelta>=0?'+':'')+zbDelta.toFixed(1)+'pp），但周边曝光核销率仅'+calcRate(zbCh.wrt,zbCh.exp)+'，远低于摇一摇的'+s2x1Rate.toFixed(2)+'%。大量无效曝光稀释了整体核销率。<strong>建议</strong>：将曝光资源向商业支付/面对面等高转化渠道倾斜。';
   } else if(isEff2x1Low) {
     diagColor='#ea580c'; diagBg='#fff7ed'; diagIcon='⚡';
-    diagMsg = '摇一摇（二选一）有效曝光仅'+fmtW(s2x1.exp)+'（占总曝光'+pctOf(s2x1.exp,cd.totExp)+'），曝光供给不足是核销量低的主要瓶颈。<strong>建议</strong>：扩大商业支付/面对面渠道的曝光覆盖。';
+    diagMsg = '摇一摇（二选一）有效曝光仅'+fmtW(s2x1.exp)+'（占总曝光'+pctOf(s2x1.exp,brandTotExp)+'），曝光供给不足是核销量低的主要瓶颈。<strong>建议</strong>：扩大商业支付/面对面渠道的曝光覆盖。';
   } else if(s2x1RateDelta < -0.5) {
     diagColor='#7c3aed'; diagBg='#f5f3ff'; diagIcon='📉';
     diagMsg = '摇一摇核销率下降'+Math.abs(s2x1RateDelta).toFixed(2)+'pp（'+s2x1PRate.toFixed(2)+'% → '+s2x1Rate.toFixed(2)+'%），曝光分配变化不大，核销率下降主要由<strong>转化效率下降</strong>导致，非曝光分配问题。需排查活动下线、货盘变化或用户体验。';
