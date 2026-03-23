@@ -1931,6 +1931,13 @@ function buildChannelBreakdownSection() {
   const ch = gd.channels;
 
   function qoqVal(a,b) { return (b&&b!==0) ? (a-b)/b*100 : null; }
+  function deltaTag(v, inverse, unit) {
+    if(v===null||v===undefined||isNaN(v)||v===0) return '';
+    unit = unit||'pp';
+    const up = inverse ? v<=0 : v>=0;
+    const c2 = up ? '#34a853' : '#ea4335';
+    return '<span style="color:'+c2+';font-size:10px;">'+(v>0?'+':'')+v.toFixed(1)+unit+'</span>';
+  }
   function fmtW(v) { return (v||0).toFixed(1)+'w'; }
   function fmtN(v) { return Math.round(v||0).toLocaleString(); }
   function calcRateNum(wrt,exp) { return exp>0 ? wrt/(exp*10000)*100 : null; }
@@ -2015,7 +2022,8 @@ function buildChannelBreakdownSection() {
     c += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:.5px;">曝 光</div>';
     c += '<div style="font-size:11px;color:#888;margin-bottom:2px;">占总曝光</div>';
     c += '<div style="font-size:20px;font-weight:800;color:#1a1a1a;line-height:1;">'+expShare+'</div>';
-    c += '<div style="font-size:11px;color:#aaa;margin-top:2px;">上期 '+pExpShare+' '+qoqTag(qoqVal(expShare.replace('%',''), pExpShare.replace('%','')))+'</div>';
+    const _esDiff = (parseFloat(expShare)||0)-(parseFloat(pExpShare)||0);
+    c += '<div style="font-size:11px;color:#aaa;margin-top:2px;">上期 '+pExpShare+' '+(_esDiff!==0?deltaTag(_esDiff,inverse):'')+'</div>';
     c += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:8px 0;"></div>';
     c += '<div style="font-size:11px;color:#888;">日均 <strong>'+fmtW(expVal)+'</strong></div>';
     c += '<div style="font-size:11px;margin-top:2px;">'+qoqTag(expQ, inverse)+'<span style="font-size:10px;color:#aaa;margin-left:4px;">上期 '+fmtW(pExpVal)+'</span></div>';
@@ -2025,7 +2033,8 @@ function buildChannelBreakdownSection() {
     c += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:.5px;">核 销</div>';
     c += '<div style="font-size:11px;color:#888;margin-bottom:2px;">占总核销</div>';
     c += '<div style="font-size:20px;font-weight:800;color:#1a1a1a;line-height:1;">'+wrtShare+'</div>';
-    c += '<div style="font-size:11px;color:#aaa;margin-top:2px;">上期 '+pWrtShare+' '+qoqTag(qoqVal(wrtShare.replace('%',''), pWrtShare.replace('%','')))+'</div>';
+    const _wsDiff = (parseFloat(wrtShare)||0)-(parseFloat(pWrtShare)||0);
+    c += '<div style="font-size:11px;color:#aaa;margin-top:2px;">上期 '+pWrtShare+' '+(_wsDiff!==0?deltaTag(_wsDiff):'')+'</div>';
     c += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:8px 0;"></div>';
     c += '<div style="font-size:11px;color:#888;">日均 <strong>'+fmtN(wrtVal)+'</strong></div>';
     c += '<div style="font-size:11px;margin-top:2px;">'+qoqTag(wrtQ)+'<span style="font-size:10px;color:#aaa;margin-left:4px;">上期 '+fmtN(pWrtVal)+'</span></div>';
