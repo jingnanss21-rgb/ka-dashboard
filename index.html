@@ -2387,44 +2387,61 @@ function buildBrandChannelDiagnosis(brandName, cd) {
     s2x1.pExp += (chs[c]||{}).pExp||0; s2x1.pWrt += (chs[c]||{}).pWrt||0;
   });
   const zbCh = chs['周边']||{};
-  // 品牌级分渠道总量（摇一摇+周边，不含支付有礼）
-  const chTotExp = s2x1.exp + (zbCh.exp||0);
-  const totExp = chTotExp;
-  const totWrt = s2x1.wrt + (zbCh.wrt||0);
-  // 品牌整体曝光（含支付有礼等其他渠道）
-  const brandTotExp = cd.totExp || chTotExp;
-  const payGapExp = brandTotExp - chTotExp; // 支付有礼等其他渠道的曝光
 
-  // 占比（分母为摇一摇+周边总和，确保加总=100%）
+  // 5个已知渠道之和
+  const ch5Names = ['商业支付','面对面','固定入口','周边','其他'];
+  const ch5Exp = ch5Names.reduce((s,c)=>s+((chs[c]||{}).exp||0),0);
+  const ch5Wrt = ch5Names.reduce((s,c)=>s+((chs[c]||{}).wrt||0),0);
+  const ch5pExp = ch5Names.reduce((s,c)=>s+((chs[c]||{}).pExp||0),0);
+  const ch5pWrt = ch5Names.reduce((s,c)=>s+((chs[c]||{}).pWrt||0),0);
+
+  // 支付有礼 = 品牌总量 - 5个已知渠道之和（与渠道概览一致的反推逻辑）
+  const brandTotExp = cd.totExp || ch5Exp;
+  const brandTotWrt = cd.totWrt || ch5Wrt;
+  const brandPtotExp = cd.ptotExp || ch5pExp;
+  const brandPtotWrt = cd.ptotWrt || ch5pWrt;
+  const payReward = {
+    exp: Math.round((brandTotExp - ch5Exp)*100)/100,
+    wrt: Math.round(brandTotWrt - ch5Wrt),
+    pExp: Math.round((brandPtotExp - ch5pExp)*100)/100,
+    pWrt: Math.round(brandPtotWrt - ch5pWrt)
+  };
+
+  // 全渠道总量（含支付有礼）
+  const totExp = brandTotExp;
+  const totWrt = brandTotWrt;
+  const ptotExpBrand = brandPtotExp;
+  const ptotWrtBrand = brandPtotWrt;
+
+  // 占比（分母为全渠道总量，含支付有礼，确保加总=100%）
   const expShare2x1 = totExp>0 ? s2x1.exp/totExp*100 : 0;
   const expShareZb = totExp>0 ? (zbCh.exp||0)/totExp*100 : 0;
+  const expSharePay = totExp>0 ? payReward.exp/totExp*100 : 0;
 
   let out = '';
   out += '<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">';
   out += '<div style="font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">分渠道诊断 <span style="font-size:11px;font-weight:400;color:var(--text-secondary);">判断核销率低是否由曝光分配造成</span></div>';
 
-  // 上期占比（分母用摇一摇+周边总和）
-  const ptotExp = s2x1.pExp + (zbCh.pExp||0);
-  const pExpShare2x1 = ptotExp>0 ? s2x1.pExp/ptotExp*100 : 0;
-  const pExpShareZb = ptotExp>0 ? (zbCh.pExp||0)/ptotExp*100 : 0;
+  // 上期占比（分母为全渠道总量，含支付有礼）
+  const pExpShare2x1 = ptotExpBrand>0 ? s2x1.pExp/ptotExpBrand*100 : 0;
+  const pExpShareZb = ptotExpBrand>0 ? (zbCh.pExp||0)/ptotExpBrand*100 : 0;
+  const pExpSharePay = ptotExpBrand>0 ? payReward.pExp/ptotExpBrand*100 : 0;
 
   // ═══ 分渠道对比（以曝光占比为核心视觉，与渠道概览一致） ═══
   const bChRows = [
     {label:'摇一摇（二选一）', color:'#2563eb', d:s2x1, pct:expShare2x1, pPct:pExpShare2x1, inverse:false},
-    {label:'周边（非二选一）', color:'#ea580c', d:{exp:zbCh.exp||0, pExp:zbCh.pExp||0, wrt:zbCh.wrt||0, pWrt:zbCh.pWrt||0}, pct:expShareZb, pPct:pExpShareZb, inverse:true}
-  ];
+    {label:'周边（非二选一）', color:'#ea580c', d:{exp:zbCh.exp||0, pExp:zbCh.pExp||0, wrt:zbCh.wrt||0, pWrt:zbCh.pWrt||0}, pct:expShareZb, pPct:pExpShareZb, inverse:true},
+    {label:'支付有礼', color:'#7c3aed', d:payReward, pct:expSharePay, pPct:pExpSharePay, inverse:false}
+  ].filter(r => r.d.exp > 0 || r.d.wrt > 0);
   const bMaxPct = Math.max(...bChRows.map(r=>Math.max(r.pct,r.pPct,1)));
 
-  const chExpDelta = totExp - ptotExp;
+  const chExpDelta = totExp - ptotExpBrand;
   const chExpDeltaColor = chExpDelta>=0 ? '#16a34a' : '#dc2626';
 
   out += '<div style="background:#f8fafc;border-radius:8px;padding:12px 14px;margin-bottom:12px;">';
   out += '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">';
   out += '<span style="font-size:12px;font-weight:700;color:#475569;">分渠道对比</span>';
   out += '<span style="font-size:11px;color:#64748b;">渠道曝光 <strong style="color:#1e293b;">'+fmtW(totExp)+'</strong> <span style="color:'+chExpDeltaColor+';font-weight:700;">'+(chExpDelta>=0?'+':'')+chExpDelta.toFixed(1)+'w</span></span>';
-  if(payGapExp > 0.01) {
-    out += '<span style="font-size:10px;color:#94a3b8;">（另有支付有礼等 '+fmtW(payGapExp)+'）</span>';
-  }
   out += '</div>';
 
   // 表头
@@ -2542,6 +2559,25 @@ function buildBrandChannelDiagnosis(brandName, cd) {
     out += '<td style="padding:6px 6px;text-align:center;font-weight:600;color:#64748b;">'+expPct.toFixed(1)+'%</td>';
     out += '</tr>';
   });
+
+  // 支付有礼明细行（有数据时才显示）
+  if(payReward.exp > 0 || payReward.wrt > 0) {
+    const prExpQoq = qoqVal(payReward.exp, payReward.pExp);
+    const prWrtQoq = qoqVal(payReward.wrt, payReward.pWrt);
+    const prCurRate = calcRateNum(payReward.wrt, payReward.exp);
+    const prPrevRate = calcRateNum(payReward.pWrt, payReward.pExp);
+    const prExpPct = totExp>0 ? (payReward.exp/totExp*100) : 0;
+    out += '<tr style="border-bottom:1px solid #f1f5f9;background:#faf5ff;">';
+    out += '<td style="padding:6px 10px;text-align:left;"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#7c3aed;margin-right:5px;vertical-align:middle;"></span><span style="font-weight:600;color:#7c3aed;">支付有礼</span></td>';
+    out += '<td style="padding:6px 6px;text-align:center;"><span style="font-weight:600;color:#1e293b;">'+fmtW(payReward.exp)+'</span><span style="color:#b0b8c4;font-size:9px;margin-left:2px;">/ '+fmtW(payReward.pExp)+'</span></td>';
+    out += '<td style="padding:6px 6px;text-align:center;">'+qoqBadge(prExpQoq)+'</td>';
+    out += '<td style="padding:6px 6px;text-align:center;"><span style="font-weight:600;color:#1e293b;">'+fmtN(payReward.wrt)+'</span><span style="color:#b0b8c4;font-size:9px;margin-left:2px;">/ '+fmtN(payReward.pWrt)+'</span></td>';
+    out += '<td style="padding:6px 6px;text-align:center;">'+qoqBadge(prWrtQoq)+'</td>';
+    out += '<td style="padding:6px 6px;text-align:center;"><span style="font-weight:600;color:#1e293b;">'+prCurRate.toFixed(2)+'%</span><span style="color:#b0b8c4;font-size:9px;margin-left:2px;">/ '+prPrevRate.toFixed(2)+'%</span></td>';
+    out += '<td style="padding:6px 6px;text-align:center;">'+rateDeltaBadge(prCurRate, prPrevRate)+'</td>';
+    out += '<td style="padding:6px 6px;text-align:center;font-weight:600;color:#7c3aed;">'+prExpPct.toFixed(1)+'%</td>';
+    out += '</tr>';
+  }
 
   out += '</tbody></table></div>';
 
