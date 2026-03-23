@@ -2143,16 +2143,12 @@ function buildChannelBreakdownSection() {
     return c;
   }
 
-  // ═══ 三张大类卡片并排 ═══
+  // ═══ 两张大类卡片并排 ═══
   out += '<div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap;">';
   out += buildGroupCard('摇一摇（二选一）', '#2563eb', '#bfdbfe', 'linear-gradient(135deg, #eff6ff 0%, #f8faff 100%)',
     c2x1, {exp: expShare2x1, pExp: pExpShare2x1, wrt: wrtShare2x1}, {});
   out += buildGroupCard('周边（非二选一）', '#ea580c', '#fed7aa', 'linear-gradient(135deg, #fff7ed 0%, #fffbf5 100%)',
     zbCh, {exp: expShareZb, pExp: pExpShareZb, wrt: wrtShareZb}, {expInverse: true});
-  if(payReward.exp > 0 || payReward.wrt > 0) {
-    out += buildGroupCard('支付有礼', '#7c3aed', '#ddd6fe', 'linear-gradient(135deg, #f5f3ff 0%, #faf8ff 100%)',
-      payReward, {exp: expSharePay, pExp: pExpSharePay, wrt: wrtSharePay}, {});
-  }
   out += '</div>';
 
   // ═══ 核销率解读（非二选一核销上涨的结构性分析） ═══
@@ -2241,9 +2237,9 @@ function buildChannelBreakdownSection() {
   // 非二选一分组
   out += renderSubRow('周边（非二选一）', zbCh, {isGroupLabel:true, expInverse:true});
   out += renderSubRow('周边', zbCh, {expInverse:true});
-  // 支付有礼分组
+  // 支付有礼（作为子渠道）
   if(payReward.exp > 0 || payReward.wrt > 0) {
-    out += renderSubRow('支付有礼', payReward, {isGroupLabel:true});
+    out += renderSubRow('支付有礼', payReward, {});
   }
 
   out += '</tbody></table></div>';
