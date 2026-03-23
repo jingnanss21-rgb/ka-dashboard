@@ -1924,7 +1924,7 @@ function analyzeGoodCase(b, med) {
 
 
 // ============================================================
-// 分渠道曝光核销环比模块（重设计）
+// 分渠道曝光核销环比模块（v3）
 // ============================================================
 function buildChannelBreakdownSection() {
   const gd = CHANNEL_DATA.globalData;
@@ -1933,153 +1933,11 @@ function buildChannelBreakdownSection() {
   function qoqVal(a,b) { return (b&&b!==0) ? (a-b)/b*100 : null; }
   function fmtW(v) { return (v||0).toFixed(1)+'w'; }
   function fmtN(v) { return Math.round(v||0).toLocaleString(); }
-  function calcRate(wrt, exp) { return exp>0 ? (wrt/(exp*10000)*100).toFixed(2)+'%' : '-'; }
-  function pctOf(a, b) { return b>0 ? (a/b*100).toFixed(1)+'%' : '-'; }
-  function qoqBadge(v, inverse) {
-    if(v===null||v===undefined) return '<span style="color:#bbb;font-size:12px;">—</span>';
-    const up = inverse ? v<0 : v>=0;
-    const color = up ? '#34a853' : '#ea4335';
-    const arrow = v>=0 ? '▲' : '▼';
-    return '<span style="color:'+color+';font-size:13px;font-weight:700;">'+arrow+' '+(v>=0?'+':'')+v.toFixed(1)+'%</span>';
-  }
-
-  // 计算二选一合计
-  const eff2x1Chs = ['商业支付','面对面','固定入口','其他'];
-  const c2x1 = {exp:0, wrt:0, pExp:0, pWrt:0};
-  eff2x1Chs.forEach(c => {
-    c2x1.exp += ch[c].exp; c2x1.wrt += ch[c].wrt;
-    c2x1.pExp += ch[c].pExp; c2x1.pWrt += ch[c].pWrt;
-  });
-  const zbCh = ch['周边'];
-  const totExp = c2x1.exp + zbCh.exp;
-  const totWrt = c2x1.wrt + zbCh.wrt;
-  const ptotExp = c2x1.pExp + zbCh.pExp;
-
-  let out = '';
-  out += '<div class="achieve-bars-section" style="margin-bottom:20px;">';
-  out += '<div class="achieve-bars-title" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;"><span style="display:flex;align-items:center;gap:8px;"><span style="width:4px;height:20px;background:#673ab7;border-radius:2px;display:inline-block;"></span><span>分渠道曝光 & 核销</span><span style="font-size:11px;color:#aaa;font-weight:400;">本期 vs 上期</span></span><span style="font-size:12px;color:#aaa;font-weight:400;cursor:pointer;" onclick="toggleSubChannels(this)">展开子渠道 ▾</span></div>';
-
-  // ── 双卡片行 ──
-  out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">';
-
-  // 卡片1: 二选一
-  const c2x1Rate = calcRate(c2x1.wrt, c2x1.exp);
-  const c2x1PRate = calcRate(c2x1.pWrt, c2x1.pExp);
-  const expShare2x1 = pctOf(c2x1.exp, totExp);
-  out += '<div style="background:#f0f7ff;border-radius:12px;padding:18px 20px;border-top:4px solid #1a73e8;">';
-  out += '<div style="font-size:13px;font-weight:700;color:#1a73e8;margin-bottom:14px;">二选一</div>';
-  out += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">';
-  // 曝光
-  out += '<div>';
-  out += '<div style="font-size:11px;color:#888;margin-bottom:4px;">日均曝光</div>';
-  out += '<div style="font-size:22px;font-weight:800;color:#1a1a1a;line-height:1.1;">'+fmtW(c2x1.exp)+'</div>';
-  out += '<div style="margin-top:4px;">'+qoqBadge(qoqVal(c2x1.exp,c2x1.pExp))+'</div>';
-  out += '<div style="font-size:11px;color:#bbb;margin-top:2px;">占总曝光 '+expShare2x1+'</div>';
-  out += '</div>';
-  // 核销
-  out += '<div>';
-  out += '<div style="font-size:11px;color:#888;margin-bottom:4px;">日均核销</div>';
-  out += '<div style="font-size:22px;font-weight:800;color:#1a1a1a;line-height:1.1;">'+fmtN(c2x1.wrt)+'</div>';
-  out += '<div style="margin-top:4px;">'+qoqBadge(qoqVal(c2x1.wrt,c2x1.pWrt))+'</div>';
-  out += '<div style="font-size:11px;color:#bbb;margin-top:2px;">上期 '+fmtN(c2x1.pWrt)+'</div>';
-  out += '</div>';
-  // 核销率
-  out += '<div>';
-  out += '<div style="font-size:11px;color:#888;margin-bottom:4px;">曝光核销率</div>';
-  out += '<div style="font-size:22px;font-weight:800;color:#1a73e8;line-height:1.1;">'+c2x1Rate+'</div>';
-  out += '<div style="font-size:12px;color:#888;margin-top:6px;">上期 '+c2x1PRate+'</div>';
-  out += '</div>';
-  out += '</div></div>'; // end 3-col + card
-
-  // 卡片2: 非二选一（周边）
-  const zbRate = calcRate(zbCh.wrt, zbCh.exp);
-  const zbPRate = calcRate(zbCh.pWrt, zbCh.pExp);
-  const expShareZb = pctOf(zbCh.exp, totExp);
-  const pExpShareZb = pctOf(zbCh.pExp, ptotExp);
-  const zbExpQoq = qoqVal(zbCh.exp, zbCh.pExp);
-  const zbShareWarn = parseFloat(expShareZb) > 40;
-  out += '<div style="background:#fffde7;border-radius:12px;padding:18px 20px;border-top:4px solid '+(zbShareWarn?'#f44336':'#f9ab00')+'">';
-  out += '<div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:14px;">非二选一（周边）'+(zbShareWarn?' <span style="font-size:11px;background:#fde8e8;color:#f44336;padding:2px 6px;border-radius:4px;">⚠ 占比偏高</span>':'')+'</div>';
-  out += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">';
-  // 曝光
-  out += '<div>';
-  out += '<div style="font-size:11px;color:#888;margin-bottom:4px;">日均曝光</div>';
-  out += '<div style="font-size:22px;font-weight:800;color:#1a1a1a;line-height:1.1;">'+fmtW(zbCh.exp)+'</div>';
-  out += '<div style="margin-top:4px;">'+qoqBadge(zbExpQoq, true)+'</div>'; // inverse: 周边曝光涨是警告
-  out += '<div style="font-size:11px;color:'+(zbShareWarn?'#f44336':'#bbb')+';margin-top:2px;font-weight:'+(zbShareWarn?'700':'400')+';">占总曝光 '+expShareZb+'</div>';
-  out += '</div>';
-  // 核销
-  out += '<div>';
-  out += '<div style="font-size:11px;color:#888;margin-bottom:4px;">日均核销</div>';
-  out += '<div style="font-size:22px;font-weight:800;color:#1a1a1a;line-height:1.1;">'+fmtN(zbCh.wrt)+'</div>';
-  out += '<div style="margin-top:4px;">'+qoqBadge(qoqVal(zbCh.wrt,zbCh.pWrt))+'</div>';
-  out += '<div style="font-size:11px;color:#bbb;margin-top:2px;">上期 '+fmtN(zbCh.pWrt)+'</div>';
-  out += '</div>';
-  // 核销率
-  out += '<div>';
-  out += '<div style="font-size:11px;color:#888;margin-bottom:4px;">曝光核销率</div>';
-  out += '<div style="font-size:22px;font-weight:800;color:#e65100;line-height:1.1;">'+zbRate+'</div>';
-  out += '<div style="font-size:12px;color:#888;margin-top:6px;">上期 '+zbPRate+'</div>';
-  out += '</div>';
-  out += '</div></div>'; // end 3-col + card
-  out += '</div>'; // end grid
-
-  // ── 子渠道折叠区 ──
-  out += '<div id="subChannelDetail" style="display:none;">';
-  out += '<div style="border-top:1px solid #e8eaed;padding-top:14px;margin-top:4px;">';
-  out += '<div style="font-size:12px;color:#888;margin-bottom:10px;">各子渠道详情</div>';
-  out += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">';
-
-  const subRows = [
-    { name:'商业支付', color:'#1a73e8', bg:'#e8f0fe' },
-    { name:'面对面',   color:'#0d7a1a', bg:'#e6f4ea' },
-    { name:'固定入口', color:'#5c35cc', bg:'#f0ebff' },
-    { name:'其他',     color:'#888',    bg:'#f1f3f4', anomaly: true },
-    { name:'周边',     color:'#e65100', bg:'#fff3e0' },
-  ];
-  subRows.forEach(r => {
-    const d = ch[r.name];
-    const expQ = qoqVal(d.exp, d.pExp);
-    const wrtQ = qoqVal(d.wrt, d.pWrt);
-    out += '<div style="background:'+r.bg+';border-radius:8px;padding:10px 12px;">';
-    out += '<div style="font-size:12px;font-weight:700;color:'+r.color+';margin-bottom:8px;">'+r.name+(r.anomaly?' <span style="font-size:10px;color:#e65100;">⚠数据口径</span>':'')+'</div>';
-    out += '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
-    out += '<div><div style="font-size:10px;color:#999;">曝光</div><div style="font-size:14px;font-weight:700;">'+fmtW(d.exp)+'</div><div style="font-size:11px;">'+qoqBadge(expQ, r.name==='周边')+'</div></div>';
-    out += '<div><div style="font-size:10px;color:#999;">核销</div><div style="font-size:14px;font-weight:700;">'+fmtN(d.wrt)+'</div><div style="font-size:11px;">'+qoqBadge(wrtQ)+'</div></div>';
-    out += r.anomaly ? '' : '<div><div style="font-size:10px;color:#999;">核销率</div><div style="font-size:14px;font-weight:700;">'+calcRate(d.wrt,d.exp)+'</div></div>';
-    out += '</div></div>';
-  });
-  out += '</div></div></div>'; // end subChannelDetail
-
-  out += '</div>'; // end achieve-bars-section
-  return out;
-}
-
-function toggleSubChannels(btn) {
-  const el = document.getElementById('subChannelDetail');
-  if(!el) return;
-  if(el.style.display==='none') {
-    el.style.display='block';
-    btn.textContent='收起子渠道 ▴';
-  } else {
-    el.style.display='none';
-    btn.textContent='展开子渠道 ▾';
-  }
-}
-
-
-// ============================================================
-// 品牌渠道诊断（重设计）：未存活品牌分渠道对比
-// ============================================================
-function buildBrandChannelDiagnosis(brandName, cd) {
-  if(!cd) return '';
-
-  function qoqVal(a,b) { return (b&&b!==0) ? (a-b)/b*100 : null; }
-  function fmtW(v) { return (v||0).toFixed(1)+'w'; }
-  function fmtN(v) { return Math.round(v||0).toLocaleString(); }
-  function calcRate(wrt, exp) { return exp>0 ? (wrt/(exp*10000)*100).toFixed(2)+'%' : '-'; }
+  function calcRateNum(wrt,exp) { return exp>0 ? wrt/(exp*10000)*100 : null; }
+  function calcRate(wrt,exp) { const r=calcRateNum(wrt,exp); return r!==null?r.toFixed(2)+'%':'-'; }
   function pctOf(a,b) { return b>0 ? (a/b*100).toFixed(1)+'%' : '-'; }
-  function qoqBadge(v, inverse) {
+
+  function qoqTag(v, inverse) {
     if(v===null||v===undefined) return '<span style="color:#bbb;font-size:11px;">—</span>';
     const up = inverse ? v<=0 : v>=0;
     const color = up ? '#34a853' : '#ea4335';
@@ -2087,90 +1945,336 @@ function buildBrandChannelDiagnosis(brandName, cd) {
     return '<span style="color:'+color+';font-size:12px;font-weight:700;">'+arrow+' '+(v>=0?'+':'')+v.toFixed(1)+'%</span>';
   }
 
-  const chs = cd.chData;
-  const zbShare = cd.zbShare||0;
-  const pZbShare = cd.pZbShare||0;
-  const zbDelta = zbShare - pZbShare;
-
   // 二选一合计
-  const eff2x1Chs = ['商业支付','面对面','固定入口','其他'];
-  const s2x1 = {exp:0,wrt:0,pExp:0,pWrt:0};
-  eff2x1Chs.forEach(c => {
-    s2x1.exp += (chs[c]||{}).exp||0; s2x1.wrt += (chs[c]||{}).wrt||0;
-    s2x1.pExp += (chs[c]||{}).pExp||0; s2x1.pWrt += (chs[c]||{}).pWrt||0;
-  });
+  const e2Chs = ['商业支付','面对面','固定入口','其他'];
+  const c2x1 = {exp:0,wrt:0,pExp:0,pWrt:0};
+  e2Chs.forEach(c=>{c2x1.exp+=ch[c].exp;c2x1.wrt+=ch[c].wrt;c2x1.pExp+=ch[c].pExp;c2x1.pWrt+=ch[c].pWrt;});
+  const zbCh = ch['周边'];
+  const totExp = c2x1.exp + zbCh.exp;
+  const totWrt = c2x1.wrt + zbCh.wrt;
+  const ptotExp = c2x1.pExp + zbCh.pExp;
+  const ptotWrt = c2x1.pWrt + zbCh.pWrt;
 
-  // 诊断类型
-  const eff2x1Qoq = qoqVal(s2x1.exp, s2x1.pExp);
-  const isZbDilution = zbShare > 50 && zbDelta > 5 && (cd.wrtQoq===null || cd.wrtQoq<=0);
-  const isEff2x1Low = s2x1.exp < 5 && cd.totExp > 10;
-  const isNearAlive = !isZbDilution && !isEff2x1Low && cd.wrtQoq!==null && cd.wrtQoq>0 && cd.survivalRate>=0.7;
+  // 核销率及环比
+  const r2x1 = calcRateNum(c2x1.wrt, c2x1.exp);
+  const pr2x1 = calcRateNum(c2x1.pWrt, c2x1.pExp);
+  const rzb = calcRateNum(zbCh.wrt, zbCh.exp);
+  const przb = calcRateNum(zbCh.pWrt, zbCh.pExp);
+  const rQoq2x1 = (r2x1!==null&&pr2x1!==null&&pr2x1!==0) ? (r2x1-pr2x1)/pr2x1*100 : null;
+  const rQoqZb = (rzb!==null&&przb!==null&&przb!==0) ? (rzb-przb)/przb*100 : null;
 
-  let diagType, diagColor, diagBg, diagMsg;
-  if(isZbDilution) {
-    diagType='周边曝光稀释'; diagColor='#c62828'; diagBg='#fde8e8';
-    diagMsg='周边占比升至 <strong>'+zbShare.toFixed(1)+'%</strong>（上期 '+pZbShare.toFixed(1)+'%，<strong>+'+zbDelta.toFixed(1)+'pp</strong>），大量无效曝光拉低整体核销率，二选一核销量无改善。';
-  } else if(isEff2x1Low) {
-    diagType='二选一曝光不足'; diagColor='#e65100'; diagBg='#fff3e0';
-    diagMsg='二选一有效曝光仅 <strong>'+fmtW(s2x1.exp)+'</strong>（占总曝光 '+pctOf(s2x1.exp,cd.totExp)+'），有效曝光供给不足，需扩大商业支付 / 面对面渠道覆盖。';
-  } else if(isNearAlive) {
-    diagType='改善中（临界品牌）'; diagColor='#1565c0'; diagBg='#e3f2fd';
-    diagMsg='核销量环比 <strong>'+cd.wrtQoq.toFixed(1)+'%</strong>，存活率 <strong>'+cd.survivalRate.toFixed(2)+'%</strong>，趋势向好，距存活线尚差一步。';
-  } else {
-    diagType='整体下滑'; diagColor='#5c35cc'; diagBg='#f0ebff';
-    diagMsg='二选一曝光 '+(eff2x1Qoq!==null?'<strong>'+(eff2x1Qoq>=0?'+':'')+eff2x1Qoq.toFixed(1)+'%</strong>':'—')+'，核销 '+(cd.wrtQoq!==null?'<strong>'+(cd.wrtQoq>=0?'+':'')+cd.wrtQoq.toFixed(1)+'%</strong>':'—')+'，需排查活动下线或门店缩减。';
-  }
+  const zbSharePct = totExp>0 ? zbCh.exp/totExp*100 : 0;
+  const e2SharePct = totExp>0 ? c2x1.exp/totExp*100 : 0;
+  const pzbSharePct = ptotExp>0 ? zbCh.pExp/ptotExp*100 : 0;
+  const pe2SharePct = ptotExp>0 ? c2x1.pExp/ptotExp*100 : 0;
+  const zbShareWarn = zbSharePct > 40;
 
   let out = '';
-  out += '<div style="margin-top:12px;border-top:1px dashed #e0e0e0;padding-top:12px;">';
+  out += '<div class="achieve-bars-section" style="margin-bottom:20px;">';
+  out += '<div class="achieve-bars-title" style="margin-bottom:18px;"><span style="width:4px;height:20px;background:#673ab7;border-radius:2px;display:inline-block;margin-right:8px;vertical-align:middle;"></span>分渠道曝光 & 核销<span style="font-size:11px;color:#aaa;font-weight:400;margin-left:8px;">本期 vs 上期 | 0311-0317 vs 0304-0310</span></div>';
 
-  // ── 诊断结论横幅 ──
-  out += '<div style="background:'+diagBg+';border-left:4px solid '+diagColor+';border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:14px;">';
-  out += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-size:12px;font-weight:700;background:'+diagColor+';color:#fff;padding:2px 8px;border-radius:4px;">'+diagType+'</span></div>';
-  out += '<div style="font-size:13px;color:#333;line-height:1.7;">'+diagMsg+'</div>';
-  out += '</div>';
-
-  // ── 关键指标对比行 ──
-  const zbCh = chs['周边']||{};
-  out += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:14px;">';
-
-  function miniStat(label, val, sub, color) {
-    return '<div style="background:#f8f9fa;border-radius:8px;padding:8px 10px;"><div style="font-size:10px;color:#888;margin-bottom:3px;">'+label+'</div><div style="font-size:16px;font-weight:800;color:'+(color||'#1a1a1a')+'">'+val+'</div>'+(sub?'<div style="font-size:11px;color:#aaa;margin-top:2px;">'+sub+'</div>':'')+'</div>';
-  }
-  out += miniStat('二选一曝光', fmtW(s2x1.exp), qoqBadge(eff2x1Qoq)+'', '#1a73e8');
-  out += miniStat('二选一核销', fmtN(s2x1.wrt), qoqBadge(qoqVal(s2x1.wrt,s2x1.pWrt))+'', '#34a853');
-  out += miniStat('周边曝光占比', zbShare.toFixed(1)+'%', (zbDelta>=0?'+':'')+zbDelta.toFixed(1)+'pp vs 上期', zbShare>50?'#c62828':'#888');
-  out += miniStat('二选一核销率', calcRate(s2x1.wrt,s2x1.exp), '上期 '+calcRate(s2x1.pWrt,s2x1.pExp), '#673ab7');
-  out += '</div>';
-
-  // ── 周边占比变化视觉条 ──
-  out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-
+  // ═══════════════════════════════════════════
+  // 顶部：曝光构成可视化横条（完整占比一览）
+  // ═══════════════════════════════════════════
+  out += '<div style="margin-bottom:20px;">';
+  out += '<div style="font-size:11px;color:#888;margin-bottom:6px;display:flex;justify-content:space-between;"><span>全渠道曝光构成</span><span>总曝光 本期 '+fmtW(totExp)+' / 上期 '+fmtW(ptotExp)+'</span></div>';
   // 本期
-  out += '<div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;">';
-  out += '<div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:6px;"><span>周边 vs 二选一 曝光构成</span><span style="font-weight:700;">本期</span></div>';
-  const zbPct = Math.min(zbShare, 100);
-  const e2Pct = Math.min(100-zbShare, 100);
-  out += '<div style="display:flex;border-radius:4px;overflow:hidden;height:10px;">';
-  out += '<div style="width:'+e2Pct+'%;background:#1a73e8;" title="二选一 '+e2Pct.toFixed(1)+'%"></div>';
-  out += '<div style="width:'+zbPct+'%;background:'+(zbShare>50?'#f44336':'#f9ab00')+'" title="周边 '+zbPct.toFixed(1)+'%"></div>';
-  out += '</div>';
-  out += '<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px;"><span style="color:#1a73e8;">二选一 '+e2Pct.toFixed(1)+'%</span><span style="color:'+(zbShare>50?'#f44336':'#e65100')+'">周边 '+zbPct.toFixed(1)+'%</span></div>';
-  out += '</div>';
-
+  out += '<div style="margin-bottom:6px;">';
+  out += '<div style="font-size:10px;color:#aaa;margin-bottom:3px;">本期</div>';
+  out += '<div style="display:flex;border-radius:6px;overflow:hidden;height:22px;">';
+  out += '<div style="width:'+e2SharePct.toFixed(1)+'%;background:#1a73e8;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;min-width:40px;">二选一 '+e2SharePct.toFixed(1)+'%</div>';
+  out += '<div style="width:'+zbSharePct.toFixed(1)+'%;background:'+(zbShareWarn?'#f44336':'#f9ab00')+';display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;min-width:40px;">周边 '+zbSharePct.toFixed(1)+'%</div>';
+  out += '</div></div>';
   // 上期
-  out += '<div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;">';
-  out += '<div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:6px;"><span>周边 vs 二选一 曝光构成</span><span style="font-weight:700;">上期</span></div>';
-  const pzbPct = Math.min(pZbShare, 100);
-  const pe2Pct = Math.min(100-pZbShare, 100);
-  out += '<div style="display:flex;border-radius:4px;overflow:hidden;height:10px;">';
-  out += '<div style="width:'+pe2Pct+'%;background:#1a73e8;"></div>';
-  out += '<div style="width:'+pzbPct+'%;background:#f9ab00;"></div>';
+  out += '<div>';
+  out += '<div style="font-size:10px;color:#aaa;margin-bottom:3px;">上期</div>';
+  out += '<div style="display:flex;border-radius:6px;overflow:hidden;height:14px;">';
+  out += '<div style="width:'+pe2SharePct.toFixed(1)+'%;background:#90bafc;"></div>';
+  out += '<div style="width:'+pzbSharePct.toFixed(1)+'%;background:#fcd980;"></div>';
   out += '</div>';
-  out += '<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px;"><span style="color:#1a73e8;">二选一 '+pe2Pct.toFixed(1)+'%</span><span style="color:#e65100;">周边 '+pzbPct.toFixed(1)+'%</span></div>';
-  out += '</div>';
+  out += '<div style="display:flex;gap:12px;margin-top:3px;font-size:10px;color:#aaa;"><span>■ 二选一 '+pe2SharePct.toFixed(1)+'%</span><span>■ 周边 '+pzbSharePct.toFixed(1)+'%</span>'+(zbSharePct-pzbSharePct>0?'<span style="color:'+(zbShareWarn?'#f44336':'#e65100')+'">周边占比 +'+(zbSharePct-pzbSharePct).toFixed(1)+'pp ▲</span>':'<span style="color:#34a853">周边占比 '+(zbSharePct-pzbSharePct).toFixed(1)+'pp</span>')+'</div>';
+  out += '</div></div>';
 
-  out += '</div>'; // end 2-col
+  // ═══════════════════════════════════════════
+  // 双卡片：二选一 vs 非二选一
+  // ═══════════════════════════════════════════
+  out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">';
+
+  function bigCard(title, topColor, mainBg, borderWarn,
+      expVal, pExpVal, expShare, pExpShare,
+      wrtVal, pWrtVal, wrtShare, pWrtShare,
+      rateVal, pRateVal, rateQoq, inverse) {
+    const expQ = qoqVal(expVal, pExpVal);
+    const wrtQ = qoqVal(wrtVal, pWrtVal);
+    let c = '';
+    c += '<div style="background:'+mainBg+';border-radius:12px;padding:18px 20px;border-top:4px solid '+topColor+(borderWarn?';box-shadow:0 0 0 2px #f44336':'')+';">';
+    c += '<div style="font-size:13px;font-weight:700;color:'+topColor+';margin-bottom:16px;">'+title+'</div>';
+    c += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-radius:8px;overflow:hidden;">';
+    // 曝光列
+    c += '<div style="background:rgba(0,0,0,0.03);padding:10px 12px;border-right:1px solid rgba(0,0,0,0.06);">';
+    c += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:.5px;">曝 光</div>';
+    c += '<div style="font-size:11px;color:#888;margin-bottom:2px;">占总曝光</div>';
+    c += '<div style="font-size:20px;font-weight:800;color:#1a1a1a;line-height:1;">'+expShare+'</div>';
+    c += '<div style="font-size:11px;color:#aaa;margin-top:2px;">上期 '+pExpShare+' '+qoqTag(qoqVal(expShare.replace('%',''), pExpShare.replace('%','')))+'</div>';
+    c += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:8px 0;"></div>';
+    c += '<div style="font-size:11px;color:#888;">日均 <strong>'+fmtW(expVal)+'</strong></div>';
+    c += '<div style="font-size:11px;margin-top:2px;">'+qoqTag(expQ, inverse)+'<span style="font-size:10px;color:#aaa;margin-left:4px;">上期 '+fmtW(pExpVal)+'</span></div>';
+    c += '</div>';
+    // 核销列
+    c += '<div style="background:rgba(0,0,0,0.03);padding:10px 12px;border-right:1px solid rgba(0,0,0,0.06);">';
+    c += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:.5px;">核 销</div>';
+    c += '<div style="font-size:11px;color:#888;margin-bottom:2px;">占总核销</div>';
+    c += '<div style="font-size:20px;font-weight:800;color:#1a1a1a;line-height:1;">'+wrtShare+'</div>';
+    c += '<div style="font-size:11px;color:#aaa;margin-top:2px;">上期 '+pWrtShare+' '+qoqTag(qoqVal(wrtShare.replace('%',''), pWrtShare.replace('%','')))+'</div>';
+    c += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:8px 0;"></div>';
+    c += '<div style="font-size:11px;color:#888;">日均 <strong>'+fmtN(wrtVal)+'</strong></div>';
+    c += '<div style="font-size:11px;margin-top:2px;">'+qoqTag(wrtQ)+'<span style="font-size:10px;color:#aaa;margin-left:4px;">上期 '+fmtN(pWrtVal)+'</span></div>';
+    c += '</div>';
+    // 核销率列
+    c += '<div style="background:rgba(0,0,0,0.03);padding:10px 12px;">';
+    c += '<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600;letter-spacing:.5px;">核销率</div>';
+    c += '<div style="font-size:24px;font-weight:900;color:'+topColor+';line-height:1.1;">'+rateVal+'</div>';
+    c += '<div style="font-size:12px;margin-top:6px;">'+qoqTag(rateQoq)+'</div>';
+    c += '<div style="font-size:11px;color:#aaa;margin-top:4px;">上期 '+pRateVal+'</div>';
+    c += '</div>';
+    c += '</div></div>';
+    return c;
+  }
+
+  out += bigCard(
+    '二选一', '#1a73e8', '#f0f7ff', false,
+    c2x1.exp, c2x1.pExp, pctOf(c2x1.exp,totExp), pctOf(c2x1.pExp,ptotExp),
+    c2x1.wrt, c2x1.pWrt, pctOf(c2x1.wrt,totWrt), pctOf(c2x1.pWrt,ptotWrt),
+    r2x1!==null?r2x1.toFixed(2)+'%':'-', pr2x1!==null?pr2x1.toFixed(2)+'%':'-',
+    rQoq2x1, false
+  );
+  out += bigCard(
+    '非二选一（周边）'+(zbShareWarn?' <span style="font-size:11px;background:#fde8e8;color:#f44336;padding:2px 6px;border-radius:4px;font-weight:400;">⚠ 占比偏高</span>':''),
+    zbShareWarn?'#f44336':'#e65100', '#fffde7', zbShareWarn,
+    zbCh.exp, zbCh.pExp, pctOf(zbCh.exp,totExp), pctOf(zbCh.pExp,ptotExp),
+    zbCh.wrt, zbCh.pWrt, pctOf(zbCh.wrt,totWrt), pctOf(zbCh.pWrt,ptotWrt),
+    rzb!==null?rzb.toFixed(2)+'%':'-', przb!==null?przb.toFixed(2)+'%':'-',
+    rQoqZb, true
+  );
+  out += '</div>'; // end dual card grid
+
+  // ═══════════════════════════════════════════
+  // 子渠道折叠：占比为主，绝对值+核销率为辅
+  // ═══════════════════════════════════════════
+  out += '<div style="border-top:1px solid #e8eaed;padding-top:12px;">';
+  out += '<div style="cursor:pointer;font-size:12px;color:#888;user-select:none;margin-bottom:10px;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'▸ 展开子渠道明细':'▾ 收起子渠道明细';">▸ 展开子渠道明细</div>';
+  out += '<div style="display:none;">';
+
+  const subChs = [
+    {name:'商业支付', color:'#1a73e8', bg:'#e8f0fe'},
+    {name:'面对面',   color:'#0d7a1a', bg:'#e6f4ea'},
+    {name:'固定入口', color:'#5c35cc', bg:'#f0ebff'},
+    {name:'其他',     color:'#888',    bg:'#f5f5f5', note:true},
+    {name:'周边',     color:'#e65100', bg:'#fff3e0', inverse:true},
+  ];
+
+  out += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">';
+  subChs.forEach(r => {
+    const d = ch[r.name];
+    const eShare = pctOf(d.exp, totExp);
+    const wShare = pctOf(d.wrt, totWrt);
+    const peShare = pctOf(d.pExp, ptotExp);
+    const pwShare = pctOf(d.pWrt, ptotWrt);
+    const rate = r.note ? null : calcRateNum(d.wrt, d.exp);
+    const prate = r.note ? null : calcRateNum(d.pWrt, d.pExp);
+    const rQoq = (rate!==null&&prate!==null&&prate!==0) ? (rate-prate)/prate*100 : null;
+    out += '<div style="background:'+r.bg+';border-radius:8px;padding:10px 12px;">';
+    out += '<div style="font-size:12px;font-weight:700;color:'+r.color+';margin-bottom:8px;">'+r.name+(r.note?' <span style="font-size:10px;color:#e65100;font-weight:400;">⚠数据口径</span>':'')+'</div>';
+    // 占比行
+    out += '<div style="font-size:10px;color:#888;margin-bottom:2px;">曝光占比</div>';
+    out += '<div style="font-size:16px;font-weight:800;color:#1a1a1a;">'+eShare+'</div>';
+    out += '<div style="font-size:10px;color:#aaa;">上期 '+peShare+' '+qoqTag(qoqVal(parseFloat(eShare),parseFloat(peShare)), r.inverse)+'</div>';
+    out += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:6px 0;"></div>';
+    // 核销占比
+    out += '<div style="font-size:10px;color:#888;margin-bottom:2px;">核销占比</div>';
+    out += '<div style="font-size:16px;font-weight:800;color:#1a1a1a;">'+wShare+'</div>';
+    out += '<div style="font-size:10px;color:#aaa;">上期 '+pwShare+' '+qoqTag(qoqVal(parseFloat(wShare),parseFloat(pwShare)))+'</div>';
+    out += '<div style="border-top:1px solid rgba(0,0,0,0.06);margin:6px 0;"></div>';
+    // 绝对值 + 核销率
+    out += '<div style="font-size:10px;color:#aaa;">曝 '+fmtW(d.exp)+' &nbsp;核 '+fmtN(d.wrt)+'</div>';
+    if(!r.note) {
+      out += '<div style="font-size:11px;margin-top:3px;">核销率 <strong style="color:'+r.color+'">'+calcRate(d.wrt,d.exp)+'</strong> '+qoqTag(rQoq)+'</div>';
+    }
+    out += '</div>';
+  });
+  out += '</div>';
+  out += '</div></div>'; // end collapse + section
+  out += '</div>'; // end achieve-bars-section
+  return out;
+}
+
+
+// ============================================================
+// 品牌渠道诊断（v3）：固定指标 × 分渠道 × 本期 vs 上期
+// ============================================================
+function buildBrandChannelDiagnosis(brandName, cd) {
+  if(!cd) return '';
+
+  function qoqVal(a,b) { return (b&&b!==0) ? (a-b)/b*100 : null; }
+  function fmtW(v) { return (v||0).toFixed(1)+'w'; }
+  function fmtN(v) { return Math.round(v||0).toLocaleString(); }
+  function calcRateNum(wrt,exp) { return exp>0 ? wrt/(exp*10000)*100 : null; }
+  function calcRate(wrt,exp) { const r=calcRateNum(wrt,exp); return r!==null?r.toFixed(2)+'%':'-'; }
+  function pctOf(a,b) { return b>0 ? (a/b*100).toFixed(1)+'%' : '-'; }
+  function delta(a,b) { return b!==null&&a!==null ? a-b : null; }
+
+  function qoqTag(v, inverse) {
+    if(v===null||v===undefined) return '<span style="color:#ccc;font-size:10px;">—</span>';
+    const up = inverse ? v<=0 : v>=0;
+    const c = up ? '#34a853' : '#ea4335';
+    return '<span style="color:'+c+';font-size:11px;font-weight:700;">'+(v>=0?'▲ +':'▼ ')+v.toFixed(1)+'%</span>';
+  }
+  function deltaTag(v, inverse, unit) {
+    if(v===null||v===undefined) return '';
+    unit = unit||'pp';
+    const up = inverse ? v<=0 : v>=0;
+    const c = up ? '#34a853' : '#ea4335';
+    return '<span style="color:'+c+';font-size:10px;">'+(v>=0?'+':'')+v.toFixed(1)+unit+'</span>';
+  }
+
+  const chs = cd.chData;
+  const CHANNELS = ['商业支付','面对面','固定入口','周边','其他'];
+
+  // 汇总数值
+  let totExp=0,totWrt=0,ptotExp=0,ptotWrt=0;
+  CHANNELS.forEach(c=>{
+    totExp+=(chs[c]||{}).exp||0; totWrt+=(chs[c]||{}).wrt||0;
+    ptotExp+=(chs[c]||{}).pExp||0; ptotWrt+=(chs[c]||{}).pWrt||0;
+  });
+
+  // 二选一合计
+  const e2Chs=['商业支付','面对面','固定入口','其他'];
+  const s2={exp:0,wrt:0,pExp:0,pWrt:0};
+  e2Chs.forEach(c=>{s2.exp+=(chs[c]||{}).exp||0;s2.wrt+=(chs[c]||{}).wrt||0;s2.pExp+=(chs[c]||{}).pExp||0;s2.pWrt+=(chs[c]||{}).pWrt||0;});
+  const zbCh = chs['周边']||{};
+
+  const zbShare = totExp>0 ? zbCh.exp/totExp*100 : 0;
+  const pZbShare = ptotExp>0 ? zbCh.pExp/ptotExp*100 : 0;
+  const zbDelta = zbShare - pZbShare;
+
+  // 诊断标签
+  const s2Qoq = qoqVal(s2.exp, s2.pExp);
+  const isZbDilution = zbShare > 50 && zbDelta > 5 && (cd.wrtQoq===null||cd.wrtQoq<=0);
+  const isEff2x1Low = s2.exp < 5 && totExp > 10;
+  const isNearAlive = !isZbDilution && !isEff2x1Low && cd.wrtQoq>0 && cd.survivalRate>=0.7;
+
+  let diagType, diagColor;
+  if(isZbDilution){diagType='周边曝光稀释';diagColor='#c62828';}
+  else if(isEff2x1Low){diagType='二选一曝光不足';diagColor='#e65100';}
+  else if(isNearAlive){diagType='改善中（临界）';diagColor='#1565c0';}
+  else{diagType='整体下滑';diagColor='#5c35cc';}
+
+  let out = '';
+  out += '<div style="margin-top:14px;border-top:1px dashed #e0e0e0;padding-top:14px;">';
+
+  // 诊断标签
+  out += '<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">';
+  out += '<span style="font-size:11px;font-weight:700;background:'+diagColor+';color:#fff;padding:3px 10px;border-radius:4px;">'+diagType+'</span>';
+  out += '<span style="font-size:12px;color:#666;">渠道曝光分配诊断</span></div>';
+
+  // ═══════════════════════════════════════════
+  // 分渠道对比表：曝光占比 | 核销占比 | 核销率
+  // 每个渠道：本期 vs 上期，变化量高亮
+  // ═══════════════════════════════════════════
+  const chRows = [
+    {name:'商业支付', color:'#1a73e8', bg:'#e8f0fe', isZb:false, anomaly:false},
+    {name:'面对面',   color:'#0d7a1a', bg:'#e6f4ea', isZb:false, anomaly:false},
+    {name:'固定入口', color:'#5c35cc', bg:'#f0ebff', isZb:false, anomaly:false},
+    {name:'周边',     color:'#e65100', bg:'#fff3e0', isZb:true,  anomaly:false},
+    {name:'其他',     color:'#888',    bg:'#f5f5f5', isZb:false, anomaly:true},
+  ];
+
+  out += '<div style="overflow-x:auto;">';
+  out += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+
+  // 表头
+  out += '<thead>';
+  out += '<tr style="background:#f8f9fa;">';
+  out += '<th style="padding:8px 10px;text-align:left;font-weight:700;color:#333;border-bottom:2px solid #e0e0e0;min-width:70px;">渠道</th>';
+  ['曝光占比','核销占比','曝光核销率'].forEach(h => {
+    out += '<th colspan="3" style="padding:8px 10px;text-align:center;font-weight:700;color:#333;border-bottom:2px solid #e0e0e0;border-left:1px solid #e0e0e0;">'+h+'</th>';
+  });
+  out += '</tr>';
+  out += '<tr style="background:#f8f9fa;">';
+  out += '<th style="padding:4px 10px;border-bottom:1px solid #e0e0e0;"></th>';
+  for(let i=0;i<3;i++){
+    out += '<th style="padding:4px 8px;text-align:right;color:#888;font-weight:400;border-left:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;">本期</th>';
+    out += '<th style="padding:4px 8px;text-align:right;color:#bbb;font-weight:400;border-bottom:1px solid #e0e0e0;">上期</th>';
+    out += '<th style="padding:4px 8px;text-align:center;color:#888;font-weight:400;border-bottom:1px solid #e0e0e0;">变化</th>';
+  }
+  out += '</tr>';
+  out += '</thead><tbody>';
+
+  chRows.forEach((r,idx) => {
+    const d = chs[r.name]||{};
+    const hasData = (d.exp||0)+(d.wrt||0)+(d.pExp||0)+(d.pWrt||0) > 0;
+    if(!hasData) return;
+
+    const eShare = totExp>0 ? d.exp/totExp*100 : 0;
+    const peShare = ptotExp>0 ? d.pExp/ptotExp*100 : 0;
+    const wShare = totWrt>0 ? d.wrt/totWrt*100 : 0;
+    const pwShare = ptotWrt>0 ? d.pWrt/ptotWrt*100 : 0;
+    const rate = calcRateNum(d.wrt, d.exp);
+    const prate = calcRateNum(d.pWrt, d.pExp);
+    const anomalyRate = r.anomaly && d.exp < 0.1 && (d.wrt||0) > 100;
+
+    const eDelta = eShare - peShare;
+    const wDelta = wShare - pwShare;
+    const rateDelta = (rate!==null&&prate!==null) ? rate-prate : null;
+
+    const rowBg = idx%2===0 ? '#fff' : '#fafafa';
+    out += '<tr style="background:'+rowBg+';border-bottom:1px solid #f0f0f0;">';
+    out += '<td style="padding:8px 10px;"><span style="font-weight:700;color:'+r.color+';">'+r.name+'</span>'+(r.isZb?'<br><span style="font-size:10px;color:#e65100;background:#fff3e0;padding:1px 5px;border-radius:3px;">非二选一</span>':'')+(r.anomaly?'<br><span style="font-size:10px;color:#e65100;">⚠数据口径</span>':'')+'</td>';
+
+    // 曝光占比
+    out += '<td style="padding:8px;text-align:right;border-left:1px solid #f0f0f0;"><strong style="color:'+(r.isZb&&eShare>40?'#c62828':'#1a1a1a')+'">'+eShare.toFixed(1)+'%</strong></td>';
+    out += '<td style="padding:8px;text-align:right;color:#aaa;">'+peShare.toFixed(1)+'%</td>';
+    out += '<td style="padding:8px;text-align:center;">'+deltaTag(eDelta, r.isZb)+'</td>';
+
+    // 核销占比
+    out += '<td style="padding:8px;text-align:right;border-left:1px solid #f0f0f0;"><strong>'+wShare.toFixed(1)+'%</strong></td>';
+    out += '<td style="padding:8px;text-align:right;color:#aaa;">'+pwShare.toFixed(1)+'%</td>';
+    out += '<td style="padding:8px;text-align:center;">'+deltaTag(wDelta)+'</td>';
+
+    // 核销率
+    if(anomalyRate) {
+      out += '<td style="padding:8px;text-align:right;border-left:1px solid #f0f0f0;color:#e65100;font-size:10px;">⚠异常</td>';
+      out += '<td style="padding:8px;text-align:right;color:#aaa;">—</td>';
+      out += '<td style="padding:8px;"></td>';
+    } else {
+      out += '<td style="padding:8px;text-align:right;border-left:1px solid #f0f0f0;"><strong style="color:'+(r.isZb?'#e65100':'#1a73e8')+'">'+(rate!==null?rate.toFixed(2)+'%':'-')+'</strong></td>';
+      out += '<td style="padding:8px;text-align:right;color:#aaa;">'+(prate!==null?prate.toFixed(2)+'%':'-')+'</td>';
+      out += '<td style="padding:8px;text-align:center;">'+deltaTag(rateDelta, r.isZb, 'pp')+'</td>';
+    }
+    out += '</tr>';
+  });
+
+  // 二选一合计行
+  const s2eShare = totExp>0 ? s2.exp/totExp*100 : 0;
+  const ps2eShare = ptotExp>0 ? s2.pExp/ptotExp*100 : 0;
+  const s2wShare = totWrt>0 ? s2.wrt/totWrt*100 : 0;
+  const ps2wShare = ptotWrt>0 ? s2.pWrt/ptotWrt*100 : 0;
+  const s2Rate = calcRateNum(s2.wrt, s2.exp);
+  const ps2Rate = calcRateNum(s2.pWrt, s2.pExp);
+  out += '<tr style="background:#dce8fb;font-weight:700;border-top:2px solid #1a73e8;">';
+  out += '<td style="padding:8px 10px;color:#1a73e8;">二选一合计</td>';
+  out += '<td style="padding:8px;text-align:right;border-left:1px solid #c5d8f5;"><strong>'+s2eShare.toFixed(1)+'%</strong></td>';
+  out += '<td style="padding:8px;text-align:right;color:#888;">'+ps2eShare.toFixed(1)+'%</td>';
+  out += '<td style="padding:8px;text-align:center;">'+deltaTag(s2eShare-ps2eShare)+'</td>';
+  out += '<td style="padding:8px;text-align:right;border-left:1px solid #c5d8f5;"><strong>'+s2wShare.toFixed(1)+'%</strong></td>';
+  out += '<td style="padding:8px;text-align:right;color:#888;">'+ps2wShare.toFixed(1)+'%</td>';
+  out += '<td style="padding:8px;text-align:center;">'+deltaTag(s2wShare-ps2wShare)+'</td>';
+  out += '<td style="padding:8px;text-align:right;border-left:1px solid #c5d8f5;"><strong style="color:#1a73e8;">'+(s2Rate!==null?s2Rate.toFixed(2)+'%':'-')+'</strong></td>';
+  out += '<td style="padding:8px;text-align:right;color:#888;">'+(ps2Rate!==null?ps2Rate.toFixed(2)+'%':'-')+'</td>';
+  out += '<td style="padding:8px;text-align:center;">'+deltaTag(s2Rate!==null&&ps2Rate!==null?s2Rate-ps2Rate:null)+'</td>';
+  out += '</tr>';
+
+  out += '</tbody></table></div>';
   out += '</div>'; // end container
   return out;
 }
