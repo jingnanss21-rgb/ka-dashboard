@@ -2111,7 +2111,7 @@ function buildChannelBreakdownSection(ownerFilter, overall) {
     // 按负责人聚合：汇总该负责人名下品牌的分渠道数据
     const ownerBrandNames = DATA.assignments.filter(a=>a.owner===ownerFilter).map(a=>a.brand);
     const bcd = CHANNEL_DATA.brandChannelData;
-    const chNames = ['商业支付','面对面','固定入口','周边','其他'];
+    const chNames = ['商业支付','面对面','固定入口','周边','支付有礼','其他'];
     ch = {};
     chNames.forEach(c => { ch[c] = {exp:0, wrt:0, pExp:0, pWrt:0}; });
     gdTotExp = 0; gdTotWrt = 0; gdPtotExp = 0; gdPtotWrt = 0;
@@ -2160,16 +2160,13 @@ function buildChannelBreakdownSection(ownerFilter, overall) {
   });
   const zbCh = ch['周边']||{exp:0,wrt:0,pExp:0,pWrt:0};
 
-  // 支付有礼 = 全局总量 - 5个已知渠道之和
-  const ch5Exp = Object.values(ch).reduce((s,v)=>s+v.exp,0);
-  const ch5Wrt = Object.values(ch).reduce((s,v)=>s+v.wrt,0);
-  const ch5pExp = Object.values(ch).reduce((s,v)=>s+v.pExp,0);
-  const ch5pWrt = Object.values(ch).reduce((s,v)=>s+v.pWrt,0);
+  // 支付有礼：直接从渠道数据读取
+  const payRewardRaw = ch['支付有礼']||{exp:0,wrt:0,pExp:0,pWrt:0};
   const payReward = {
-    exp: Math.round((gdTotExp - ch5Exp)*100)/100,
-    wrt: Math.round(gdTotWrt - ch5Wrt),
-    pExp: Math.round((gdPtotExp - ch5pExp)*100)/100,
-    pWrt: Math.round(gdPtotWrt - ch5pWrt)
+    exp: payRewardRaw.exp||0,
+    wrt: payRewardRaw.wrt||0,
+    pExp: payRewardRaw.pExp||0,
+    pWrt: payRewardRaw.pWrt||0
   };
 
   // 全渠道总量（含支付有礼）
@@ -2461,7 +2458,7 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   const zbDelta = zbShare - pZbShare;
 
   // 渠道列表
-  const channels = ['商业支付','面对面','固定入口','周边'];
+  const channels = ['商业支付','面对面','固定入口','周边','支付有礼'];
 
   // 二选一合计
   const eff2x1Chs = ['商业支付','面对面','固定入口','其他'];
@@ -2472,24 +2469,20 @@ function buildBrandChannelDiagnosis(brandName, cd) {
   });
   const zbCh = chs['周边']||{};
 
-  // 5个已知渠道之和
-  const ch5Names = ['商业支付','面对面','固定入口','周边','其他'];
-  const ch5Exp = ch5Names.reduce((s,c)=>s+((chs[c]||{}).exp||0),0);
-  const ch5Wrt = ch5Names.reduce((s,c)=>s+((chs[c]||{}).wrt||0),0);
-  const ch5pExp = ch5Names.reduce((s,c)=>s+((chs[c]||{}).pExp||0),0);
-  const ch5pWrt = ch5Names.reduce((s,c)=>s+((chs[c]||{}).pWrt||0),0);
-
-  // 支付有礼 = 品牌总量 - 5个已知渠道之和（与渠道概览一致的反推逻辑）
-  const brandTotExp = cd.totExp || ch5Exp;
-  const brandTotWrt = cd.totWrt || ch5Wrt;
-  const brandPtotExp = cd.ptotExp || ch5pExp;
-  const brandPtotWrt = cd.ptotWrt || ch5pWrt;
+  // 支付有礼：直接从品牌渠道数据读取
+  const payRewardRaw = chs['支付有礼']||{};
   const payReward = {
-    exp: Math.round((brandTotExp - ch5Exp)*100)/100,
-    wrt: Math.round(brandTotWrt - ch5Wrt),
-    pExp: Math.round((brandPtotExp - ch5pExp)*100)/100,
-    pWrt: Math.round(brandPtotWrt - ch5pWrt)
+    exp: payRewardRaw.exp||0,
+    wrt: payRewardRaw.wrt||0,
+    pExp: payRewardRaw.pExp||0,
+    pWrt: payRewardRaw.pWrt||0
   };
+
+  // 全渠道总量
+  const brandTotExp = cd.totExp||0;
+  const brandTotWrt = cd.totWrt||0;
+  const brandPtotExp = cd.ptotExp||0;
+  const brandPtotWrt = cd.ptotWrt||0;
 
   // 全渠道总量（含支付有礼）
   const totExp = brandTotExp;
