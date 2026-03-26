@@ -959,23 +959,37 @@ function isBrandAbnormal(b) {
 }
 
 // === 判断反馈所属周期 ===
+// 业务逻辑：数据是滞后的，DB中已有反馈=上周期反馈，看板发布后新填的=本周期反馈
+// 分界线：数据周期结束日（如 03.24），之后创建的反馈属于本周期（0318-0324），之前的属于上周期（0311-0317）
 function getFeedbackWeekTag(f) {
   if(!f.time) return '';
-  // 解析数据周期，用dataDate推断本周起始日
   const dd = DATA.dataDate || '';
   // dataDate格式如 "2025.03.18-03.24"
-  const m = dd.match(/(\d{4})\.(\d{2})\.(\d{2})/);
+  // 提取结束日期作为分界线
+  const m = dd.match(/(\d{4})\.(\d{2})\.(\d{2})\s*[-–]\s*(\d{2})\.(\d{2})/);
   if(m) {
-    const weekStart = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
-    // 本周=数据周期开始日之后；上周=之前
-    // f.rawTime 是原始 created_at ISO string
+    const year = parseInt(m[1]);
+    const endMonth = parseInt(m[4]);
+    const endDay = parseInt(m[5]);
+    // 周期结束日的次日0点作为分界线
+    const cutoff = new Date(year, endMonth - 1, endDay + 1, 0, 0, 0);
+    const startMonth = parseInt(m[2]);
+    const startDay = parseInt(m[3]);
+
+    // 本周期标签 = dataDate（如 0318-0324），上周期 = 前7天
+    const thisWeekLabel = `${String(startMonth).padStart(2,'0')}${String(startDay).padStart(2,'0')}-${String(endMonth).padStart(2,'0')}${String(endDay).padStart(2,'0')}`;
+    const prevStart = new Date(year, startMonth - 1, startDay - 7);
+    const prevEnd = new Date(year, startMonth - 1, startDay - 1);
+    const prevWeekLabel = `${String(prevStart.getMonth()+1).padStart(2,'0')}${String(prevStart.getDate()).padStart(2,'0')}-${String(prevEnd.getMonth()+1).padStart(2,'0')}${String(prevEnd.getDate()).padStart(2,'0')}`;
+
     const fbDate = f.rawTime ? new Date(f.rawTime) : null;
     if(fbDate && !isNaN(fbDate)) {
-      if(fbDate >= weekStart) return '<span class="tag tag-green" style="font-size:9px;padding:1px 5px;margin-right:4px;">本周</span>';
-      // 上周起止：weekStart - 7天
-      const lastWeekStart = new Date(weekStart); lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-      if(fbDate >= lastWeekStart) return '<span class="tag tag-gray" style="font-size:9px;padding:1px 5px;margin-right:4px;">上周</span>';
-      return '<span class="tag tag-gray" style="font-size:9px;padding:1px 5px;margin-right:4px;opacity:0.6;">更早</span>';
+      if(fbDate >= cutoff) {
+        // 在数据周期结束日之后创建 = 本周期反馈（0318-0324）
+        return `<span class="tag tag-green" style="font-size:9px;padding:1px 5px;margin-right:4px;">${thisWeekLabel}</span>`;
+      }
+      // 在数据周期结束日及之前 = 上周期反馈（0311-0317）
+      return `<span class="tag tag-gray" style="font-size:9px;padding:1px 5px;margin-right:4px;">${prevWeekLabel}</span>`;
     }
   }
   return '';
