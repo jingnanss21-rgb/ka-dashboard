@@ -802,14 +802,29 @@ function buildViewPanel(viewId, ownerFilter, title) {
       if(!badCats[cat]) badCats[cat]=0;
       badCats[cat]++;
     });
+    // 收集负责人和行业用于筛选（仅整体视图需要）
+    const badOwners = [...new Set(badBrands.map(b => { const a2 = assignments.find(x=>x.brand===b.name); return a2?.owner||''; }).filter(Boolean))].sort();
+    const badCategories = [...new Set(badBrands.map(b => b.category||'').filter(Boolean))].sort();
+
     html += `<div class="section">
-      <div class="section-title"><div class="icon" style="background:var(--danger)"></div><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--danger);color:#fff;font-size:11px;font-weight:700;margin-right:4px;">5</span>问题品牌诊断<span class="badge">${badBrands.length}个</span></div>
+      <div class="section-title"><div class="icon" style="background:var(--danger)"></div><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--danger);color:#fff;font-size:11px;font-weight:700;margin-right:4px;">5</span>问题品牌诊断<span class="badge" id="badCount-${viewId}">${badBrands.length}个</span></div>
+      ${!ownerFilter ? `<div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
+        <select id="badOwnerFilter-${viewId}" onchange="filterBadCaseAll('${viewId}')" style="font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-primary);">
+          <option value="">全部负责人</option>
+          ${badOwners.map(o => `<option value="${o}">${o}</option>`).join('')}
+        </select>
+        <select id="badCatFilter-${viewId}" onchange="filterBadCaseAll('${viewId}')" style="font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-primary);">
+          <option value="">全部行业</option>
+          ${badCategories.map(c => `<option value="${c}">${c}</option>`).join('')}
+        </select>
+        <input id="badSearchFilter-${viewId}" placeholder="搜索品牌…" oninput="filterBadCaseAll('${viewId}')" style="font-size:12px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-primary);width:120px;">
+      </div>` : ''}
       <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="badFilter-${viewId}">
-        <span class="tag tag-blue" style="cursor:pointer;padding:4px 12px;" data-badfilter="all" data-view="${viewId}" onclick="filterBadCase(this)">全部(${badBrands.length})</span>
-        ${badCats['双差']?`<span class="tag tag-red" style="cursor:pointer;padding:4px 12px;" data-badfilter="双差" data-view="${viewId}" onclick="filterBadCase(this)">双差(${badCats['双差']})</span>`:''}
-        ${badCats['未存活']?`<span class="tag tag-orange" style="cursor:pointer;padding:4px 12px;" data-badfilter="未存活" data-view="${viewId}" onclick="filterBadCase(this)">未存活(${badCats['未存活']})</span>`:''}
-        ${badCats['核销率低']?`<span class="tag tag-yellow" style="cursor:pointer;padding:4px 12px;" data-badfilter="核销率低" data-view="${viewId}" onclick="filterBadCase(this)">核销率低(${badCats['核销率低']})</span>`:''}
-        ${badCats['待观察']?`<span class="tag tag-blue" style="cursor:pointer;padding:4px 12px;opacity:0.7;" data-badfilter="待观察" data-view="${viewId}" onclick="filterBadCase(this)">待观察(${badCats['待观察']})</span>`:''}
+        <span class="tag tag-blue" style="cursor:pointer;padding:4px 12px;" data-badfilter="all" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">全部(${badBrands.length})</span>
+        ${badCats['双差']?`<span class="tag tag-red" style="cursor:pointer;padding:4px 12px;" data-badfilter="双差" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">双差(${badCats['双差']})</span>`:''}
+        ${badCats['未存活']?`<span class="tag tag-orange" style="cursor:pointer;padding:4px 12px;" data-badfilter="未存活" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">未存活(${badCats['未存活']})</span>`:''}
+        ${badCats['核销率低']?`<span class="tag tag-yellow" style="cursor:pointer;padding:4px 12px;" data-badfilter="核销率低" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">核销率低(${badCats['核销率低']})</span>`:''}
+        ${badCats['待观察']?`<span class="tag tag-blue" style="cursor:pointer;padding:4px 12px;opacity:0.7;" data-badfilter="待观察" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">待观察(${badCats['待观察']})</span>`:''}
       </div>
       <div class="case-tabs" id="bad-tabs-${viewId}">`;
     badBrands.forEach((b,idx) => {
@@ -823,7 +838,9 @@ function buildViewPanel(viewId, ownerFilter, title) {
       else if(!alive && erOk) { statusTag='未存活'; statusCls='tag-orange'; badCat='未存活'; }
       else if(alive && !erOk) { statusTag='核销率低'; statusCls='tag-yellow'; badCat='核销率低'; }
       else { statusTag='待观察'; statusCls='tag-blue'; badCat='待观察'; }
-      html += `<div class="case-tab bad-tab${idx===0?' active':''}" data-target="bad-card-${viewId}-${idx}" data-badcat="${badCat}" onclick="switchCaseTab(this,'bad-tabs-${viewId}','bad-cards-${viewId}')">${b.name} <span class="tag ${statusCls}" style="font-size:10px;margin-left:4px;">${statusTag}</span>${hasGrowth?`<span class="tag tag-green" style="font-size:10px;margin-left:2px;">环比+${(grTab*100).toFixed(0)}%</span>`:grTab==='new'?`<span class="tag tag-blue" style="font-size:10px;margin-left:2px;">新上线</span>`:''}</div>`;
+      const bOwner = (assignments.find(x=>x.brand===b.name)||{}).owner||'';
+      const bCat = b.category||'';
+      html += `<div class="case-tab bad-tab${idx===0?' active':''}" data-target="bad-card-${viewId}-${idx}" data-badcat="${badCat}" data-owner="${escAttr(bOwner)}" data-category="${escAttr(bCat)}" data-brand="${escAttr(b.name)}" onclick="switchCaseTab(this,'bad-tabs-${viewId}','bad-cards-${viewId}')">${b.name} <span class="tag ${statusCls}" style="font-size:10px;margin-left:4px;">${statusTag}</span>${hasGrowth?`<span class="tag tag-green" style="font-size:10px;margin-left:2px;">环比+${(grTab*100).toFixed(0)}%</span>`:grTab==='new'?`<span class="tag tag-blue" style="font-size:10px;margin-left:2px;">新上线</span>`:''}</div>`;
     });
     html += `</div><div id="bad-cards-${viewId}">`;
     badBrands.forEach((b,idx) => {
@@ -838,7 +855,9 @@ function buildViewPanel(viewId, ownerFilter, title) {
       else if(!alive2 && erOk2) badCat2='未存活';
       else if(alive2 && !erOk2) badCat2='核销率低';
       else badCat2='待观察';
-      html += `<div class="case-tab-content${idx===0?' active':''}" id="bad-card-${viewId}-${idx}" data-badcat="${badCat2}">`;
+      const bOwner2 = a.owner||'';
+      const bCat2 = b.category||'';
+      html += `<div class="case-tab-content${idx===0?' active':''}" id="bad-card-${viewId}-${idx}" data-badcat="${badCat2}" data-owner="${escAttr(bOwner2)}" data-category="${escAttr(bCat2)}" data-brand="${escAttr(b.name)}">`;
       html += buildCaseCard(b, a, brandActs, issues, fb, false, viewId);
       html += `</div>`;
     });
@@ -900,15 +919,27 @@ function switchCaseTab(tabEl, tabsContainerId, cardsContainerId) {
   if(targetCard) targetCard.classList.add('active');
 }
 
-// === 问题品牌分类筛选 ===
-function filterBadCase(el) {
-  const cat = el.dataset.badfilter;
-  const viewId = el.dataset.view;
-  // 高亮选中的筛选标签
-  const container = el.parentElement;
-  container.querySelectorAll('.tag').forEach(t => { t.style.outline=''; t.style.fontWeight=''; });
-  el.style.outline = '2px solid var(--primary)';
-  el.style.fontWeight = '700';
+// === 问题品牌多维度筛选 ===
+function filterBadCaseAll(viewId, catTagEl) {
+  // 如果点击了分类标签，先更新高亮状态
+  if(catTagEl) {
+    const container = catTagEl.parentElement;
+    container.querySelectorAll('.tag').forEach(t => { t.style.outline=''; t.style.fontWeight=''; });
+    catTagEl.style.outline = '2px solid var(--primary)';
+    catTagEl.style.fontWeight = '700';
+  }
+
+  // 获取当前选中的分类
+  const activeTag = document.querySelector(`#badFilter-${viewId} .tag[style*="outline"]`);
+  const cat = activeTag ? activeTag.dataset.badfilter : 'all';
+
+  // 获取下拉筛选器的值（仅整体视图有）
+  const ownerSel = document.getElementById('badOwnerFilter-'+viewId);
+  const catSel = document.getElementById('badCatFilter-'+viewId);
+  const searchInput = document.getElementById('badSearchFilter-'+viewId);
+  const ownerVal = ownerSel ? ownerSel.value : '';
+  const catVal = catSel ? catSel.value : '';
+  const searchVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
   const tabsContainer = document.getElementById('bad-tabs-'+viewId);
   const cardsContainer = document.getElementById('bad-cards-'+viewId);
@@ -917,9 +948,26 @@ function filterBadCase(el) {
   const tabs = tabsContainer.querySelectorAll('.case-tab');
   const cards = cardsContainer.querySelectorAll('.case-tab-content');
 
-  // 先全部隐藏
-  tabs.forEach(t => { t.style.display = cat==='all' || t.dataset.badcat===cat ? '' : 'none'; t.classList.remove('active'); });
-  cards.forEach(c => { c.classList.remove('active'); c.style.display = cat==='all' || c.dataset.badcat===cat ? '' : 'none'; });
+  let visibleCount = 0;
+  tabs.forEach(t => {
+    const matchCat = cat==='all' || t.dataset.badcat===cat;
+    const matchOwner = !ownerVal || t.dataset.owner===ownerVal;
+    const matchCategory = !catVal || t.dataset.category===catVal;
+    const matchSearch = !searchVal || (t.dataset.brand||'').toLowerCase().includes(searchVal);
+    const show = matchCat && matchOwner && matchCategory && matchSearch;
+    t.style.display = show ? '' : 'none';
+    t.classList.remove('active');
+    if(show) visibleCount++;
+  });
+  cards.forEach(c => {
+    const matchCat = cat==='all' || c.dataset.badcat===cat;
+    const matchOwner = !ownerVal || c.dataset.owner===ownerVal;
+    const matchCategory = !catVal || c.dataset.category===catVal;
+    const matchSearch = !searchVal || (c.dataset.brand||'').toLowerCase().includes(searchVal);
+    const show = matchCat && matchOwner && matchCategory && matchSearch;
+    c.style.display = show ? '' : 'none';
+    c.classList.remove('active');
+  });
 
   // 激活第一个可见的
   const firstVisibleTab = [...tabs].find(t => t.style.display !== 'none');
@@ -929,6 +977,10 @@ function filterBadCase(el) {
     const targetCard = document.getElementById(targetId);
     if(targetCard) { targetCard.classList.add('active'); targetCard.style.display = ''; }
   }
+
+  // 更新品牌计数
+  const countEl = document.getElementById('badCount-'+viewId);
+  if(countEl) countEl.textContent = visibleCount + '个';
 }
 
 // === 展开/收起详细诊断 ===
