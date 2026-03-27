@@ -276,9 +276,10 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
       <table id="overviewTable">
         <thead>
           <tr>
-            <th rowspan="2" class="sticky-col" style="left:0;min-width:110px;">品牌</th>
-            <th rowspan="2" class="sticky-col" style="left:110px;min-width:60px;">负责人</th>
-            <th rowspan="2" class="sticky-col sticky-col-last" style="left:170px;min-width:50px;">品类</th>
+            <th rowspan="2" class="sticky-col" style="left:0;min-width:36px;text-align:center;">#</th>
+            <th rowspan="2" class="sticky-col" style="left:36px;min-width:110px;">品牌</th>
+            <th rowspan="2" class="sticky-col" style="left:146px;min-width:60px;">负责人</th>
+            <th rowspan="2" class="sticky-col sticky-col-last" style="left:206px;min-width:50px;">品类</th>
             <th colspan="3" class="group-header">项目状态</th>
             <th colspan="2" class="group-header">日均整体交易(万)</th>
             <th colspan="2" class="group-header">日均小程序交易(万)</th>
@@ -343,8 +344,9 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
       <table id="cikaTable">
         <thead>
           <tr>
-            <th class="sticky-col" style="left:0;min-width:100px;">品牌</th>
-            <th class="sticky-col sticky-col-last" style="left:100px;min-width:60px;">负责人</th>
+            <th class="sticky-col" style="left:0;min-width:36px;text-align:center;">#</th>
+            <th class="sticky-col" style="left:36px;min-width:100px;">品牌</th>
+            <th class="sticky-col sticky-col-last" style="left:136px;min-width:60px;">负责人</th>
             <th>品类</th>
             <th>次卡状态</th>
             <th style="min-width:200px;">备注（点击编辑）</th>
@@ -370,8 +372,9 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
       <table id="wuyouTable">
         <thead>
           <tr>
-            <th class="sticky-col" style="left:0;min-width:100px;">品牌</th>
-            <th class="sticky-col sticky-col-last" style="left:100px;min-width:60px;">负责人</th>
+            <th class="sticky-col" style="left:0;min-width:36px;text-align:center;">#</th>
+            <th class="sticky-col" style="left:36px;min-width:100px;">品牌</th>
+            <th class="sticky-col sticky-col-last" style="left:136px;min-width:60px;">负责人</th>
             <th>品类</th>
             <th>无忧会员状态</th>
             <th style="min-width:200px;">备注（点击编辑）</th>
@@ -755,10 +758,11 @@ function renderOverviewTable() {
   }
   
   const tbody = document.getElementById('overviewTbody');
-  tbody.innerHTML = data.map(b => `<tr>
-    <td class="sticky-col" style="left:0;">${b['品牌']}</td>
-    <td class="sticky-col" style="left:110px;">${ownerTag(b['负责人'])}</td>
-    <td class="sticky-col sticky-col-last" style="left:170px;">${b['品类']}</td>
+  tbody.innerHTML = data.map((b, idx) => `<tr>
+    <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
+    <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
+    <td class="sticky-col" style="left:146px;">${ownerTag(b['负责人'])}</td>
+    <td class="sticky-col sticky-col-last" style="left:206px;">${b['品类']}</td>
     <td>${shakeStatusTag(b['摇优惠'])}</td>
     <td>${statusTag(b['次卡'])}</td>
     <td>${statusTag(b['无忧会员'])}</td>
@@ -822,11 +826,12 @@ function renderCikaTable() {
   data.sort((a, b) => (statusOrder[a['次卡']]??3) - (statusOrder[b['次卡']]??3));
   
   const tbody = document.getElementById('cikaTbody');
-  tbody.innerHTML = data.map(b => {
+  tbody.innerHTML = data.map((b, idx) => {
     const comment = cikaComments[b['品牌']] || '';
     return `<tr>
-      <td class="sticky-col" style="left:0;">${b['品牌']}</td>
-      <td class="sticky-col sticky-col-last" style="left:100px;">${ownerTag(b['负责人'])}</td>
+      <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
+      <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
+      <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
       <td>${statusTag(b['次卡'])}</td>
       <td class="editable-cell">
@@ -872,11 +877,12 @@ function renderWuyouTable() {
   data.sort((a, b) => (statusOrder[a['无忧会员']]??2) - (statusOrder[b['无忧会员']]??2));
   
   const tbody = document.getElementById('wuyouTbody');
-  tbody.innerHTML = data.map(b => {
+  tbody.innerHTML = data.map((b, idx) => {
     const comment = wuyouComments[b['品牌']] || '';
     return `<tr>
-      <td class="sticky-col" style="left:0;">${b['品牌']}</td>
-      <td class="sticky-col sticky-col-last" style="left:100px;">${ownerTag(b['负责人'])}</td>
+      <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
+      <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
+      <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
       <td>${statusTag(b['无忧会员'])}</td>
       <td class="editable-cell">
