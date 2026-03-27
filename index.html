@@ -92,7 +92,16 @@ table tbody td:nth-child(2) { text-align:left; }
 .filter-bar select:focus, .filter-bar .search-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.08); outline:none; }
 .filter-bar .search-input { width:200px; }
 
-.scroll-table-wrapper { overflow-x:auto; max-height:700px; overflow-y:auto; }
+.scroll-table-wrapper { overflow-x:auto; max-height:700px; overflow-y:auto; position:relative; }
+
+/* 冻结列样式 */
+table .sticky-col { position:sticky; z-index:2; background:#fff; }
+table thead th.sticky-col { z-index:3; background:var(--bg); }
+table thead th.group-header.sticky-col { background:#e8f0fe; }
+table tbody tr:hover .sticky-col { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
+table tbody tr[style*="background:#fff8e1"] .sticky-col { background:#fff8e1; }
+table .sticky-col::after { content:''; position:absolute; top:0; right:-6px; bottom:0; width:6px; pointer-events:none; }
+table .sticky-col-last::after { box-shadow:inset 6px 0 6px -6px rgba(0,0,0,0.08); }
 
 /* 象限图 */
 .quadrant-chart-container { position:relative; width:100%; max-width:900px; margin:0 auto; }
@@ -1363,9 +1372,9 @@ function refreshTable(viewId, ownerFilter) {
     const showOwnerCol = !ownerFilter;
     if(isOldCustomer) {
       thead.innerHTML = `<tr>
-        <th rowspan="2" style="text-align:left;">品牌</th>
-        ${showOwnerCol?'<th rowspan="2" style="text-align:left;">负责人</th>':''}
-        <th rowspan="2" style="text-align:left;">行业</th>
+        <th rowspan="2" class="sticky-col" style="text-align:left;min-width:100px;">品牌</th>
+        ${showOwnerCol?'<th rowspan="2" class="sticky-col" style="text-align:left;min-width:60px;">负责人</th>':''}
+        <th rowspan="2" class="sticky-col sticky-col-last" style="text-align:left;min-width:60px;">行业</th>
         <th colspan="3" class="group-header" style="border-left:2px solid #c2d7f7;">老客曝光</th>
         <th colspan="3" class="group-header" style="border-left:2px solid #c2d7f7;">老客核销</th>
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">老客占比</th>
@@ -1385,9 +1394,9 @@ function refreshTable(viewId, ownerFilter) {
       </tr>`;
     } else {
       thead.innerHTML = `<tr>
-        <th rowspan="2" style="text-align:left;">品牌</th>
-        ${showOwnerCol?'<th rowspan="2" style="text-align:left;">负责人</th>':''}
-        <th rowspan="2" style="text-align:left;">行业</th>
+        <th rowspan="2" class="sticky-col" style="text-align:left;min-width:100px;">品牌</th>
+        ${showOwnerCol?'<th rowspan="2" class="sticky-col" style="text-align:left;min-width:60px;">负责人</th>':''}
+        <th rowspan="2" class="sticky-col sticky-col-last" style="text-align:left;min-width:60px;">行业</th>
         <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">核销量</th>
         <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">曝光量</th>
         <th colspan="3" class="group-header" style="border-left:2px solid #c2d7f7;">曝光核销率</th>
@@ -1554,9 +1563,9 @@ function refreshTable(viewId, ownerFilter) {
       const rCls = rp>=80?'good':rp>=40?'mid':'low';
 
       return `<tr${m.abnormal?' style="background:#fff8e1;"':''}>
-        <td style="text-align:left;"><strong>${m.brand}</strong></td>
-        ${showOwner?'<td style="text-align:left;">'+m.owner+'</td>':''}
-        <td style="text-align:left;font-size:11px;color:var(--text-secondary);">${m.category||'-'}</td>
+        <td class="sticky-col" style="text-align:left;"><strong>${m.brand}</strong></td>
+        ${showOwner?'<td class="sticky-col" style="text-align:left;">'+m.owner+'</td>':''}
+        <td class="sticky-col sticky-col-last" style="text-align:left;font-size:11px;color:var(--text-secondary);">${m.category||'-'}</td>
         <td style="border-left:2px solid #e8f0fe;">${(m.oldExposure||0).toFixed(1)}</td>
         <td>${m.oldExposurePct>0?(m.oldExposurePct*100).toFixed(1)+'%':'-'}</td>
         <td>${m.oldExpRedeemRate>0?pct(m.oldExpRedeemRate):'-'}</td>
@@ -1593,9 +1602,9 @@ function refreshTable(viewId, ownerFilter) {
       const rrCls = rrp>=80?'good':rrp>=40?'mid':'low';
 
       return `<tr${m.abnormal?' style="background:#fff8e1;"':''}>
-        <td style="text-align:left;"><strong>${m.brand}</strong>${m.abnormal?'<span class="tag tag-orange" style="margin-left:6px;font-size:10px;" title="曝光接近0导致核销率异常">异常</span>':''}</td>
-        ${showOwner?'<td style="text-align:left;">'+m.owner+'</td>':''}
-        <td style="text-align:left;font-size:11px;color:var(--text-secondary);">${m.category||'-'}</td>
+        <td class="sticky-col" style="text-align:left;"><strong>${m.brand}</strong>${m.abnormal?'<span class="tag tag-orange" style="margin-left:6px;font-size:10px;" title="曝光接近0导致核销率异常">异常</span>':''}</td>
+        ${showOwner?'<td class="sticky-col" style="text-align:left;">'+m.owner+'</td>':''}
+        <td class="sticky-col sticky-col-last" style="text-align:left;font-size:11px;color:var(--text-secondary);">${m.category||'-'}</td>
         <td style="border-left:2px solid #e8f0fe;">${fmt(m.dailyRedeem||0)}</td>
         <td>${m.redeemGrowth==='new'?'<span class="tag tag-blue" style="font-size:10px;">新上线</span>':`<span class="${typeof m.redeemGrowth==='number'&&m.redeemGrowth>=0?'trend-up':'trend-down'}">${pctSigned(typeof m.redeemGrowth==='number'?m.redeemGrowth:0)}</span>`}</td>
         <td>${fmt(m.redeemTarget||0)}</td>
@@ -1619,6 +1628,33 @@ function refreshTable(viewId, ownerFilter) {
       </tr>`;
     }).join('');
   }
+
+  // 动态计算 sticky 列 left 值
+  requestAnimationFrame(() => {
+    const table = document.getElementById('table-'+viewId);
+    if(!table) return;
+    const firstRow = table.querySelector('thead tr');
+    if(!firstRow) return;
+    const stickyCols = firstRow.querySelectorAll('th.sticky-col');
+    let leftAccum = 0;
+    stickyCols.forEach((th, i) => {
+      th.style.left = leftAccum + 'px';
+      leftAccum += th.offsetWidth;
+    });
+    // 同步设置 tbody 中的 sticky 列
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const tds = tr.querySelectorAll('td.sticky-col');
+      let tdLeft = 0;
+      // 从 thead 取各列实际宽度
+      tds.forEach((td, i) => {
+        td.style.left = (i < stickyCols.length ? (() => {
+          let l = 0;
+          for(let j = 0; j < i; j++) l += stickyCols[j].offsetWidth;
+          return l;
+        })() : 0) + 'px';
+      });
+    });
+  });
 }
 
 // === 表格内反馈提交 ===
