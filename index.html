@@ -1501,17 +1501,19 @@ function refreshTable(viewId, ownerFilter) {
     if(cs && cs.field) {
       const dir = cs.dir === 'asc' ? 1 : -1;
       let va, vb;
+      // 标记null值的字段（环比类），null始终排最后
+      const nullLastFields = ['redeemGrowth','expGrowth','rateGrowth'];
       switch(cs.field) {
         case 'dailyRedeem': va=a.dailyRedeem||0; vb=b.dailyRedeem||0; break;
-        case 'redeemGrowth': va=typeof a.redeemGrowth==='number'?a.redeemGrowth:999; vb=typeof b.redeemGrowth==='number'?b.redeemGrowth:999; break;
+        case 'redeemGrowth': va=typeof a.redeemGrowth==='number'?a.redeemGrowth:null; vb=typeof b.redeemGrowth==='number'?b.redeemGrowth:null; break;
         case 'redeemTarget': va=a.redeemTarget||0; vb=b.redeemTarget||0; break;
         case 'redeemAchieve': va=a.redeemAchieveRate||0; vb=b.redeemAchieveRate||0; break;
         case 'dailyExposure': va=a.dailyExposure||0; vb=b.dailyExposure||0; break;
-        case 'expGrowth': va=typeof a.expGrowth==='number'?a.expGrowth:999; vb=typeof b.expGrowth==='number'?b.expGrowth:999; break;
+        case 'expGrowth': va=typeof a.expGrowth==='number'?a.expGrowth:null; vb=typeof b.expGrowth==='number'?b.expGrowth:null; break;
         case 'estExposure': va=a.estimatedExposure||0; vb=b.estimatedExposure||0; break;
         case 'exposureAchieve': va=a.exposureAchieveRate||0; vb=b.exposureAchieveRate||0; break;
         case 'exposureRedeemRate': va=a.exposureRedeemRate||0; vb=b.exposureRedeemRate||0; break;
-        case 'rateGrowth': va=a.rateGrowth!==null?a.rateGrowth:999; vb=b.rateGrowth!==null?b.rateGrowth:999; break;
+        case 'rateGrowth': va=a.rateGrowth!==null&&a.rateGrowth!==undefined?a.rateGrowth:null; vb=b.rateGrowth!==null&&b.rateGrowth!==undefined?b.rateGrowth:null; break;
         case 'convTarget': va=a.conversionTarget||0; vb=b.conversionTarget||0; break;
         case 'rateAchieve': va=a.rateAchieveRate||0; vb=b.rateAchieveRate||0; break;
         case 'alive': va=a.alive?1:0; vb=b.alive?1:0; break;
@@ -1525,6 +1527,10 @@ function refreshTable(viewId, ownerFilter) {
         case 'oldRedeemPctTotal': va=a.oldRedeemPct||0; vb=b.oldRedeemPct||0; break;
         default: va=0; vb=0;
       }
+      // null值始终排最后（无论升序降序）
+      if(va===null && vb===null) return 0;
+      if(va===null) return 1;
+      if(vb===null) return -1;
       return (va - vb) * dir;
     }
     // 默认按核销达成率降序
