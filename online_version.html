@@ -71,6 +71,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
 table { width:100%; border-collapse:separate; border-spacing:0; font-size:12px; }
 table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); letter-spacing:0.3px; z-index:4; box-shadow:0 2px 0 var(--border); }
+table thead tr.thead-row2 th { top:36px; }
 table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; box-shadow:0 1px 0 #c2d7f7; }
 table tbody td { padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:center; transition:background .15s; }
 table tbody tr:hover { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
@@ -1380,7 +1381,7 @@ function refreshTable(viewId, ownerFilter) {
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">老客占比</th>
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">存活</th>
         <th rowspan="2" style="border-left:2px solid var(--border);">反馈</th>
-      </tr><tr>
+      </tr><tr class="thead-row2">
         <th class="sortable" data-sort="oldExposure" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">老客日均<br>曝光(w)</th>
         <th class="sortable" data-sort="oldExposurePct" data-view="${viewId}" data-owner="${ownerFilter||''}">老客曝光<br>占比</th>
         <th class="sortable" data-sort="oldExpRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}">老客曝光<br>核销率</th>
@@ -1403,7 +1404,7 @@ function refreshTable(viewId, ownerFilter) {
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">存活</th>
         <th colspan="3" class="group-header" style="border-left:2px solid #e8b4d0;">🎁 惊喜货盘</th>
         <th rowspan="2" style="border-left:2px solid var(--border);">反馈</th>
-      </tr><tr>
+      </tr><tr class="thead-row2">
         <th class="sortable" data-sort="dailyRedeem" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均核销量</th>
         <th class="sortable" data-sort="redeemGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">核销环比</th>
         <th class="sortable" data-sort="redeemTarget" data-view="${viewId}" data-owner="${ownerFilter||''}">核销目标</th>
@@ -1430,13 +1431,15 @@ function refreshTable(viewId, ownerFilter) {
       if(th2) th2.classList.add('sort-' + cs.dir);
     }
     // 动态设置双行表头第二行sticky top
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       const firstRow = thead.querySelector('tr:first-child');
       if (firstRow) {
         const h = firstRow.getBoundingClientRect().height;
-        thead.querySelectorAll('tr:nth-child(2) th').forEach(th => { th.style.top = h + 'px'; });
+        if (h > 0) {
+          thead.querySelectorAll('tr.thead-row2 th').forEach(th => { th.style.top = h + 'px'; });
+        }
       }
-    });
+    }, 50);
   }
 
   const merged = assignments.map(a=>{
