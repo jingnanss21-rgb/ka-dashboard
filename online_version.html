@@ -70,8 +70,8 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .owner-stacked-bar .seg { height:100%; display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; min-width:20px; }
 
 table { width:100%; border-collapse:separate; border-spacing:0; font-size:12px; }
-table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); letter-spacing:0.3px; }
-table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; }
+table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); letter-spacing:0.3px; z-index:4; box-shadow:0 2px 0 var(--border); }
+table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; box-shadow:0 1px 0 #c2d7f7; }
 table tbody td { padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:center; transition:background .15s; }
 table tbody tr:hover { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
 table tbody td:first-child { text-align:left; font-weight:600; }
@@ -92,11 +92,11 @@ table tbody td:nth-child(2) { text-align:left; }
 .filter-bar select:focus, .filter-bar .search-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.08); outline:none; }
 .filter-bar .search-input { width:200px; }
 
-.scroll-table-wrapper { overflow-x:auto; max-height:700px; overflow-y:auto; position:relative; }
+.scroll-table-wrapper { overflow-x:auto; max-height:min(600px, calc(100vh - 300px)); overflow-y:auto; position:relative; }
 
 /* 冻结列样式 */
 table .sticky-col { position:sticky; z-index:2; background:#fff; }
-table thead th.sticky-col { z-index:3; background:var(--bg); }
+table thead th.sticky-col { z-index:5; background:var(--bg); }
 table thead th.group-header.sticky-col { background:#e8f0fe; }
 table tbody tr:hover .sticky-col { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
 table tbody tr[style*="background:#fff8e1"] .sticky-col { background:#fff8e1; }
@@ -1429,6 +1429,14 @@ function refreshTable(viewId, ownerFilter) {
       const th2 = thead.querySelector(`th[data-sort="${cs.field}"]`);
       if(th2) th2.classList.add('sort-' + cs.dir);
     }
+    // 动态设置双行表头第二行sticky top
+    requestAnimationFrame(() => {
+      const firstRow = thead.querySelector('tr:first-child');
+      if (firstRow) {
+        const h = firstRow.getBoundingClientRect().height;
+        thead.querySelectorAll('tr:nth-child(2) th').forEach(th => { th.style.top = h + 'px'; });
+      }
+    });
   }
 
   const merged = assignments.map(a=>{
