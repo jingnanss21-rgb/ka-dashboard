@@ -115,9 +115,8 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
 /* Tables */
 table { width:100%; border-collapse:separate; border-spacing:0; font-size:12px; }
-table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); z-index:4; }
-table thead tr:nth-child(2) th { top:38px; }
-table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; }
+table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); z-index:4; box-shadow:0 2px 0 var(--border); }
+table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; box-shadow:0 1px 0 #c2d7f7; }
 table tbody td { padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:center; transition:background .15s; }
 table tbody tr:hover { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
 table tbody td:first-child { text-align:left; font-weight:600; }
@@ -133,7 +132,7 @@ table thead th.sticky-col { z-index:5; background:var(--bg); }
 table tbody tr:hover .sticky-col { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
 table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px; bottom:0; width:6px; pointer-events:none; box-shadow:inset 6px 0 6px -6px rgba(0,0,0,0.08); }
 
-.scroll-table-wrapper { overflow-x:auto; max-height:700px; overflow-y:auto; position:relative; }
+.scroll-table-wrapper { overflow-x:auto; max-height:min(600px, calc(100vh - 300px)); overflow-y:auto; position:relative; }
 
 /* Filter bar */
 .filter-bar { display:flex; gap:10px; margin-bottom:16px; align-items:center; flex-wrap:wrap; }
@@ -595,6 +594,17 @@ function renderOverview() {
   document.getElementById('brandCountBadge').textContent = `${b.length}个品牌 · 月报数据`;
   
   renderOverviewTable();
+  // 动态设置双行表头第二行的sticky top
+  requestAnimationFrame(() => {
+    const tbl = document.getElementById('overviewTable');
+    if (tbl) {
+      const firstRow = tbl.querySelector('thead tr:first-child');
+      if (firstRow) {
+        const h = firstRow.getBoundingClientRect().height;
+        tbl.querySelectorAll('thead tr:nth-child(2) th').forEach(th => { th.style.top = h + 'px'; });
+      }
+    }
+  });
   renderAlertMonitor();
 }
 
