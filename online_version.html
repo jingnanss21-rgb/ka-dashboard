@@ -1020,50 +1020,18 @@ function isBrandAbnormal(b) {
   return exposure <= 0.1 && expRate > 1.0;
 }
 
-// === 反馈周期标签 ===
-// 根据数据周期计算周一到周日的区间，然后根据反馈创建时间判断属于哪个周期
-function getDataWeekRange() {
-  const dd = DATA.dataDate || '';
-  const m = dd.match(/(\d{4})\.(\d{2})\.(\d{2})\s*[-–]\s*(\d{2})\.(\d{2})/);
-  if(m) {
-    const year = parseInt(m[1]);
-    return {
-      start: new Date(year, parseInt(m[2])-1, parseInt(m[3])),
-      end: new Date(year, parseInt(m[4])-1, parseInt(m[5]), 23, 59, 59)
-    };
-  }
-  return null;
-}
-function formatWeekLabel(startDate, endDate) {
-  return `${String(startDate.getMonth()+1).padStart(2,'0')}${String(startDate.getDate()).padStart(2,'0')}-${String(endDate.getMonth()+1).padStart(2,'0')}${String(endDate.getDate()).padStart(2,'0')}`;
-}
-function getCurWeekLabel() {
-  // 输入框标签：用当前日期所在的周一~周日
-  return getWeekLabelForDate(new Date().toISOString());
-}
-function getWeekLabelForDate(dateStr) {
-  // 根据日期计算它所在的周一~周日区间
-  if(!dateStr) return '未知周期';
-  const d = new Date(dateStr);
-  if(isNaN(d.getTime())) return '未知周期';
-  // 获取周一（ISO标准：周一=1）
-  const day = d.getDay(); // 0=周日
-  const diffToMon = day === 0 ? -6 : 1 - day;
-  const monday = new Date(d);
-  monday.setDate(d.getDate() + diffToMon);
-  monday.setHours(0,0,0,0);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  return formatWeekLabel(monday, sunday);
-}
+// === 反馈时间标签 ===
+// 直接展示实际反馈时间，7天内绿色，更早灰色
 function getFeedbackWeekTag(f) {
-  // 根据反馈创建时间判断属于哪个周期
-  const dataRange = getDataWeekRange();
-  const label = getWeekLabelForDate(f.rawTime);
-  const curLabel = getCurWeekLabel();
-  // 如果反馈时间所在周期 == 数据周期，用绿色标签；否则灰色
-  const isCurrentPeriod = (label === curLabel);
-  const tagClass = isCurrentPeriod ? 'tag-green' : 'tag-gray';
+  if(!f.rawTime) return '';
+  const d = new Date(f.rawTime);
+  if(isNaN(d.getTime())) return '';
+  const now = new Date();
+  const diffDays = (now - d) / (1000*60*60*24);
+  const isRecent = diffDays <= 7;
+  const tagClass = isRecent ? 'tag-green' : 'tag-gray';
+  // 格式: M/D HH:mm
+  const label = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   return `<span class="tag ${tagClass}" style="font-size:9px;padding:1px 5px;margin-right:4px;">${label}</span>`;
 }
 
@@ -1079,7 +1047,7 @@ function buildFeedbackItemHtml(brandName, f, i) {
       <div class="fb-text-inner" id="${uid}">${escHtml(text)}</div>
       ${needExpand ? `<button class="fb-expand-btn" onclick="toggleFbExpand('${uid}',this)">展开全文 ▼</button>` : ''}
     </div>
-    <div class="fb-meta">${weekTag}${f.owner||''} · ${f.time}</div>
+    <div class="fb-meta">${weekTag}${f.owner||''}</div>
     <div class="fb-actions">
       <span class="fb-action-btn edit" onclick="editFeedback('${escAttr(brandName)}',${i})" title="编辑">✎</span>
       <span class="fb-action-btn delete" onclick="confirmDeleteFeedback('${escAttr(brandName)}',${i})" title="删除">×</span>
@@ -1353,7 +1321,6 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   }
 
   html += `<div class="feedback-input-row" style="margin-top:8px;">
-    <span class="tag tag-green" style="font-size:9px;padding:1px 5px;margin-right:4px;flex-shrink:0;">${getCurWeekLabel()}</span>
     <textarea class="feedback-input" id="fb-case-${viewId}-${encId(b.name)}" placeholder="添加对 ${b.name} 的反馈…" rows="1"></textarea>
     <button class="btn btn-primary btn-sm" onclick="submitFeedback('${escAttr(b.name)}','${escAttr(a.owner||'')}','${viewId}')">保存</button>
   </div>`;
@@ -1621,7 +1588,7 @@ function refreshTable(viewId, ownerFilter) {
         <td class="td-feedback" style="border-left:2px solid var(--border);">${hasFb
           ? '<div class="fb-mini">'+fb.map((f,idx)=>`<div class="fb-mini-item">${getFeedbackWeekTag(f)}<span class="fb-mini-text">${escHtml(f.text)}</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback('${escAttr(m.brand)}',${idx})" title="编辑">✎</span><span class="mini-btn del" onclick="confirmDeleteFeedback('${escAttr(m.brand)}',${idx})" title="删除">×</span></span></div>`).join('')+'</div>'
           : '<span style="color:#bbb;font-size:11px;">—</span>'
-        }<div style="margin-top:4px;display:flex;gap:4px;align-items:center;"><span class="tag tag-green" style="font-size:9px;padding:1px 5px;flex-shrink:0;">${getCurWeekLabel()}</span><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
+        }<div style="margin-top:4px;display:flex;gap:4px;align-items:center;"><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
       </tr>`;
     }).join('');
   } else {
@@ -1667,7 +1634,7 @@ function refreshTable(viewId, ownerFilter) {
         <td class="td-feedback" style="border-left:2px solid var(--border);">${hasFb
           ? '<div class="fb-mini">'+fb.map((f,idx)=>`<div class="fb-mini-item">${getFeedbackWeekTag(f)}<span class="fb-mini-text">${escHtml(f.text)}</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback('${escAttr(m.brand)}',${idx})" title="编辑">✎</span><span class="mini-btn del" onclick="confirmDeleteFeedback('${escAttr(m.brand)}',${idx})" title="删除">×</span></span></div>`).join('')+'</div>'
           : '<span style="color:#bbb;font-size:11px;">—</span>'
-        }<div style="margin-top:4px;display:flex;gap:4px;align-items:center;"><span class="tag tag-green" style="font-size:9px;padding:1px 5px;flex-shrink:0;">${getCurWeekLabel()}</span><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
+        }<div style="margin-top:4px;display:flex;gap:4px;align-items:center;"><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
       </tr>`;
     }).join('');
   }
