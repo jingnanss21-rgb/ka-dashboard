@@ -547,9 +547,36 @@ function showToast(msg) {
 }
 
 // ============================================================
+// 访问埋点 — 记录每次页面访问
+// ============================================================
+function trackVisit(page) {
+  try {
+    const isMobile = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
+    const identity = localStorage.getItem(IDENTITY_KEY) || '未知';
+    const info = {
+      page,
+      identity,
+      device: isMobile ? '手机' : '电脑',
+      screen: screen.width + 'x' + screen.height,
+      referrer: document.referrer || '直接访问',
+      ua: navigator.userAgent.slice(0, 150),
+      ts: new Date().toISOString()
+    };
+    sbClient.from('ka_feedbacks').insert({
+      brand_name: 'visit::' + page,
+      text: JSON.stringify(info),
+      owner: identity
+    }).then(() => {});
+  } catch(e) { /* 埋点失败不影响页面 */ }
+}
+
+// ============================================================
 // Init
 // ============================================================
 function init() {
+  // 访问埋点
+  trackVisit('ka_dashboard');
+
   // Identity — 默认老板视角，点击header角标可切换
   document.getElementById('identityBadge').textContent = '👤 ' + currentIdentity;
   
