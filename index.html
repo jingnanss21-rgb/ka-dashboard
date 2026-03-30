@@ -70,8 +70,9 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .owner-stacked-bar .seg { height:100%; display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; font-weight:700; white-space:nowrap; overflow:hidden; min-width:20px; }
 
 table { width:100%; border-collapse:separate; border-spacing:0; font-size:12px; }
-table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); letter-spacing:0.3px; }
-table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; }
+table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); letter-spacing:0.3px; z-index:4; box-shadow:0 2px 0 var(--border); }
+table thead tr.thead-row2 th { top:36px; }
+table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; box-shadow:0 1px 0 #c2d7f7; }
 table tbody td { padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:center; transition:background .15s; }
 table tbody tr:hover { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
 table tbody td:first-child { text-align:left; font-weight:600; }
@@ -92,11 +93,11 @@ table tbody td:nth-child(2) { text-align:left; }
 .filter-bar select:focus, .filter-bar .search-input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.08); outline:none; }
 .filter-bar .search-input { width:200px; }
 
-.scroll-table-wrapper { overflow-x:auto; max-height:700px; overflow-y:auto; position:relative; }
+.scroll-table-wrapper { overflow-x:auto; max-height:min(600px, calc(100vh - 300px)); overflow-y:auto; position:relative; }
 
 /* 冻结列样式 */
 table .sticky-col { position:sticky; z-index:2; background:#fff; }
-table thead th.sticky-col { z-index:3; background:var(--bg); }
+table thead th.sticky-col { z-index:5; background:var(--bg); }
 table thead th.group-header.sticky-col { background:#e8f0fe; }
 table tbody tr:hover .sticky-col { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
 table tbody tr[style*="background:#fff8e1"] .sticky-col { background:#fff8e1; }
@@ -1019,31 +1020,19 @@ function isBrandAbnormal(b) {
   return exposure <= 0.1 && expRate > 1.0;
 }
 
-// === 反馈周期标签 ===
-// 所有已有反馈 = 上周期；待反馈输入框单独标记本周期
-function getPrevWeekLabel() {
-  const dd = DATA.dataDate || '';
-  const m = dd.match(/(\d{4})\.(\d{2})\.(\d{2})\s*[-–]\s*(\d{2})\.(\d{2})/);
-  if(m) {
-    const year = parseInt(m[1]), sm = parseInt(m[2]), sd = parseInt(m[3]);
-    const prevStart = new Date(year, sm - 1, sd - 7);
-    const prevEnd = new Date(year, sm - 1, sd - 1);
-    return `${String(prevStart.getMonth()+1).padStart(2,'0')}${String(prevStart.getDate()).padStart(2,'0')}-${String(prevEnd.getMonth()+1).padStart(2,'0')}${String(prevEnd.getDate()).padStart(2,'0')}`;
-  }
-  return '上周期';
-}
-function getCurWeekLabel() {
-  const dd = DATA.dataDate || '';
-  const m = dd.match(/(\d{4})\.(\d{2})\.(\d{2})\s*[-–]\s*(\d{2})\.(\d{2})/);
-  if(m) {
-    return `${String(parseInt(m[2])).padStart(2,'0')}${String(parseInt(m[3])).padStart(2,'0')}-${String(parseInt(m[4])).padStart(2,'0')}${String(parseInt(m[5])).padStart(2,'0')}`;
-  }
-  return '本周期';
-}
+// === 反馈时间标签 ===
+// 直接展示实际反馈时间，7天内绿色，更早灰色
 function getFeedbackWeekTag(f) {
-  // 所有已有反馈统一标记为上周期
-  const label = getPrevWeekLabel();
-  return `<span class="tag tag-gray" style="font-size:9px;padding:1px 5px;margin-right:4px;">${label}</span>`;
+  if(!f.rawTime) return '';
+  const d = new Date(f.rawTime);
+  if(isNaN(d.getTime())) return '';
+  const now = new Date();
+  const diffDays = (now - d) / (1000*60*60*24);
+  const isRecent = diffDays <= 7;
+  const tagClass = isRecent ? 'tag-green' : 'tag-gray';
+  // 格式: M/D HH:mm
+  const label = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return `<span class="tag ${tagClass}" style="font-size:9px;padding:1px 5px;margin-right:4px;">${label}</span>`;
 }
 
 // === 反馈条目HTML ===
@@ -1058,7 +1047,7 @@ function buildFeedbackItemHtml(brandName, f, i) {
       <div class="fb-text-inner" id="${uid}">${escHtml(text)}</div>
       ${needExpand ? `<button class="fb-expand-btn" onclick="toggleFbExpand('${uid}',this)">展开全文 ▼</button>` : ''}
     </div>
-    <div class="fb-meta">${weekTag}${f.owner||''} · ${f.time}</div>
+    <div class="fb-meta">${weekTag}${f.owner||''}</div>
     <div class="fb-actions">
       <span class="fb-action-btn edit" onclick="editFeedback('${escAttr(brandName)}',${i})" title="编辑">✎</span>
       <span class="fb-action-btn delete" onclick="confirmDeleteFeedback('${escAttr(brandName)}',${i})" title="删除">×</span>
@@ -1332,7 +1321,6 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   }
 
   html += `<div class="feedback-input-row" style="margin-top:8px;">
-    <span class="tag tag-green" style="font-size:9px;padding:1px 5px;margin-right:4px;flex-shrink:0;">${getCurWeekLabel()}</span>
     <textarea class="feedback-input" id="fb-case-${viewId}-${encId(b.name)}" placeholder="添加对 ${b.name} 的反馈…" rows="1"></textarea>
     <button class="btn btn-primary btn-sm" onclick="submitFeedback('${escAttr(b.name)}','${escAttr(a.owner||'')}','${viewId}')">保存</button>
   </div>`;
@@ -1380,7 +1368,7 @@ function refreshTable(viewId, ownerFilter) {
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">老客占比</th>
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">存活</th>
         <th rowspan="2" style="border-left:2px solid var(--border);">反馈</th>
-      </tr><tr>
+      </tr><tr class="thead-row2">
         <th class="sortable" data-sort="oldExposure" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">老客日均<br>曝光(w)</th>
         <th class="sortable" data-sort="oldExposurePct" data-view="${viewId}" data-owner="${ownerFilter||''}">老客曝光<br>占比</th>
         <th class="sortable" data-sort="oldExpRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}">老客曝光<br>核销率</th>
@@ -1403,7 +1391,7 @@ function refreshTable(viewId, ownerFilter) {
         <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">存活</th>
         <th colspan="3" class="group-header" style="border-left:2px solid #e8b4d0;">🎁 惊喜货盘</th>
         <th rowspan="2" style="border-left:2px solid var(--border);">反馈</th>
-      </tr><tr>
+      </tr><tr class="thead-row2">
         <th class="sortable" data-sort="dailyRedeem" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均核销量</th>
         <th class="sortable" data-sort="redeemGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">核销环比</th>
         <th class="sortable" data-sort="redeemTarget" data-view="${viewId}" data-owner="${ownerFilter||''}">核销目标</th>
@@ -1429,6 +1417,16 @@ function refreshTable(viewId, ownerFilter) {
       const th2 = thead.querySelector(`th[data-sort="${cs.field}"]`);
       if(th2) th2.classList.add('sort-' + cs.dir);
     }
+    // 动态设置双行表头第二行sticky top
+    setTimeout(() => {
+      const firstRow = thead.querySelector('tr:first-child');
+      if (firstRow) {
+        const h = firstRow.getBoundingClientRect().height;
+        if (h > 0) {
+          thead.querySelectorAll('tr.thead-row2 th').forEach(th => { th.style.top = h + 'px'; });
+        }
+      }
+    }, 50);
   }
 
   const merged = assignments.map(a=>{
@@ -1590,7 +1588,7 @@ function refreshTable(viewId, ownerFilter) {
         <td class="td-feedback" style="border-left:2px solid var(--border);">${hasFb
           ? '<div class="fb-mini">'+fb.map((f,idx)=>`<div class="fb-mini-item">${getFeedbackWeekTag(f)}<span class="fb-mini-text">${escHtml(f.text)}</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback('${escAttr(m.brand)}',${idx})" title="编辑">✎</span><span class="mini-btn del" onclick="confirmDeleteFeedback('${escAttr(m.brand)}',${idx})" title="删除">×</span></span></div>`).join('')+'</div>'
           : '<span style="color:#bbb;font-size:11px;">—</span>'
-        }<div style="margin-top:4px;display:flex;gap:4px;align-items:center;"><span class="tag tag-green" style="font-size:9px;padding:1px 5px;flex-shrink:0;">${getCurWeekLabel()}</span><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
+        }<div style="margin-top:4px;display:flex;gap:4px;align-items:center;"><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
       </tr>`;
     }).join('');
   } else {
@@ -1636,7 +1634,7 @@ function refreshTable(viewId, ownerFilter) {
         <td class="td-feedback" style="border-left:2px solid var(--border);">${hasFb
           ? '<div class="fb-mini">'+fb.map((f,idx)=>`<div class="fb-mini-item">${getFeedbackWeekTag(f)}<span class="fb-mini-text">${escHtml(f.text)}</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback('${escAttr(m.brand)}',${idx})" title="编辑">✎</span><span class="mini-btn del" onclick="confirmDeleteFeedback('${escAttr(m.brand)}',${idx})" title="删除">×</span></span></div>`).join('')+'</div>'
           : '<span style="color:#bbb;font-size:11px;">—</span>'
-        }<div style="margin-top:4px;display:flex;gap:4px;align-items:center;"><span class="tag tag-green" style="font-size:9px;padding:1px 5px;flex-shrink:0;">${getCurWeekLabel()}</span><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
+        }<div style="margin-top:4px;display:flex;gap:4px;align-items:center;"><input id="tbl-fb-${viewId}-${encId(m.brand)}" placeholder="输入反馈" onkeydown="if(event.key==='Enter'){submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}');event.preventDefault();}"><button onclick="submitTableFeedback('${escAttr(m.brand)}','${escAttr(m.owner||ownerFilter||'')}','${viewId}')">保存</button></div></td>
       </tr>`;
     }).join('');
   }
