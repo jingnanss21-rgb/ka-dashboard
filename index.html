@@ -532,12 +532,39 @@ function subscribeRealtime() {
     .subscribe();
 }
 
+// ============================================================
+// 访问埋点 — 记录每次页面访问
+// ============================================================
+function trackVisit(page) {
+  try {
+    const isMobile = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
+    const identity = localStorage.getItem(IDENTITY_KEY) || '未知';
+    const info = {
+      page,
+      identity,
+      device: isMobile ? '手机' : '电脑',
+      screen: screen.width + 'x' + screen.height,
+      referrer: document.referrer || '直接访问',
+      ua: navigator.userAgent.slice(0, 150),
+      ts: new Date().toISOString()
+    };
+    sbClient.from('ka_feedbacks').insert({
+      brand_name: 'visit::' + page,
+      text: JSON.stringify(info),
+      owner: identity
+    }).then(() => {});
+  } catch(e) { /* 埋点失败不影响页面 */ }
+}
+
 async function init() {
   // 检查 Supabase SDK 是否加载
   if(!window.supabase) {
     document.getElementById('loadingOverlay').innerHTML = '<div style="text-align:center;color:#fff"><h2>❌ Supabase SDK 加载失败</h2><p>请检查网络连接后刷新页面</p></div>';
     return;
   }
+
+  // 访问埋点
+  trackVisit('online_version');
 
   // 显示加载中
   document.getElementById('loadingOverlay').style.display = 'flex';
