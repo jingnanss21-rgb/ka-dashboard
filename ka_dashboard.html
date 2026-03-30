@@ -89,6 +89,14 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .alert-tab { padding:6px 16px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; font-size:13px; cursor:pointer; font-weight:500; color:var(--text-secondary); transition:all .2s; }
 .alert-tab:hover { border-color:#93c5fd; color:#2563eb; }
 .alert-tab.active { background:#eff6ff; border-color:#93c5fd; color:#2563eb; font-weight:600; }
+.alert-block { margin-bottom:20px; }
+.alert-block-header { display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:10px 10px 0 0; font-size:13px; font-weight:600; }
+.alert-block-header.mom-hdr { background:linear-gradient(90deg,#eff6ff,#dbeafe); color:#1d4ed8; border-bottom:2px solid #93c5fd; }
+.alert-block-header.yoy-hdr { background:linear-gradient(90deg,#faf5ff,#f3e8ff); color:#7c3aed; border-bottom:2px solid #c4b5fd; }
+.alert-block-header .period-tag { font-size:11px; font-weight:500; padding:2px 10px; border-radius:10px; }
+.alert-block-header .period-tag.mom { background:#dbeafe; color:#1d4ed8; }
+.alert-block-header .period-tag.yoy { background:#f3e8ff; color:#7c3aed; }
+.alert-block-header .count-tag { margin-left:auto; font-weight:400; font-size:12px; color:var(--text-secondary); }
 .alert-bar-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid #f3f4f6; }
 .alert-bar-row:last-child { border-bottom:none; }
 .alert-bar-brand { width:80px; font-weight:600; font-size:13px; flex-shrink:0; }
@@ -98,6 +106,14 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .alert-bar-fill { height:100%; border-radius:6px; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; font-size:10px; font-weight:600; color:#fff; min-width:20px; transition:width .6s ease; }
 .alert-bar-values { width:180px; display:flex; gap:6px; font-size:11px; flex-shrink:0; }
 .alert-bar-values span { display:inline-flex; align-items:center; gap:2px; }
+.alert-bar-feedback { width:150px; flex-shrink:0; }
+.alert-bar-feedback input { width:100%; padding:4px 8px; border:1px solid #e5e7eb; border-radius:6px; font-size:11px; background:#fff; color:var(--text); transition:border-color .2s; }
+.alert-bar-feedback input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 2px rgba(37,99,235,0.1); }
+.alert-bar-feedback input::placeholder { color:#d1d5db; }
+.alert-no-data { padding:20px; text-align:center; color:var(--text-secondary); font-size:13px; }
+.alert-sub-header { padding:8px 14px; font-size:12px; font-weight:600; border-bottom:1px solid; }
+.alert-sub-header.up-hdr { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+.alert-sub-header.down-hdr { background:#fef2f2; color:#dc2626; border-color:#fecaca; }
 
 /* Tags */
 .tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
@@ -305,8 +321,9 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 
   <!-- 渗透率波动监测 -->
   <div class="section" id="alertMonitorSection" style="display:none;">
-    <div class="section-title"><div class="icon" style="background:var(--warning)"></div> 📡 小程序渗透率波动监测 <span class="badge" style="background:#fef3c7;color:#d97706;">环比变化 >5pp</span></div>
-    <div class="alert-tabs" style="display:flex;gap:4px;margin-bottom:14px;">
+    <div class="section-title"><div class="icon" style="background:var(--warning)"></div> 📡 小程序渗透率波动监测 <span class="badge" style="background:#fef3c7;color:#d97706;">变化幅度 &gt;5pp</span></div>
+    <p style="margin:0 0 14px 0;font-size:12px;color:var(--text-secondary);">自动筛选环比或同比波动超过5个百分点的品牌，便于及时跟进。反馈内容自动保存在浏览器本地。</p>
+    <div class="alert-tabs" style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;">
       <button class="alert-tab active" data-alert-type="bs" onclick="switchAlertTab('bs')">📊 笔数渗透率</button>
       <button class="alert-tab" data-alert-type="je" onclick="switchAlertTab('je')">💰 金额渗透率</button>
     </div>
@@ -610,13 +627,83 @@ function renderOverview() {
 
 // 渗透率波动监测模块
 let currentAlertType = 'bs';
-function renderAlertMonitor() {
+
+// 反馈云端存储 (Cloudflare Worker + KV)
+const FEEDBACK_API = 'https://ka-feedback.jingnanss21.workers.dev/feedback';
+let _feedbackCache = {};  // 本地缓存，减少读取延迟
+
+async function loadAlertFeedbackFromServer() {
+  try {
+    const resp = await fetch(FEEDBACK_API);
+    if (resp.ok) {
+      _feedbackCache = await resp.json();
+    }
+  } catch(e) {
+    console.warn('加载反馈失败，使用本地缓存:', e.message);
+    // 降级读 localStorage
+    try { _feedbackCache = JSON.parse(localStorage.getItem('ka_alert_feedback') || '{}'); } catch(e2) {}
+  }
+  // 一次性迁移：把 localStorage 中的历史反馈数据同步到云端
+  await migrateLocalFeedback();
+  return _feedbackCache;
+}
+
+async function migrateLocalFeedback() {
+  if (localStorage.getItem('ka_feedback_migrated')) return; // 已迁移过，跳过
+  let localData = {};
+  try { localData = JSON.parse(localStorage.getItem('ka_alert_feedback') || '{}'); } catch(e) { return; }
+  const keys = Object.keys(localData);
+  if (keys.length === 0) { localStorage.setItem('ka_feedback_migrated', '1'); return; }
+  let migrated = 0;
+  for (const key of keys) {
+    const val = localData[key];
+    if (!val) continue;
+    // 如果云端已有该条且非空，不覆盖（保留其他同事的更新）
+    if (_feedbackCache[key] && _feedbackCache[key].trim()) continue;
+    try {
+      await fetch(FEEDBACK_API, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value: val })
+      });
+      _feedbackCache[key] = val;
+      migrated++;
+    } catch(e) { console.warn('迁移反馈失败:', key, e.message); }
+  }
+  localStorage.setItem('ka_feedback_migrated', '1');
+  if (migrated > 0) console.log('已迁移 ' + migrated + ' 条本地反馈到云端');
+}
+
+function loadAlertFeedback() {
+  return _feedbackCache;
+}
+
+let _saveTimer = null;
+function saveAlertFeedback(brand, cmpType, text) {
+  const key = brand + '_' + cmpType;
+  if (text) _feedbackCache[key] = text; else delete _feedbackCache[key];
+  // 同步写 localStorage 作为降级
+  try { localStorage.setItem('ka_alert_feedback', JSON.stringify(_feedbackCache)); } catch(e) {}
+  // 防抖写远端
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    fetch(FEEDBACK_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value: text })
+    }).catch(e => console.warn('保存反馈失败:', e.message));
+  }, 500);
+}
+
+async function renderAlertMonitor() {
   const alerts = KA_DATA.alerts || [];
   if (alerts.length === 0) return;
   
   const section = document.getElementById('alertMonitorSection');
   section.style.display = '';
   
+  // 先从服务器加载反馈
+  await loadAlertFeedbackFromServer();
   renderAlertContent(currentAlertType);
 }
 
@@ -630,85 +717,159 @@ function renderAlertContent(type) {
   const alerts = KA_DATA.alerts || [];
   const prefix = type === 'bs' ? 'bs' : 'je';
   const label = type === 'bs' ? '笔数' : '金额';
+  const fb = loadAlertFeedback();
   
-  // 过滤出该类型有异常的品牌
-  const relevant = alerts.filter(a => {
+  // ========== 环比异常 ==========
+  const momRelevant = alerts.filter(a => {
     const hb = a[`${prefix}_rate_hb`];
     return hb !== null && hb !== undefined && Math.abs(hb) > 5;
-  }).sort((a, b) => (b[`${prefix}_rate_hb`] || 0) - (a[`${prefix}_rate_hb`] || 0));
+  }).sort((a, b) => Math.abs(b[`${prefix}_rate_hb`]) - Math.abs(a[`${prefix}_rate_hb`]));
   
-  const upItems = relevant.filter(a => a[`${prefix}_rate_hb`] > 0);
-  const downItems = relevant.filter(a => a[`${prefix}_rate_hb`] < 0);
+  const momUp = momRelevant.filter(a => a[`${prefix}_rate_hb`] > 0);
+  const momDown = momRelevant.filter(a => a[`${prefix}_rate_hb`] < 0);
   
-  // 找最大变化幅度（用于条形图比例）
-  const maxAbs = Math.max(...relevant.map(a => Math.abs(a[`${prefix}_rate_hb`] || 0)), 10);
+  // ========== 同比异常 ==========
+  const yoyRelevant = alerts.filter(a => {
+    const tb = a[`${prefix}_rate_tb`];
+    return tb !== null && tb !== undefined && Math.abs(tb) > 5;
+  }).sort((a, b) => Math.abs(b[`${prefix}_rate_tb`]) - Math.abs(a[`${prefix}_rate_tb`]));
   
-  function renderBar(item, isUp) {
-    const rate03 = item[`${prefix}_rate_03`];
-    const rate02 = item[`${prefix}_rate_02`];
-    const hb = item[`${prefix}_rate_hb`];
-    const tb = item[`${prefix}_rate_tb`];
-    const absHb = Math.abs(hb);
-    const barPct = Math.min((absHb / maxAbs) * 100, 100);
-    const barColor = isUp ? 'linear-gradient(90deg, #86efac, #22c55e)' : 'linear-gradient(90deg, #fca5a5, #ef4444)';
-    const textColor = isUp ? '#15803d' : '#dc2626';
-    const arrow = isUp ? '↑' : '↓';
-    
-    return `<div class="alert-bar-row">
-      <div class="alert-bar-brand">${item.brand}</div>
-      <div class="alert-bar-owner">${item.owner}</div>
-      <div class="alert-bar-chart">
-        <div class="alert-bar-track">
-          <div class="alert-bar-fill" style="width:${barPct}%;background:${barColor};">
-            ${absHb >= 3 ? `${arrow}${absHb.toFixed(1)}pp` : ''}
-          </div>
-        </div>
-        ${absHb < 3 ? `<span style="font-size:11px;font-weight:600;color:${textColor};">${arrow}${absHb.toFixed(1)}pp</span>` : ''}
-      </div>
-      <div class="alert-bar-values">
-        <span title="本月渗透率"><b style="color:var(--primary)">${rate03 != null ? rate03.toFixed(1) + '%' : '-'}</b></span>
-        <span style="color:#a3a3a3">←</span>
-        <span title="上月渗透率" style="color:var(--text-secondary)">${rate02 != null ? rate02.toFixed(1) + '%' : '-'}</span>
-        ${tb != null ? `<span title="同比" style="color:${tb >= 0 ? '#15803d' : '#dc2626'};font-size:10px;">同比${tb >= 0 ? '+' : ''}${tb.toFixed(1)}pp</span>` : ''}
-      </div>
-    </div>`;
-  }
+  const yoyUp = yoyRelevant.filter(a => a[`${prefix}_rate_tb`] > 0);
+  const yoyDown = yoyRelevant.filter(a => a[`${prefix}_rate_tb`] < 0);
   
-  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
+  let html = '';
   
-  // 上升栏
-  html += '<div style="border-radius:10px;border:1px solid #bbf7d0;overflow:hidden;">';
-  html += `<div style="background:#f0fdf4;padding:10px 16px;font-size:13px;font-weight:600;color:#15803d;border-bottom:1px solid #bbf7d0;display:flex;align-items:center;justify-content:space-between;">
-    <span>📈 ${label}渗透率上升</span>
-    <span style="font-weight:400;font-size:12px;background:#dcfce7;padding:2px 8px;border-radius:10px;">${upItems.length}个品牌</span>
+  // ====== 环比 Block ======
+  html += '<div class="alert-block">';
+  html += `<div class="alert-block-header mom-hdr">
+    <span>📊 环比波动</span>
+    <span class="period-tag mom">2026年3月 vs 2026年2月</span>
+    <span class="count-tag">${momRelevant.length} 个品牌触发</span>
   </div>`;
-  if (upItems.length > 0) {
-    html += '<div style="padding:6px 0;">';
-    upItems.forEach(a => { html += renderBar(a, true); });
-    html += '</div>';
+  if (momRelevant.length === 0) {
+    html += `<div class="alert-no-data" style="border:1px solid #dbeafe;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}渗透率环比波动均 ≤ 5pp，无异常</div>`;
   } else {
-    html += '<div style="padding:24px;text-align:center;color:#a3a3a3;font-size:12px;">暂无${label}渗透率环比>5pp的品牌</div>';
+    html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
+    html += renderAlertGroup(momUp, momDown, prefix, 'hb', '03', '02', '3月', '2月', 'mom', fb, label);
+    html += '</div>';
   }
   html += '</div>';
   
-  // 下降栏
-  html += '<div style="border-radius:10px;border:1px solid #fecaca;overflow:hidden;">';
-  html += `<div style="background:#fef2f2;padding:10px 16px;font-size:13px;font-weight:600;color:#dc2626;border-bottom:1px solid #fecaca;display:flex;align-items:center;justify-content:space-between;">
-    <span>📉 ${label}渗透率下降</span>
-    <span style="font-weight:400;font-size:12px;background:#fee2e2;padding:2px 8px;border-radius:10px;">${downItems.length}个品牌</span>
+  // ====== 同比 Block ======
+  html += '<div class="alert-block">';
+  html += `<div class="alert-block-header yoy-hdr">
+    <span>📊 同比波动</span>
+    <span class="period-tag yoy">2026年3月 vs 2025年3月</span>
+    <span class="count-tag">${yoyRelevant.length} 个品牌触发</span>
   </div>`;
-  if (downItems.length > 0) {
-    html += '<div style="padding:6px 0;">';
-    downItems.forEach(a => { html += renderBar(a, false); });
-    html += '</div>';
+  if (yoyRelevant.length === 0) {
+    html += `<div class="alert-no-data" style="border:1px solid #f3e8ff;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}渗透率同比波动均 ≤ 5pp，无异常</div>`;
   } else {
-    html += '<div style="padding:24px;text-align:center;color:#a3a3a3;font-size:12px;">暂无${label}渗透率环比>5pp的品牌</div>';
+    html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
+    html += renderAlertGroup(yoyUp, yoyDown, prefix, 'tb', '03', 'y03', '26年3月', '25年3月', 'yoy', fb, label);
+    html += '</div>';
   }
-  html += '</div>';
-  
   html += '</div>';
   
   document.getElementById('alertMonitorContent').innerHTML = html;
+  
+  // 绑定反馈输入事件
+  document.querySelectorAll('#alertMonitorContent .alert-feedback-input').forEach(input => {
+    input.addEventListener('change', function() {
+      saveAlertFeedback(this.dataset.brand, this.dataset.cmptype, this.value.trim());
+    });
+    input.addEventListener('blur', function() {
+      saveAlertFeedback(this.dataset.brand, this.dataset.cmptype, this.value.trim());
+    });
+  });
+}
+
+function renderAlertGroup(upList, downList, prefix, suffix, curPeriod, prevPeriod, curLabel, prevLabel, cmpType, fb, label) {
+  const all = [...upList, ...downList];
+  const maxAbs = Math.max(...all.map(a => Math.abs(a[`${prefix}_rate_${suffix}`] || 0)), 10);
+  const barGradientUp = 'linear-gradient(90deg, #86efac, #22c55e)';
+  const barGradientDown = 'linear-gradient(90deg, #fca5a5, #ef4444)';
+  let html = '';
+  
+  // 列标题行
+  html += `<div class="alert-bar-row" style="background:#f9fafb;border-bottom:2px solid #e5e7eb;font-size:11px;font-weight:600;color:var(--text-secondary);padding:8px 14px;">
+    <div class="alert-bar-brand">品牌</div>
+    <div class="alert-bar-owner">负责人</div>
+    <div class="alert-bar-chart">变化幅度</div>
+    <div class="alert-bar-values" style="justify-content:center;">${curLabel} ← ${prevLabel}</div>
+    <div class="alert-bar-feedback" style="text-align:center;">反馈说明</div>
+  </div>`;
+  
+  // 上升品牌
+  if (upList.length > 0) {
+    html += `<div class="alert-sub-header up-hdr">📈 ${label}渗透率上升（${upList.length}个品牌）</div>`;
+    upList.forEach(a => {
+      const pp = a[`${prefix}_rate_${suffix}`];
+      const absHb = Math.abs(pp);
+      const barPct = Math.min((absHb / maxAbs) * 100, 100);
+      const curRate = a[`${prefix}_rate_${curPeriod}`];
+      const prevRate = a[`${prefix}_rate_${prevPeriod}`];
+      const fbKey = a.brand + '_' + cmpType;
+      const fbVal = fb[fbKey] || '';
+      html += `<div class="alert-bar-row">
+        <div class="alert-bar-brand">${a.brand}</div>
+        <div class="alert-bar-owner">${a.owner}</div>
+        <div class="alert-bar-chart">
+          <div class="alert-bar-track">
+            <div class="alert-bar-fill" style="width:${barPct}%;background:${barGradientUp};">
+              ${absHb >= 3 ? `↑${absHb.toFixed(1)}pp` : ''}
+            </div>
+          </div>
+          ${absHb < 3 ? `<span style="font-size:11px;font-weight:600;color:#15803d;">↑${absHb.toFixed(1)}pp</span>` : ''}
+        </div>
+        <div class="alert-bar-values">
+          <span title="${curLabel}渗透率"><b style="color:var(--primary)">${curRate != null ? curRate.toFixed(1) + '%' : '-'}</b></span>
+          <span style="color:#a3a3a3">←</span>
+          <span title="${prevLabel}渗透率" style="color:var(--text-secondary)">${prevRate != null ? prevRate.toFixed(1) + '%' : '-'}</span>
+        </div>
+        <div class="alert-bar-feedback"><input class="alert-feedback-input" data-brand="${a.brand}" data-cmptype="${cmpType}" placeholder="输入反馈..." value="${escAlertHtml(fbVal)}"/></div>
+      </div>`;
+    });
+  }
+  
+  // 下降品牌
+  if (downList.length > 0) {
+    html += `<div class="alert-sub-header down-hdr">📉 ${label}渗透率下降（${downList.length}个品牌）</div>`;
+    downList.forEach(a => {
+      const pp = a[`${prefix}_rate_${suffix}`];
+      const absHb = Math.abs(pp);
+      const barPct = Math.min((absHb / maxAbs) * 100, 100);
+      const curRate = a[`${prefix}_rate_${curPeriod}`];
+      const prevRate = a[`${prefix}_rate_${prevPeriod}`];
+      const fbKey = a.brand + '_' + cmpType;
+      const fbVal = fb[fbKey] || '';
+      html += `<div class="alert-bar-row">
+        <div class="alert-bar-brand">${a.brand}</div>
+        <div class="alert-bar-owner">${a.owner}</div>
+        <div class="alert-bar-chart">
+          <div class="alert-bar-track">
+            <div class="alert-bar-fill" style="width:${barPct}%;background:${barGradientDown};">
+              ${absHb >= 3 ? `↓${absHb.toFixed(1)}pp` : ''}
+            </div>
+          </div>
+          ${absHb < 3 ? `<span style="font-size:11px;font-weight:600;color:#dc2626;">↓${absHb.toFixed(1)}pp</span>` : ''}
+        </div>
+        <div class="alert-bar-values">
+          <span title="${curLabel}渗透率"><b style="color:var(--primary)">${curRate != null ? curRate.toFixed(1) + '%' : '-'}</b></span>
+          <span style="color:#a3a3a3">←</span>
+          <span title="${prevLabel}渗透率" style="color:var(--text-secondary)">${prevRate != null ? prevRate.toFixed(1) + '%' : '-'}</span>
+        </div>
+        <div class="alert-bar-feedback"><input class="alert-feedback-input" data-brand="${a.brand}" data-cmptype="${cmpType}" placeholder="输入反馈..." value="${escAlertHtml(fbVal)}"/></div>
+      </div>`;
+    });
+  }
+  
+  return html;
+}
+
+function escAlertHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function scrollToSection(id) {
