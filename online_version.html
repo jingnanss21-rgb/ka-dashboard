@@ -1021,30 +1021,50 @@ function isBrandAbnormal(b) {
 }
 
 // === 反馈周期标签 ===
-// 所有已有反馈 = 上周期；待反馈输入框单独标记本周期
-function getPrevWeekLabel() {
+// 根据数据周期计算周一到周日的区间，然后根据反馈创建时间判断属于哪个周期
+function getDataWeekRange() {
   const dd = DATA.dataDate || '';
   const m = dd.match(/(\d{4})\.(\d{2})\.(\d{2})\s*[-–]\s*(\d{2})\.(\d{2})/);
   if(m) {
-    const year = parseInt(m[1]), sm = parseInt(m[2]), sd = parseInt(m[3]);
-    const prevStart = new Date(year, sm - 1, sd - 7);
-    const prevEnd = new Date(year, sm - 1, sd - 1);
-    return `${String(prevStart.getMonth()+1).padStart(2,'0')}${String(prevStart.getDate()).padStart(2,'0')}-${String(prevEnd.getMonth()+1).padStart(2,'0')}${String(prevEnd.getDate()).padStart(2,'0')}`;
+    const year = parseInt(m[1]);
+    return {
+      start: new Date(year, parseInt(m[2])-1, parseInt(m[3])),
+      end: new Date(year, parseInt(m[4])-1, parseInt(m[5]), 23, 59, 59)
+    };
   }
-  return '上周期';
+  return null;
+}
+function formatWeekLabel(startDate, endDate) {
+  return `${String(startDate.getMonth()+1).padStart(2,'0')}${String(startDate.getDate()).padStart(2,'0')}-${String(endDate.getMonth()+1).padStart(2,'0')}${String(endDate.getDate()).padStart(2,'0')}`;
 }
 function getCurWeekLabel() {
-  const dd = DATA.dataDate || '';
-  const m = dd.match(/(\d{4})\.(\d{2})\.(\d{2})\s*[-–]\s*(\d{2})\.(\d{2})/);
-  if(m) {
-    return `${String(parseInt(m[2])).padStart(2,'0')}${String(parseInt(m[3])).padStart(2,'0')}-${String(parseInt(m[4])).padStart(2,'0')}${String(parseInt(m[5])).padStart(2,'0')}`;
-  }
-  return '本周期';
+  // 输入框标签：用当前日期所在的周一~周日
+  return getWeekLabelForDate(new Date().toISOString());
+}
+function getWeekLabelForDate(dateStr) {
+  // 根据日期计算它所在的周一~周日区间
+  if(!dateStr) return '未知周期';
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return '未知周期';
+  // 获取周一（ISO标准：周一=1）
+  const day = d.getDay(); // 0=周日
+  const diffToMon = day === 0 ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diffToMon);
+  monday.setHours(0,0,0,0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return formatWeekLabel(monday, sunday);
 }
 function getFeedbackWeekTag(f) {
-  // 所有已有反馈统一标记为上周期
-  const label = getPrevWeekLabel();
-  return `<span class="tag tag-gray" style="font-size:9px;padding:1px 5px;margin-right:4px;">${label}</span>`;
+  // 根据反馈创建时间判断属于哪个周期
+  const dataRange = getDataWeekRange();
+  const label = getWeekLabelForDate(f.rawTime);
+  const curLabel = getCurWeekLabel();
+  // 如果反馈时间所在周期 == 数据周期，用绿色标签；否则灰色
+  const isCurrentPeriod = (label === curLabel);
+  const tagClass = isCurrentPeriod ? 'tag-green' : 'tag-gray';
+  return `<span class="tag ${tagClass}" style="font-size:9px;padding:1px 5px;margin-right:4px;">${label}</span>`;
 }
 
 // === 反馈条目HTML ===
