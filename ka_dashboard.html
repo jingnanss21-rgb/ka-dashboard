@@ -89,37 +89,31 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .alert-tab { padding:6px 16px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; font-size:13px; cursor:pointer; font-weight:500; color:var(--text-secondary); transition:all .2s; }
 .alert-tab:hover { border-color:#93c5fd; color:#2563eb; }
 .alert-tab.active { background:#eff6ff; border-color:#93c5fd; color:#2563eb; font-weight:600; }
-
-/* Alert Monitor Table */
-.alert-table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
-.alert-table thead th { background:#f8fafc; padding:10px 12px; text-align:center; font-weight:600; color:var(--text-secondary); font-size:11px; border-bottom:2px solid #e2e8f0; white-space:nowrap; position:sticky; top:0; z-index:2; }
-.alert-table thead th:first-child { text-align:left; padding-left:14px; }
-.alert-table tbody td { padding:10px 12px; border-bottom:1px solid #f1f5f9; text-align:center; vertical-align:middle; }
-.alert-table tbody td:first-child { text-align:left; padding-left:14px; }
-.alert-table tbody tr:hover { background:#f8fafc; }
-.alert-table tbody tr:last-child td { border-bottom:none; }
-
-/* Change badge */
-.change-badge { display:inline-flex; align-items:center; gap:2px; padding:3px 10px; border-radius:10px; font-size:12px; font-weight:700; white-space:nowrap; }
-.change-badge.up { background:#dcfce7; color:#15803d; }
-.change-badge.down { background:#fee2e2; color:#dc2626; }
-.change-badge.neutral { background:#f3f4f6; color:#6b7280; }
-
-/* Feedback cell */
-.alert-feedback { min-width:120px; max-width:220px; }
-.alert-feedback .cell-text { padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px; line-height:1.4; min-height:28px; display:flex; align-items:center; border:1px dashed transparent; transition:all .15s; }
-.alert-feedback .cell-text:hover { border-color:#cbd5e1; background:#f8fafc; }
-.alert-feedback .cell-text.empty { color:#a3a3a3; font-style:italic; }
-.alert-feedback input { width:100%; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:12px; outline:none; background:#eff6ff; }
-
-/* Section headers inside alert panel */
-.alert-direction-header { display:flex; align-items:center; gap:8px; padding:10px 14px; font-size:13px; font-weight:600; border-radius:8px 8px 0 0; margin-top:16px; }
-.alert-direction-header:first-child { margin-top:0; }
-.alert-direction-header.up { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; border-bottom:none; }
-.alert-direction-header.down { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-bottom:none; }
-.alert-table-wrap { border:1px solid #e2e8f0; border-radius:0 0 8px 8px; overflow:hidden; margin-bottom:8px; }
-.alert-table-wrap.up { border-color:#bbf7d0; }
-.alert-table-wrap.down { border-color:#fecaca; }
+.alert-block { margin-bottom:20px; }
+.alert-block-header { display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:10px 10px 0 0; font-size:13px; font-weight:600; }
+.alert-block-header.mom-hdr { background:linear-gradient(90deg,#eff6ff,#dbeafe); color:#1d4ed8; border-bottom:2px solid #93c5fd; }
+.alert-block-header.yoy-hdr { background:linear-gradient(90deg,#faf5ff,#f3e8ff); color:#7c3aed; border-bottom:2px solid #c4b5fd; }
+.alert-block-header .period-tag { font-size:11px; font-weight:500; padding:2px 10px; border-radius:10px; }
+.alert-block-header .period-tag.mom { background:#dbeafe; color:#1d4ed8; }
+.alert-block-header .period-tag.yoy { background:#f3e8ff; color:#7c3aed; }
+.alert-block-header .count-tag { margin-left:auto; font-weight:400; font-size:12px; color:var(--text-secondary); }
+.alert-bar-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid #f3f4f6; }
+.alert-bar-row:last-child { border-bottom:none; }
+.alert-bar-brand { width:80px; font-weight:600; font-size:13px; flex-shrink:0; }
+.alert-bar-owner { width:40px; font-size:11px; color:var(--text-secondary); flex-shrink:0; }
+.alert-bar-chart { flex:1; display:flex; align-items:center; gap:6px; }
+.alert-bar-track { flex:1; height:22px; background:#f3f4f6; border-radius:6px; position:relative; overflow:hidden; }
+.alert-bar-fill { height:100%; border-radius:6px; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; font-size:10px; font-weight:600; color:#fff; min-width:20px; transition:width .6s ease; }
+.alert-bar-values { width:180px; display:flex; gap:6px; font-size:11px; flex-shrink:0; }
+.alert-bar-values span { display:inline-flex; align-items:center; gap:2px; }
+.alert-bar-feedback { width:150px; flex-shrink:0; }
+.alert-bar-feedback input { width:100%; padding:4px 8px; border:1px solid #e5e7eb; border-radius:6px; font-size:11px; background:#fff; color:var(--text); transition:border-color .2s; }
+.alert-bar-feedback input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 2px rgba(37,99,235,0.1); }
+.alert-bar-feedback input::placeholder { color:#d1d5db; }
+.alert-no-data { padding:20px; text-align:center; color:var(--text-secondary); font-size:13px; }
+.alert-sub-header { padding:8px 14px; font-size:12px; font-weight:600; border-bottom:1px solid; }
+.alert-sub-header.up-hdr { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+.alert-sub-header.down-hdr { background:#fef2f2; color:#dc2626; border-color:#fecaca; }
 
 /* Tags */
 .tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
@@ -161,8 +155,6 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 .filter-bar select, .filter-bar .search-input { padding:8px 14px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:#fff; transition:border-color .2s; }
 .filter-bar select:focus, .filter-bar .search-input:focus { border-color:var(--primary); outline:none; }
 .filter-bar .search-input { width:200px; }
-.clear-filter-btn { padding:6px 14px; border:1px solid #e2e8f0; background:#f8fafc; color:#64748b; border-radius:8px; font-size:12px; cursor:pointer; transition:all .2s; white-space:nowrap; }
-.clear-filter-btn:hover { background:#fee2e2; color:#dc2626; border-color:#fecaca; }
 
 /* Alert cards */
 .alert-card { background:linear-gradient(135deg,#fef2f2,#fff5f5); border:1px solid #fecaca; border-left:4px solid #ef4444; border-radius:var(--radius); padding:16px 20px; margin-bottom:12px; }
@@ -197,41 +189,11 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 .status-card.sc-blue .sc-value { color:#2563eb; }
 
 /* Comment/Note column */
-.editable-cell { min-width:220px; max-width:360px; white-space:normal !important; text-align:left !important; }
+.editable-cell { min-width:160px; max-width:260px; white-space:normal !important; text-align:left !important; }
 .editable-cell .cell-text { font-size:12px; line-height:1.6; color:#333; cursor:pointer; padding:4px 6px; border-radius:4px; min-height:24px; }
 .editable-cell .cell-text:hover { background:#f0f6ff; }
 .editable-cell .cell-text.empty { color:#ccc; font-style:italic; }
 .editable-cell input { width:100%; padding:4px 8px; border:1px solid var(--primary); border-radius:4px; font-size:12px; outline:none; }
-
-/* Feedback entries with timestamps */
-.fb-entries { display:flex; flex-direction:column; gap:4px; margin-bottom:4px; }
-.fb-entry { font-size:11px; line-height:1.5; padding:3px 6px; background:#f8fafc; border-radius:4px; border-left:2px solid #93c5fd; position:relative; display:flex; align-items:flex-start; gap:4px; }
-.fb-entry .fb-content { flex:1; }
-.fb-entry .fb-time { font-size:10px; color:#94a3b8; margin-right:4px; }
-.fb-entry .fb-owner { font-size:10px; color:#7c3aed; margin-right:4px; font-weight:600; }
-.fb-entry .fb-actions { display:none; flex-shrink:0; gap:2px; align-items:center; }
-.fb-entry:hover .fb-actions { display:flex; }
-.fb-actions .fb-act-btn { border:none; background:none; cursor:pointer; font-size:11px; padding:1px 4px; border-radius:3px; opacity:0.6; transition:all .15s; }
-.fb-actions .fb-act-btn:hover { opacity:1; }
-.fb-actions .fb-act-btn.edit { color:#2563eb; }
-.fb-actions .fb-act-btn.edit:hover { background:#eff6ff; }
-.fb-actions .fb-act-btn.del { color:#dc2626; }
-.fb-actions .fb-act-btn.del:hover { background:#fef2f2; }
-.fb-edit-wrap { display:flex; gap:4px; margin-top:2px; }
-.fb-edit-wrap input { flex:1; padding:3px 6px; border:1px solid #93c5fd; border-radius:4px; font-size:11px; outline:none; }
-.fb-edit-wrap button { padding:2px 8px; border:none; border-radius:4px; font-size:10px; cursor:pointer; white-space:nowrap; }
-.fb-edit-wrap .fb-save-btn { background:#2563eb; color:#fff; }
-.fb-edit-wrap .fb-cancel-btn { background:#f1f5f9; color:#64748b; }
-.fb-add-btn { font-size:11px; color:#2563eb; cursor:pointer; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:2px; }
-.fb-add-btn:hover { background:#eff6ff; }
-.fb-input-wrap { display:flex; gap:4px; margin-top:4px; }
-.fb-input-wrap input { flex:1; padding:4px 8px; border:1px solid #93c5fd; border-radius:4px; font-size:12px; outline:none; }
-.fb-input-wrap button { padding:4px 10px; border:none; background:#2563eb; color:#fff; border-radius:4px; font-size:11px; cursor:pointer; white-space:nowrap; }
-.fb-input-wrap button:hover { background:#1d4ed8; }
-
-/* Editable status select */
-.status-select { padding:3px 8px; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; outline:none; background:#fff; }
-.status-select:focus { border-color:#93c5fd; box-shadow:0 0 0 2px rgba(59,130,246,0.15); }
 
 /* Identity modal */
 .identity-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); }
@@ -276,9 +238,60 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 /* Shake module - will use iframe or inline */
 .shake-embed { width:100%; min-height:600px; border:none; border-radius:var(--radius); }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
+
+<!-- 密码验证遮罩 -->
+<div id="authOverlay" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#2563eb 100%);display:flex;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:40px 36px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;max-width:360px;width:90%;">
+    <div style="font-size:40px;margin-bottom:12px;">🔒</div>
+    <h2 style="font-size:20px;color:#1e293b;margin-bottom:6px;">KA 运营看板</h2>
+    <p style="font-size:13px;color:#64748b;margin-bottom:24px;">请输入访问密码</p>
+    <input id="authPwdInput" type="password" placeholder="输入密码" style="width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:15px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#e2e8f0'">
+    <div id="authError" style="color:#dc2626;font-size:12px;margin-top:8px;height:18px;"></div>
+    <button onclick="checkAuth()" style="width:100%;padding:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;transition:transform .1s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">进入看板</button>
+  </div>
+</div>
+<script>
+// 密码验证（SHA-256 哈希比对，密码不明文存在代码里）
+// 当前密码: ka2026 → SHA-256 哈希
+const AUTH_HASH = 'a70dc376cb94aa56e02470d69e2aab5f8feb2b23c9a598c77179248381173319';
+const AUTH_KEY = 'ka_dash_auth';
+const AUTH_EXPIRE_DAYS = 7; // 7天免登录
+
+async function sha256(text) {
+  const data = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function checkAuth() {
+  const pwd = document.getElementById('authPwdInput').value.trim();
+  if (!pwd) { document.getElementById('authError').textContent = '请输入密码'; return; }
+  const hash = await sha256(pwd);
+  if (hash === AUTH_HASH) {
+    localStorage.setItem(AUTH_KEY, JSON.stringify({ hash, ts: Date.now() }));
+    document.getElementById('authOverlay').style.display = 'none';
+  } else {
+    document.getElementById('authError').textContent = '密码错误，请重试';
+    document.getElementById('authPwdInput').value = '';
+    document.getElementById('authPwdInput').focus();
+  }
+}
+
+// 回车提交
+document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkAuth(); });
+
+// 检查是否已验证过（7天内免登录）
+(async function() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+    if (saved.hash === AUTH_HASH && (Date.now() - saved.ts) < AUTH_EXPIRE_DAYS * 86400000) {
+      document.getElementById('authOverlay').style.display = 'none';
+    }
+  } catch(e) {}
+})();
+</script>
 
 <!-- Identity Selector -->
 <div class="identity-overlay" id="identityOverlay" style="display:none;">
@@ -326,7 +339,6 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
       <select id="overviewFilterOwner"><option value="">全部负责人</option></select>
       <select id="overviewFilterCat"><option value="">全部品类</option></select>
       <input type="text" class="search-input" id="overviewSearch" placeholder="搜索品牌...">
-      <button class="clear-filter-btn" onclick="clearFilters('overview')">✕ 清除筛选</button>
     </div>
     <div class="scroll-table-wrapper">
       <table id="overviewTable">
@@ -361,8 +373,9 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 
   <!-- 渗透率波动监测 -->
   <div class="section" id="alertMonitorSection" style="display:none;">
-    <div class="section-title"><div class="icon" style="background:var(--warning)"></div> 📡 小程序渗透率波动监测 <span class="badge" style="background:#fef3c7;color:#d97706;">环比波动 >5pp 触发</span></div>
-    <div class="alert-tabs" style="display:flex;gap:4px;margin-bottom:14px;">
+    <div class="section-title"><div class="icon" style="background:var(--warning)"></div> 📡 小程序渗透率波动监测 <span class="badge" style="background:#fef3c7;color:#d97706;">变化幅度 &gt;5pp</span></div>
+    <p style="margin:0 0 14px 0;font-size:12px;color:var(--text-secondary);">自动筛选环比或同比波动超过5个百分点的品牌，便于及时跟进。反馈内容自动保存在浏览器本地。</p>
+    <div class="alert-tabs" style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;">
       <button class="alert-tab active" data-alert-type="bs" onclick="switchAlertTab('bs')">📊 笔数渗透率</button>
       <button class="alert-tab" data-alert-type="je" onclick="switchAlertTab('je')">💰 金额渗透率</button>
     </div>
@@ -394,9 +407,7 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
     <div class="section-title"><div class="icon" style="background:var(--success)"></div> 次卡项目进展 <span class="badge" style="background:#dcfce7;color:#15803d;">0318-0324周期</span></div>
     <div class="filter-bar">
       <select id="cikaFilterOwner"><option value="">全部负责人</option></select>
-      <select id="cikaFilterCat"><option value="">全部品类</option></select>
       <select id="cikaFilterStatus"><option value="__all__">全部状态</option><option value="已上线">已上线</option><option value="有意向">有意向</option><option value="暂不考虑">暂不考虑</option><option value="__empty__">未沟通</option></select>
-      <button class="clear-filter-btn" onclick="clearFilters('cika')">✕ 清除筛选</button>
     </div>
     <div class="scroll-table-wrapper">
       <table id="cikaTable">
@@ -407,7 +418,7 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
             <th class="sticky-col sticky-col-last" style="left:136px;min-width:60px;">负责人</th>
             <th>品类</th>
             <th class="sortable" data-sort="cika-status">次卡状态</th>
-            <th class="sortable" data-sort="cika-comment" style="min-width:220px;">备注（点击添加）</th>
+            <th style="min-width:200px;">备注（点击编辑）</th>
           </tr>
         </thead>
         <tbody id="cikaTbody"></tbody>
@@ -424,9 +435,7 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
     <div class="section-title"><div class="icon" style="background:var(--purple)"></div> 无忧会员项目进展 <span class="badge" style="background:#ede9fe;color:#7c3aed;">0318-0324周期</span></div>
     <div class="filter-bar">
       <select id="wuyouFilterOwner"><option value="">全部负责人</option></select>
-      <select id="wuyouFilterCat"><option value="">全部品类</option></select>
-      <select id="wuyouFilterStatus"><option value="__all__">全部状态</option><option value="有意向">有意向</option><option value="暂不考虑">暂不考虑</option><option value="__empty__">未沟通</option></select>
-      <button class="clear-filter-btn" onclick="clearFilters('wuyou')">✕ 清除筛选</button>
+      <select id="wuyouFilterStatus"><option value="__all__">全部状态</option><option value="有意向">有意向</option><option value="待沟通">待沟通</option><option value="__empty__">未沟通</option></select>
     </div>
     <div class="scroll-table-wrapper">
       <table id="wuyouTable">
@@ -437,7 +446,7 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
             <th class="sticky-col sticky-col-last" style="left:136px;min-width:60px;">负责人</th>
             <th>品类</th>
             <th class="sortable" data-sort="wuyou-status">无忧会员状态</th>
-            <th class="sortable" data-sort="wuyou-comment" style="min-width:220px;">备注（点击添加）</th>
+            <th style="min-width:200px;">备注（点击编辑）</th>
           </tr>
         </thead>
         <tbody id="wuyouTbody"></tbody>
@@ -452,16 +461,9 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 
 <script>
 // ============================================================
-// Supabase 初始化
-// ============================================================
-const SB_URL = 'https://imogeucpwfburswopykq.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
-const sbClient = supabase.createClient(SB_URL, SB_KEY);
-
-// ============================================================
 // DATA
 // ============================================================
-const KA_DATA = {"overall": {"m03": {"bs_all": 2471.04, "je_all": 53371.53, "bs_xcx": 1506.09, "je_xcx": 34375.88, "bs_rate": 60.95, "je_rate": 64.41}, "m02": {"bs_all": 2600.09, "je_all": 69303.67, "bs_xcx": 1599.55, "je_xcx": 45299.73, "bs_rate": 61.52, "je_rate": 65.36}, "y03": {"bs_all": 2659.41, "je_all": 60668.02, "bs_xcx": 1596.31, "je_xcx": 39469.41, "bs_rate": 60.02, "je_rate": 65.06}}, "brands": [{"品牌": "蜜雪冰城", "品类": "饮品", "负责人": "jancie", "品牌id": "2746", "次卡": "已上线", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 726.56, "m03_je_all": 6401.53, "m03_bs_xcx": 281.93, "m03_je_xcx": 2678.31, "m02_bs_all": 710.08, "m02_je_all": 8219.59, "m02_bs_xcx": 276.15, "m02_je_xcx": 3506.31, "y03_bs_all": 785.21, "y03_je_all": 6902.15, "y03_bs_xcx": 308.54, "y03_je_xcx": 2931.89, "bs_rate_03": 38.8, "je_rate_03": 41.84, "bs_rate_02": 38.89, "je_rate_02": 42.66, "bs_rate_y03": 39.29, "je_rate_y03": 42.48, "bs_rate_hb": -0.09, "je_rate_hb": -0.82, "bs_rate_tb": -0.49, "je_rate_tb": -0.64}, {"品牌": "luckin coffee", "品类": "饮品", "负责人": "jancie", "品牌id": "1743", "次卡": "已上线", "无忧会员": "有意向", "摇优惠": "存活", "m03_bs_all": 473.68, "m03_je_all": 7184.16, "m03_bs_xcx": 434.77, "m03_je_xcx": 6523.28, "m02_bs_all": 433.95, "m02_je_all": 7297.3, "m02_bs_xcx": 397.38, "m02_je_xcx": 6660.56, "y03_bs_all": 480.8, "y03_je_all": 7323.91, "y03_bs_xcx": 429.77, "y03_je_xcx": 6471.1, "bs_rate_03": 91.78, "je_rate_03": 90.8, "bs_rate_02": 91.57, "je_rate_02": 91.27, "bs_rate_y03": 89.39, "je_rate_y03": 88.36, "bs_rate_hb": 0.21, "je_rate_hb": -0.47, "bs_rate_tb": 2.39, "je_rate_tb": 2.44}, {"品牌": "肯德基", "品类": "西快", "负责人": "warm", "品牌id": "1805", "次卡": "", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 183.44, "m03_je_all": 6395.36, "m03_bs_xcx": 99.5, "m03_je_xcx": 3386.8, "m02_bs_all": 211.89, "m02_je_all": 9500.19, "m02_bs_xcx": 114.9, "m02_je_xcx": 4892.56, "y03_bs_all": 242.39, "y03_je_all": 8919.65, "y03_bs_xcx": 139.16, "y03_je_xcx": 5032.65, "bs_rate_03": 54.24, "je_rate_03": 52.96, "bs_rate_02": 54.22, "je_rate_02": 51.5, "bs_rate_y03": 57.41, "je_rate_y03": 56.42, "bs_rate_hb": 0.02, "je_rate_hb": 1.46, "bs_rate_tb": -3.17, "je_rate_tb": -3.46}, {"品牌": "麦当劳", "品类": "西快", "负责人": "warm", "品牌id": "1442", "次卡": "", "无忧会员": "有意向", "摇优惠": "未存活", "m03_bs_all": 169.09, "m03_je_all": 4855.74, "m03_bs_xcx": 100.4, "m03_je_xcx": 2823.28, "m02_bs_all": 174.76, "m02_je_all": 5974.28, "m02_bs_xcx": 100.77, "m02_je_xcx": 3419.65, "y03_bs_all": 187.03, "y03_je_all": 5650.06, "y03_bs_xcx": 117.42, "y03_je_xcx": 3530.76, "bs_rate_03": 59.38, "je_rate_03": 58.14, "bs_rate_02": 57.66, "je_rate_02": 57.24, "bs_rate_y03": 62.78, "je_rate_y03": 62.49, "bs_rate_hb": 1.72, "je_rate_hb": 0.9, "bs_rate_tb": -3.4, "je_rate_tb": -4.35}, {"品牌": "古茗", "品类": "饮品", "负责人": "jancie", "品牌id": "1018", "次卡": "暂不考虑", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 139.35, "m03_je_all": 2716.12, "m03_bs_xcx": 120.77, "m03_je_xcx": 2332.31, "m02_bs_all": 190.9, "m02_je_all": 4703.35, "m02_bs_xcx": 167.07, "m02_je_xcx": 4143.39, "y03_bs_all": 112.26, "y03_je_all": 2285.28, "y03_bs_xcx": 94.25, "y03_je_xcx": 1896.21, "bs_rate_03": 86.67, "je_rate_03": 85.87, "bs_rate_02": 87.52, "je_rate_02": 88.09, "bs_rate_y03": 83.96, "je_rate_y03": 82.97, "bs_rate_hb": -0.85, "je_rate_hb": -2.22, "bs_rate_tb": 2.71, "je_rate_tb": 2.9}, {"品牌": "霸王茶姬", "品类": "饮品", "负责人": "warm", "品牌id": "2526", "次卡": "已上线", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 80.23, "m03_je_all": 2141.74, "m03_bs_xcx": 73.89, "m03_je_xcx": 1928.86, "m02_bs_all": 99.79, "m02_je_all": 3124.54, "m02_bs_xcx": 92.03, "m02_je_xcx": 2850.71, "y03_bs_all": 106.33, "y03_je_all": 3097.67, "y03_bs_xcx": 98.57, "y03_je_xcx": 2832.84, "bs_rate_03": 92.1, "je_rate_03": 90.06, "bs_rate_02": 92.23, "je_rate_02": 91.24, "bs_rate_y03": 92.7, "je_rate_y03": 91.45, "bs_rate_hb": -0.13, "je_rate_hb": -1.18, "bs_rate_tb": -0.6, "je_rate_tb": -1.39}, {"品牌": "塔斯汀", "品类": "西快", "负责人": "warm", "品牌id": "10401", "次卡": "", "无忧会员": "有意向", "摇优惠": "存活", "m03_bs_all": 67.59, "m03_je_all": 1523.96, "m03_bs_xcx": 58.38, "m03_je_xcx": 1357.83, "m02_bs_all": 60.73, "m02_je_all": 1692.99, "m02_bs_xcx": 50.23, "m02_je_xcx": 1475.28, "y03_bs_all": 69.47, "y03_je_all": 1768.09, "y03_bs_xcx": 57.25, "y03_je_xcx": 1541.61, "bs_rate_03": 86.38, "je_rate_03": 89.1, "bs_rate_02": 82.72, "je_rate_02": 87.14, "bs_rate_y03": 82.42, "je_rate_y03": 87.19, "bs_rate_hb": 3.66, "je_rate_hb": 1.96, "bs_rate_tb": 3.96, "je_rate_tb": 1.91}, {"品牌": "星巴克", "品类": "饮品", "负责人": "jancie", "品牌id": "1330", "次卡": "暂不考虑", "无忧会员": "", "摇优惠": "未在线", "m03_bs_all": 48.02, "m03_je_all": 2525.61, "m03_bs_xcx": 20.46, "m03_je_xcx": 1029.25, "m02_bs_all": 52.7, "m02_je_all": 2800.17, "m02_bs_xcx": 22.74, "m02_je_xcx": 1174.35, "y03_bs_all": 54.31, "y03_je_all": 2769.28, "y03_bs_xcx": 21.88, "y03_je_xcx": 1095.88, "bs_rate_03": 42.61, "je_rate_03": 40.75, "bs_rate_02": 43.16, "je_rate_02": 41.94, "bs_rate_y03": 40.29, "je_rate_y03": 39.57, "bs_rate_hb": -0.55, "je_rate_hb": -1.19, "bs_rate_tb": 2.32, "je_rate_tb": 1.18}, {"品牌": "幸运咖", "品类": "饮品", "负责人": "jancie", "品牌id": "9400", "次卡": "已上线", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 50.65, "m03_je_all": 450.37, "m03_bs_xcx": 19.23, "m03_je_xcx": 186.36, "m02_bs_all": 46.8, "m02_je_all": 501.18, "m02_bs_xcx": 14.84, "m02_je_xcx": 180.05, "y03_bs_all": 36.91, "y03_je_all": 347.44, "y03_bs_xcx": 15.21, "y03_je_xcx": 150.49, "bs_rate_03": 37.97, "je_rate_03": 41.38, "bs_rate_02": 31.7, "je_rate_02": 35.93, "bs_rate_y03": 41.2, "je_rate_y03": 43.31, "bs_rate_hb": 6.27, "je_rate_hb": 5.45, "bs_rate_tb": -3.23, "je_rate_tb": -1.93}, {"品牌": "喜茶", "品类": "饮品", "负责人": "jancie", "品牌id": "1752", "次卡": "", "无忧会员": "", "摇优惠": "未在线", "has_data": false}, {"品牌": "华莱士", "品类": "西快", "负责人": "warm", "品牌id": "2682", "次卡": "", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 34.41, "m03_je_all": 915.3, "m03_bs_xcx": 21.53, "m03_je_xcx": 643.55, "m02_bs_all": 41.11, "m02_je_all": 1216.96, "m02_bs_xcx": 25.82, "m02_je_xcx": 856.46, "y03_bs_all": 45.39, "y03_je_all": 1270.29, "y03_bs_xcx": 26.79, "y03_je_xcx": 865.72, "bs_rate_03": 62.56, "je_rate_03": 70.31, "bs_rate_02": 62.81, "je_rate_02": 70.38, "bs_rate_y03": 59.02, "je_rate_y03": 68.15, "bs_rate_hb": -0.25, "je_rate_hb": -0.07, "bs_rate_tb": 3.54, "je_rate_tb": 2.16}, {"品牌": "茶百道", "品类": "饮品", "负责人": "jancie", "品牌id": "3524", "次卡": "已上线", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 29.16, "m03_je_all": 602.83, "m03_bs_xcx": 21.68, "m03_je_xcx": 427.5, "m02_bs_all": 38.38, "m02_je_all": 978.54, "m02_bs_xcx": 28.22, "m02_je_xcx": 716.33, "y03_bs_all": 42.44, "y03_je_all": 886.73, "y03_bs_xcx": 29.15, "y03_je_xcx": 582.08, "bs_rate_03": 74.33, "je_rate_03": 70.92, "bs_rate_02": 73.52, "je_rate_02": 73.2, "bs_rate_y03": 68.67, "je_rate_y03": 65.64, "bs_rate_hb": 0.81, "je_rate_hb": -2.28, "bs_rate_tb": 5.66, "je_rate_tb": 5.28}, {"品牌": "正新鸡排", "品类": "小吃", "负责人": "振哥", "品牌id": "10820", "次卡": "", "无忧会员": "", "摇优惠": "未在线", "m03_bs_all": 0.04, "m03_je_all": 0.73, "m03_bs_xcx": 0.01, "m03_je_xcx": 0.16, "m02_bs_all": 0.07, "m02_je_all": 1.45, "m02_bs_xcx": 0.02, "m02_je_xcx": 0.31, "y03_bs_all": 1.9, "y03_je_all": 32.09, "y03_bs_xcx": 0.47, "y03_je_xcx": 7.59, "bs_rate_03": 22.58, "je_rate_03": 22.05, "bs_rate_02": 22.6, "je_rate_02": 21.54, "bs_rate_y03": 24.57, "je_rate_y03": 23.66, "bs_rate_hb": -0.02, "je_rate_hb": 0.51, "bs_rate_tb": -1.99, "je_rate_tb": -1.61}, {"品牌": "益禾堂", "品类": "饮品", "负责人": "warm", "品牌id": "1632", "次卡": "已上线", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 30.91, "m03_je_all": 411.14, "m03_bs_xcx": 18.37, "m03_je_xcx": 235.18, "m02_bs_all": 33.9, "m02_je_all": 567.06, "m02_bs_xcx": 18.13, "m02_je_xcx": 304.98, "y03_bs_all": 36.02, "y03_je_all": 495.7, "y03_bs_xcx": 20.99, "y03_je_xcx": 279.96, "bs_rate_03": 59.44, "je_rate_03": 57.2, "bs_rate_02": 53.46, "je_rate_02": 53.78, "bs_rate_y03": 58.27, "je_rate_y03": 56.48, "bs_rate_hb": 5.98, "je_rate_hb": 3.42, "bs_rate_tb": 1.17, "je_rate_tb": 0.72}, {"品牌": "沪上阿姨", "品类": "饮品", "负责人": "warm", "品牌id": "2256", "次卡": "已上线", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 35.05, "m03_je_all": 592.1, "m03_bs_xcx": 26.63, "m03_je_xcx": 406.14, "m02_bs_all": 45.53, "m02_je_all": 937.86, "m02_bs_xcx": 34.05, "m02_je_xcx": 635.52, "y03_bs_all": 29.33, "y03_je_all": 672.05, "y03_bs_xcx": 18.62, "y03_je_xcx": 389.88, "bs_rate_03": 75.99, "je_rate_03": 68.59, "bs_rate_02": 74.8, "je_rate_02": 67.76, "bs_rate_y03": 63.48, "je_rate_y03": 58.01, "bs_rate_hb": 1.19, "je_rate_hb": 0.83, "bs_rate_tb": 12.51, "je_rate_tb": 10.58}, {"品牌": "1点点", "品类": "饮品", "负责人": "jancie", "品牌id": "2480", "次卡": "有意向", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 39.32, "m03_je_all": 823.09, "m03_bs_xcx": 33.66, "m03_je_xcx": 695.4, "m02_bs_all": 45.55, "m02_je_all": 1084.41, "m02_bs_xcx": 39.48, "m02_je_xcx": 938.7, "y03_bs_all": 30.15, "y03_je_all": 626.75, "y03_bs_xcx": 25.63, "y03_je_xcx": 525.83, "bs_rate_03": 85.59, "je_rate_03": 84.49, "bs_rate_02": 86.67, "je_rate_02": 86.56, "bs_rate_y03": 84.99, "je_rate_y03": 83.9, "bs_rate_hb": -1.08, "je_rate_hb": -2.07, "bs_rate_tb": 0.6, "je_rate_tb": 0.59}, {"品牌": "老乡鸡", "品类": "中快", "负责人": "振哥", "品牌id": "1574", "次卡": "", "无忧会员": "有意向", "摇优惠": "存活", "m03_bs_all": 32.24, "m03_je_all": 1089.13, "m03_bs_xcx": 5.58, "m03_je_xcx": 363.72, "m02_bs_all": 30.93, "m02_je_all": 964.44, "m02_bs_xcx": 5.03, "m02_je_xcx": 180.33, "y03_bs_all": 28.29, "y03_je_all": 983.47, "y03_bs_xcx": 6.55, "y03_je_xcx": 394.13, "bs_rate_03": 17.31, "je_rate_03": 33.4, "bs_rate_02": 16.25, "je_rate_02": 18.7, "bs_rate_y03": 23.14, "je_rate_y03": 40.07, "bs_rate_hb": 1.06, "je_rate_hb": 14.7, "bs_rate_tb": -5.83, "je_rate_tb": -6.67}, {"品牌": "必胜客", "品类": "西快", "负责人": "warm", "品牌id": "1890", "次卡": "", "无忧会员": "有意向", "摇优惠": "存活", "m03_bs_all": 21.38, "m03_je_all": 1471.6, "m03_bs_xcx": 17.44, "m03_je_xcx": 1270.03, "m02_bs_all": 24.59, "m02_je_all": 2088.09, "m02_bs_xcx": 20.72, "m02_je_xcx": 1871.52, "y03_bs_all": 27.37, "y03_je_all": 1845.66, "y03_bs_xcx": 21.93, "y03_je_xcx": 1587.43, "bs_rate_03": 81.54, "je_rate_03": 86.3, "bs_rate_02": 84.24, "je_rate_02": 89.63, "bs_rate_y03": 80.12, "je_rate_y03": 86.01, "bs_rate_hb": -2.7, "je_rate_hb": -3.33, "bs_rate_tb": 1.42, "je_rate_tb": 0.29}, {"品牌": "杨国福", "品类": "中快", "负责人": "振哥", "品牌id": "2914", "次卡": "", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 24.7, "m03_je_all": 718.58, "m03_bs_xcx": 0.05, "m03_je_xcx": 0.67, "m02_bs_all": 23.07, "m02_je_all": 722.5, "m02_bs_xcx": 0.05, "m02_je_xcx": 0.59, "y03_bs_all": 24.1, "y03_je_all": 689.5, "y03_bs_xcx": 0.08, "y03_je_xcx": 2.28, "bs_rate_03": 0.2, "je_rate_03": 0.09, "bs_rate_02": 0.23, "je_rate_02": 0.08, "bs_rate_y03": 0.32, "je_rate_y03": 0.33, "bs_rate_hb": -0.03, "je_rate_hb": 0.01, "bs_rate_tb": -0.12, "je_rate_tb": -0.24}, {"品牌": "绝味", "品类": "小吃", "负责人": "振哥", "品牌id": "3710", "次卡": "", "无忧会员": "有意向", "摇优惠": "未存活", "m03_bs_all": 18.77, "m03_je_all": 629.95, "m03_bs_xcx": 1.1, "m03_je_xcx": 6.48, "m02_bs_all": 21.96, "m02_je_all": 923.64, "m02_bs_xcx": 0.17, "m02_je_xcx": 5.24, "y03_bs_all": 27.66, "y03_je_all": 940.34, "y03_bs_xcx": 0.49, "y03_je_xcx": 10.81, "bs_rate_03": 5.87, "je_rate_03": 1.03, "bs_rate_02": 0.75, "je_rate_02": 0.57, "bs_rate_y03": 1.78, "je_rate_y03": 1.15, "bs_rate_hb": 5.12, "je_rate_hb": 0.46, "bs_rate_tb": 4.09, "je_rate_tb": -0.12}, {"品牌": "甜啦啦", "品类": "饮品", "负责人": "jancie", "品牌id": "2022", "次卡": "有意向", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 5.1, "m03_je_all": 51.22, "m03_bs_xcx": 5.1, "m03_je_xcx": 51.16, "m02_bs_all": 7.08, "m02_je_all": 108.42, "m02_bs_xcx": 7.07, "m02_je_xcx": 108.29, "y03_bs_all": 7.91, "y03_je_all": 87.07, "y03_bs_xcx": 4.8, "y03_je_xcx": 52.99, "bs_rate_03": 99.88, "je_rate_03": 99.88, "bs_rate_02": 99.85, "je_rate_02": 99.88, "bs_rate_y03": 60.69, "je_rate_y03": 60.86, "bs_rate_hb": 0.03, "je_rate_hb": 0.0, "bs_rate_tb": 39.19, "je_rate_tb": 39.02}, {"品牌": "CoCo都可", "品类": "饮品", "负责人": "jancie", "品牌id": "1206", "次卡": "已上线", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 13.03, "m03_je_all": 216.9, "m03_bs_xcx": 11.25, "m03_je_xcx": 185.51, "m02_bs_all": 19.56, "m02_je_all": 384.99, "m02_bs_xcx": 16.13, "m02_je_xcx": 317.6, "y03_bs_all": 19.32, "y03_je_all": 374.07, "y03_bs_xcx": 14.42, "y03_je_xcx": 281.23, "bs_rate_03": 86.36, "je_rate_03": 85.53, "bs_rate_02": 82.49, "je_rate_02": 82.5, "bs_rate_y03": 74.65, "je_rate_y03": 75.18, "bs_rate_hb": 3.87, "je_rate_hb": 3.03, "bs_rate_tb": 11.71, "je_rate_tb": 10.35}, {"品牌": "书亦", "品类": "饮品", "负责人": "jancie", "品牌id": "1095", "次卡": "有意向", "无忧会员": "有意向", "摇优惠": "存活", "m03_bs_all": 14.49, "m03_je_all": 249.75, "m03_bs_xcx": 6.63, "m03_je_xcx": 101.97, "m02_bs_all": 24.17, "m02_je_all": 518.38, "m02_bs_xcx": 10.76, "m02_je_xcx": 224.37, "y03_bs_all": 17.55, "y03_je_all": 327.4, "y03_bs_xcx": 6.52, "y03_je_xcx": 114.19, "bs_rate_03": 45.73, "je_rate_03": 40.83, "bs_rate_02": 44.53, "je_rate_02": 43.28, "bs_rate_y03": 37.14, "je_rate_y03": 34.88, "bs_rate_hb": 1.2, "je_rate_hb": -2.45, "bs_rate_tb": 8.59, "je_rate_tb": 5.95}, {"品牌": "茶颜悦色", "品类": "饮品", "负责人": "jancie", "品牌id": "3757", "次卡": "暂不考虑", "无忧会员": "", "摇优惠": "未在线", "has_data": false}, {"品牌": "乡村基", "品类": "中快", "负责人": "小雪", "品牌id": "2002", "次卡": "暂不考虑", "无忧会员": "有意向", "摇优惠": "未在线", "m03_bs_all": 7.55, "m03_je_all": 181.31, "m03_bs_xcx": 1.4, "m03_je_xcx": 40.79, "m02_bs_all": 6.79, "m02_je_all": 186.49, "m02_bs_xcx": 1.71, "m02_je_xcx": 57.08, "y03_bs_all": 10.69, "y03_je_all": 251.5, "y03_bs_xcx": 2.63, "y03_je_xcx": 76.16, "bs_rate_03": 18.51, "je_rate_03": 22.5, "bs_rate_02": 25.18, "je_rate_02": 30.6, "bs_rate_y03": 24.63, "je_rate_y03": 30.28, "bs_rate_hb": -6.67, "je_rate_hb": -8.1, "bs_rate_tb": -6.12, "je_rate_tb": -7.78}, {"品牌": "海底捞", "品类": "正餐", "负责人": "振哥", "品牌id": "10269", "次卡": "", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 16.61, "m03_je_all": 4052.2, "m03_bs_xcx": 13.79, "m03_je_xcx": 3340.99, "m02_bs_all": 21.4, "m02_je_all": 5986.73, "m02_bs_xcx": 17.97, "m02_je_xcx": 5031.12, "y03_bs_all": 16.24, "y03_je_all": 4279.24, "y03_bs_xcx": 14.73, "y03_je_xcx": 3903.13, "bs_rate_03": 82.98, "je_rate_03": 82.45, "bs_rate_02": 83.98, "je_rate_02": 84.04, "bs_rate_y03": 90.73, "je_rate_y03": 91.21, "bs_rate_hb": -1.0, "je_rate_hb": -1.59, "bs_rate_tb": -7.75, "je_rate_tb": -8.76}, {"品牌": "德克士", "品类": "西快", "负责人": "warm", "品牌id": "1151", "次卡": "", "无忧会员": "", "摇优惠": "未在线", "m03_bs_all": 13.27, "m03_je_all": 539.56, "m03_bs_xcx": 9.32, "m03_je_xcx": 389.81, "m02_bs_all": 19.38, "m02_je_all": 909.11, "m02_bs_xcx": 13.95, "m02_je_xcx": 683.58, "y03_bs_all": 15.67, "y03_je_all": 649.1, "y03_bs_xcx": 8.89, "y03_je_xcx": 388.33, "bs_rate_03": 70.25, "je_rate_03": 72.25, "bs_rate_02": 72.02, "je_rate_02": 75.19, "bs_rate_y03": 56.72, "je_rate_y03": 59.83, "bs_rate_hb": -1.77, "je_rate_hb": -2.94, "bs_rate_tb": 13.53, "je_rate_tb": 12.42}, {"品牌": "奈雪茶", "品类": "饮品", "负责人": "jancie", "品牌id": "1710", "次卡": "有意向", "无忧会员": "有意向", "摇优惠": "存活", "m03_bs_all": 11.56, "m03_je_all": 277.82, "m03_bs_xcx": 10.11, "m03_je_xcx": 237.13, "m02_bs_all": 12.75, "m02_je_all": 369.15, "m02_bs_xcx": 10.96, "m02_je_xcx": 317.43, "y03_bs_all": 14.91, "y03_je_all": 437.19, "y03_bs_xcx": 12.07, "y03_je_xcx": 359.34, "bs_rate_03": 87.46, "je_rate_03": 85.35, "bs_rate_02": 85.95, "je_rate_02": 85.99, "bs_rate_y03": 80.95, "je_rate_y03": 82.19, "bs_rate_hb": 1.51, "je_rate_hb": -0.64, "bs_rate_tb": 6.51, "je_rate_tb": 3.16}, {"品牌": "DQ", "品类": "饮品", "负责人": "jancie", "品牌id": "1310", "次卡": "暂不考虑", "无忧会员": "", "摇优惠": "未在线", "m03_bs_all": 6.77, "m03_je_all": 212.45, "m03_bs_xcx": 3.72, "m03_je_xcx": 125.66, "m02_bs_all": 12.02, "m02_je_all": 399.34, "m02_bs_xcx": 7.0, "m02_je_xcx": 249.03, "y03_bs_all": 8.15, "y03_je_all": 259.25, "y03_bs_xcx": 5.35, "y03_je_xcx": 179.22, "bs_rate_03": 55.04, "je_rate_03": 59.15, "bs_rate_02": 58.24, "je_rate_02": 62.36, "bs_rate_y03": 65.68, "je_rate_y03": 69.13, "bs_rate_hb": -3.2, "je_rate_hb": -3.21, "bs_rate_tb": -10.64, "je_rate_tb": -9.98}, {"品牌": "茉莉奶白", "品类": "饮品", "负责人": "warm", "品牌id": "8607", "次卡": "已上线", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 11.86, "m03_je_all": 331.41, "m03_bs_xcx": 10.12, "m03_je_xcx": 279.23, "m02_bs_all": 18.01, "m02_je_all": 546.05, "m02_bs_xcx": 15.48, "m02_je_xcx": 467.57, "y03_bs_all": 10.07, "y03_je_all": 339.04, "y03_bs_xcx": 8.36, "y03_je_xcx": 246.44, "bs_rate_03": 85.27, "je_rate_03": 84.26, "bs_rate_02": 85.94, "je_rate_02": 85.63, "bs_rate_y03": 83.08, "je_rate_y03": 72.69, "bs_rate_hb": -0.67, "je_rate_hb": -1.37, "bs_rate_tb": 2.19, "je_rate_tb": 11.57}, {"品牌": "享哆味", "品类": "西快", "负责人": "warm", "品牌id": "8756", "次卡": "", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 10.13, "m03_je_all": 265.15, "m03_bs_xcx": 6.07, "m03_je_xcx": 161.17, "m02_bs_all": 14.68, "m02_je_all": 444.1, "m02_bs_xcx": 8.67, "m02_je_xcx": 281.71, "y03_bs_all": 8.91, "y03_je_all": 236.83, "y03_bs_xcx": 4.63, "y03_je_xcx": 127.2, "bs_rate_03": 59.94, "je_rate_03": 60.79, "bs_rate_02": 59.1, "je_rate_02": 63.43, "bs_rate_y03": 51.97, "je_rate_y03": 53.71, "bs_rate_hb": 0.84, "je_rate_hb": -2.64, "bs_rate_tb": 7.97, "je_rate_tb": 7.08}, {"品牌": "袁记云饺", "品类": "中快", "负责人": "振哥", "品牌id": "10040", "次卡": "", "无忧会员": "有意向", "摇优惠": "存活", "m03_bs_all": 24.74, "m03_je_all": 633.38, "m03_bs_xcx": 11.62, "m03_je_xcx": 288.98, "m02_bs_all": 20.81, "m02_je_all": 608.41, "m02_bs_xcx": 9.68, "m02_je_xcx": 274.96, "y03_bs_all": 24.32, "y03_je_all": 631.53, "y03_bs_xcx": 11.05, "y03_je_xcx": 284.68, "bs_rate_03": 46.96, "je_rate_03": 45.62, "bs_rate_02": 46.52, "je_rate_02": 45.19, "bs_rate_y03": 45.46, "je_rate_y03": 45.08, "bs_rate_hb": 0.44, "je_rate_hb": 0.43, "bs_rate_tb": 1.5, "je_rate_tb": 0.54}, {"品牌": "喜家德", "品类": "中快", "负责人": "小雪", "品牌id": "11206", "次卡": "暂不考虑", "无忧会员": "", "摇优惠": "未在线", "m03_bs_all": 7.62, "m03_je_all": 375.78, "m03_bs_xcx": 6.69, "m03_je_xcx": 342.1, "m02_bs_all": 7.65, "m02_je_all": 393.96, "m02_bs_xcx": 6.75, "m02_je_xcx": 357.88, "y03_bs_all": 10.46, "y03_je_all": 499.13, "y03_bs_xcx": 9.04, "y03_je_xcx": 445.75, "bs_rate_03": 87.77, "je_rate_03": 91.04, "bs_rate_02": 88.24, "je_rate_02": 90.84, "bs_rate_y03": 86.43, "je_rate_y03": 89.31, "bs_rate_hb": -0.47, "je_rate_hb": 0.2, "bs_rate_tb": 1.34, "je_rate_tb": 1.73}, {"品牌": "达美乐", "品类": "西快", "负责人": "warm", "品牌id": "5196", "次卡": "", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 8.27, "m03_je_all": 634.72, "m03_bs_xcx": 6.73, "m03_je_xcx": 531.37, "m02_bs_all": 9.91, "m02_je_all": 831.33, "m02_bs_xcx": 8.04, "m02_je_xcx": 694.47, "y03_bs_all": 10.28, "y03_je_all": 835.48, "y03_bs_xcx": 8.63, "y03_je_xcx": 708.19, "bs_rate_03": 81.4, "je_rate_03": 83.72, "bs_rate_02": 81.14, "je_rate_02": 83.54, "bs_rate_y03": 83.98, "je_rate_y03": 84.76, "bs_rate_hb": 0.26, "je_rate_hb": 0.18, "bs_rate_tb": -2.58, "je_rate_tb": -1.04}, {"品牌": "汉堡王", "品类": "西快", "负责人": "warm", "品牌id": "1483", "次卡": "", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 6.18, "m03_je_all": 228.28, "m03_bs_xcx": 4.51, "m03_je_xcx": 161.48, "m02_bs_all": 6.59, "m02_je_all": 289.88, "m02_bs_xcx": 4.24, "m02_je_xcx": 182.91, "y03_bs_all": 8.56, "y03_je_all": 323.67, "y03_bs_xcx": 6.26, "y03_je_xcx": 236.09, "bs_rate_03": 73.0, "je_rate_03": 70.74, "bs_rate_02": 64.36, "je_rate_02": 63.1, "bs_rate_y03": 73.09, "je_rate_y03": 72.94, "bs_rate_hb": 8.64, "je_rate_hb": 7.64, "bs_rate_tb": -0.09, "je_rate_tb": -2.2}, {"品牌": "爷爷不泡茶", "品类": "饮品", "负责人": "warm", "品牌id": "10987", "次卡": "已上线", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 10.19, "m03_je_all": 243.83, "m03_bs_xcx": 8.18, "m03_je_xcx": 190.31, "m02_bs_all": 15.6, "m02_je_all": 424.35, "m02_bs_xcx": 12.65, "m02_je_xcx": 338.79, "y03_bs_all": 8.44, "y03_je_all": 213.74, "y03_bs_xcx": 5.94, "y03_je_xcx": 149.05, "bs_rate_03": 80.22, "je_rate_03": 78.05, "bs_rate_02": 81.08, "je_rate_02": 79.84, "bs_rate_y03": 70.35, "je_rate_y03": 69.73, "bs_rate_hb": -0.86, "je_rate_hb": -1.79, "bs_rate_tb": 9.87, "je_rate_tb": 8.32}, {"品牌": "喜姐炸串", "品类": "小吃", "负责人": "振哥", "品牌id": "6281", "次卡": "有意向", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 5.95, "m03_je_all": 118.18, "m03_bs_xcx": 3.33, "m03_je_xcx": 65.93, "m02_bs_all": 7.83, "m02_je_all": 178.68, "m02_bs_xcx": 4.0, "m02_je_xcx": 96.39, "y03_bs_all": 8.19, "y03_je_all": 168.68, "y03_bs_xcx": 3.66, "y03_je_xcx": 81.21, "bs_rate_03": 56.03, "je_rate_03": 55.79, "bs_rate_02": 51.13, "je_rate_02": 53.94, "bs_rate_y03": 44.72, "je_rate_y03": 48.14, "bs_rate_hb": 4.9, "je_rate_hb": 1.85, "bs_rate_tb": 11.31, "je_rate_tb": 7.65}, {"品牌": "阿水大杯茶", "品类": "饮品", "负责人": "warm", "品牌id": "1705", "次卡": "", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 5.02, "m03_je_all": 95.77, "m03_bs_xcx": 4.39, "m03_je_xcx": 82.48, "m02_bs_all": 7.28, "m02_je_all": 160.12, "m02_bs_xcx": 6.38, "m02_je_xcx": 141.15, "y03_bs_all": 6.04, "y03_je_all": 113.42, "y03_bs_xcx": 4.77, "y03_je_xcx": 88.45, "bs_rate_03": 87.54, "je_rate_03": 86.13, "bs_rate_02": 87.55, "je_rate_02": 88.15, "bs_rate_y03": 78.98, "je_rate_y03": 77.99, "bs_rate_hb": -0.01, "je_rate_hb": -2.02, "bs_rate_tb": 8.56, "je_rate_tb": 8.14}, {"品牌": "遇见小面", "品类": "中快", "负责人": "小雪", "品牌id": "2287", "次卡": "暂不考虑", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 7.13, "m03_je_all": 349.71, "m03_bs_xcx": 6.99, "m03_je_xcx": 345.89, "m02_bs_all": 7.3, "m02_je_all": 349.45, "m02_bs_xcx": 7.15, "m02_je_xcx": 345.36, "y03_bs_all": 5.8, "y03_je_all": 310.89, "y03_bs_xcx": 5.67, "y03_je_xcx": 306.85, "bs_rate_03": 98.04, "je_rate_03": 98.91, "bs_rate_02": 97.99, "je_rate_02": 98.83, "bs_rate_y03": 97.77, "je_rate_y03": 98.7, "bs_rate_hb": 0.05, "je_rate_hb": 0.08, "bs_rate_tb": 0.27, "je_rate_tb": 0.21}, {"品牌": "馬記永", "品类": "中快", "负责人": "小雪", "品牌id": "6518", "次卡": "有意向", "无忧会员": "有意向", "摇优惠": "存活", "m03_bs_all": 5.52, "m03_je_all": 237.12, "m03_bs_xcx": 5.33, "m03_je_xcx": 230.69, "m02_bs_all": 5.72, "m02_je_all": 272.6, "m02_bs_xcx": 5.52, "m02_je_xcx": 265.28, "y03_bs_all": 5.5, "y03_je_all": 246.33, "y03_bs_xcx": 5.3, "y03_je_xcx": 239.15, "bs_rate_03": 96.6, "je_rate_03": 97.29, "bs_rate_02": 96.34, "je_rate_02": 97.32, "bs_rate_y03": 96.38, "je_rate_y03": 97.08, "bs_rate_hb": 0.26, "je_rate_hb": -0.03, "bs_rate_tb": 0.22, "je_rate_tb": 0.21}, {"品牌": "朴大叔", "品类": "中快", "负责人": "小雪", "品牌id": "11304", "次卡": "有意向", "无忧会员": "", "摇优惠": "未存活", "m03_bs_all": 4.07, "m03_je_all": 149.34, "m03_bs_xcx": 3.45, "m03_je_xcx": 136.51, "m02_bs_all": 5.15, "m02_je_all": 201.97, "m02_bs_xcx": 4.39, "m02_je_xcx": 185.73, "y03_bs_all": 5.63, "y03_je_all": 214.23, "y03_bs_xcx": 4.83, "y03_je_xcx": 195.87, "bs_rate_03": 84.86, "je_rate_03": 91.4, "bs_rate_02": 85.19, "je_rate_02": 91.96, "bs_rate_y03": 85.8, "je_rate_y03": 91.43, "bs_rate_hb": -0.33, "je_rate_hb": -0.56, "bs_rate_tb": -0.94, "je_rate_tb": -0.03}, {"品牌": "M Stand", "品类": "饮品", "负责人": "jancie", "品牌id": "3446", "次卡": "已上线", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 4.72, "m03_je_all": 209.57, "m03_bs_xcx": 4.3, "m03_je_xcx": 177.04, "m02_bs_all": 4.55, "m02_je_all": 206.1, "m02_bs_xcx": 4.13, "m02_je_xcx": 174.35, "y03_bs_all": 4.28, "y03_je_all": 225.41, "y03_bs_xcx": 3.94, "y03_je_xcx": 192.64, "bs_rate_03": 91.04, "je_rate_03": 84.48, "bs_rate_02": 90.88, "je_rate_02": 84.59, "bs_rate_y03": 91.94, "je_rate_y03": 85.46, "bs_rate_hb": 0.16, "je_rate_hb": -0.11, "bs_rate_tb": -0.9, "je_rate_tb": -0.98}, {"品牌": "大米先生", "品类": "中快", "负责人": "振哥", "品牌id": "2280", "次卡": "", "无忧会员": "有意向", "摇优惠": "未存活", "m03_bs_all": 37.26, "m03_je_all": 965.17, "m03_bs_xcx": 1.88, "m03_je_xcx": 70.31, "m02_bs_all": 29.42, "m02_je_all": 826.5, "m02_bs_xcx": 1.71, "m02_je_xcx": 69.53, "y03_bs_all": 29.22, "y03_je_all": 691.01, "y03_bs_xcx": 2.06, "y03_je_xcx": 59.44, "bs_rate_03": 5.04, "je_rate_03": 7.28, "bs_rate_02": 5.82, "je_rate_02": 8.41, "bs_rate_y03": 7.06, "je_rate_y03": 8.6, "bs_rate_hb": -0.78, "je_rate_hb": -1.13, "bs_rate_tb": -2.02, "je_rate_tb": -1.32}, {"品牌": "TIMHORTONS", "品类": "饮品", "负责人": "jancie", "品牌id": "1423", "次卡": "有意向", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 3.19, "m03_je_all": 112.12, "m03_bs_xcx": 2.56, "m03_je_xcx": 76.11, "m02_bs_all": 3.05, "m02_je_all": 111.52, "m02_bs_xcx": 2.42, "m02_je_xcx": 76.82, "y03_bs_all": 4.93, "y03_je_all": 155.73, "y03_bs_xcx": 4.18, "y03_je_xcx": 117.58, "bs_rate_03": 80.32, "je_rate_03": 67.88, "bs_rate_02": 79.22, "je_rate_02": 68.88, "bs_rate_y03": 84.81, "je_rate_y03": 75.51, "bs_rate_hb": 1.1, "je_rate_hb": -1.0, "bs_rate_tb": -4.49, "je_rate_tb": -7.63}, {"品牌": "九毛九", "品类": "正餐", "负责人": "振哥", "品牌id": "11409", "次卡": "", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 0.4, "m03_je_all": 37.19, "m03_bs_xcx": 0.21, "m03_je_xcx": 20.68, "m02_bs_all": 0.57, "m02_je_all": 57.25, "m02_bs_xcx": 0.29, "m02_je_xcx": 31.67, "y03_bs_all": 0.55, "y03_je_all": 53.6, "y03_bs_xcx": 0.31, "y03_je_xcx": 33.04, "bs_rate_03": 52.39, "je_rate_03": 55.59, "bs_rate_02": 51.2, "je_rate_02": 55.33, "bs_rate_y03": 56.11, "je_rate_y03": 61.65, "bs_rate_hb": 1.19, "je_rate_hb": 0.26, "bs_rate_tb": -3.72, "je_rate_tb": -6.06}, {"品牌": "茶话弄", "品类": "饮品", "负责人": "jancie", "品牌id": "6702", "次卡": "有意向", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 0.91, "m03_je_all": 20.81, "m03_bs_xcx": 0.57, "m03_je_xcx": 12.78, "m02_bs_all": 2.71, "m02_je_all": 68.74, "m02_bs_xcx": 1.75, "m02_je_xcx": 44.63, "y03_bs_all": 3.66, "y03_je_all": 87.23, "y03_bs_xcx": 2.22, "y03_je_xcx": 51.53, "bs_rate_03": 63.26, "je_rate_03": 61.39, "bs_rate_02": 64.49, "je_rate_02": 64.92, "bs_rate_y03": 60.78, "je_rate_y03": 59.07, "bs_rate_hb": -1.23, "je_rate_hb": -3.53, "bs_rate_tb": 2.48, "je_rate_tb": 2.32}, {"品牌": "茶理宜世", "品类": "饮品", "负责人": "warm", "品牌id": "2215", "次卡": "已上线", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 1.64, "m03_je_all": 41.16, "m03_bs_xcx": 1.33, "m03_je_xcx": 33.2, "m02_bs_all": 2.1, "m02_je_all": 57.28, "m02_bs_xcx": 1.73, "m02_je_xcx": 47.18, "y03_bs_all": 2.88, "y03_je_all": 77.9, "y03_bs_xcx": 2.25, "y03_je_xcx": 61.42, "bs_rate_03": 81.29, "je_rate_03": 80.65, "bs_rate_02": 82.42, "je_rate_02": 82.37, "bs_rate_y03": 77.96, "je_rate_y03": 78.84, "bs_rate_hb": -1.13, "je_rate_hb": -1.72, "bs_rate_tb": 3.33, "je_rate_tb": 1.81}, {"品牌": "探鱼", "品类": "正餐", "负责人": "振哥", "品牌id": "1993", "次卡": "", "无忧会员": "", "摇优惠": "存活", "m03_bs_all": 1.43, "m03_je_all": 191.85, "m03_bs_xcx": 0.73, "m03_je_xcx": 119.07, "m02_bs_all": 1.77, "m02_je_all": 266.2, "m02_bs_xcx": 0.95, "m02_je_xcx": 172.98, "y03_bs_all": 1.45, "y03_je_all": 222.57, "y03_bs_xcx": 0.7, "y03_je_xcx": 136.9, "bs_rate_03": 51.01, "je_rate_03": 62.07, "bs_rate_02": 53.29, "je_rate_02": 64.98, "bs_rate_y03": 47.94, "je_rate_y03": 61.51, "bs_rate_hb": -2.28, "je_rate_hb": -2.91, "bs_rate_tb": 3.07, "je_rate_tb": 0.56}, {"品牌": "张亮麻辣烫", "品类": "正餐", "负责人": "振哥", "品牌id": "1443", "次卡": "", "无忧会员": "待沟通", "摇优惠": "未存活", "m03_bs_all": 21.84, "m03_je_all": 900.74, "m03_bs_xcx": 0.4, "m03_je_xcx": 282.42, "m02_bs_all": 19.55, "m02_je_all": 848.03, "m02_bs_xcx": 0.27, "m02_je_xcx": 249.03, "y03_bs_all": 22.44, "y03_je_all": 850.67, "y03_bs_xcx": 0.35, "y03_je_xcx": 224.2, "bs_rate_03": 1.81, "je_rate_03": 31.35, "bs_rate_02": 1.36, "je_rate_02": 29.37, "bs_rate_y03": 1.54, "je_rate_y03": 26.36, "bs_rate_hb": 0.45, "je_rate_hb": 1.98, "bs_rate_tb": 0.27, "je_rate_tb": 4.99}, {"品牌": "库迪咖啡", "品类": "饮品", "负责人": "jancie", "品牌id": "/", "次卡": "", "无忧会员": "", "摇优惠": "未在线", "has_data": false}, {"品牌": "Manner", "品类": "饮品", "负责人": "jancie", "品牌id": "/", "次卡": "暂不考虑", "无忧会员": "", "摇优惠": "未在线", "has_data": false}], "alerts": [{"brand": "幸运咖", "owner": "jancie", "reasons_up": ["笔数渗透率环比↑6.3pp", "金额渗透率环比↑5.5pp"], "reasons_down": [], "bs_rate_03": 37.97, "bs_rate_02": 31.7, "bs_rate_y03": 41.2, "bs_rate_hb": 6.27, "bs_rate_tb": -3.23, "je_rate_03": 41.38, "je_rate_02": 35.93, "je_rate_y03": 43.31, "je_rate_hb": 5.45, "je_rate_tb": -1.93, "direction": "up"}, {"brand": "益禾堂", "owner": "warm", "reasons_up": ["笔数渗透率环比↑6.0pp"], "reasons_down": [], "bs_rate_03": 59.44, "bs_rate_02": 53.46, "bs_rate_y03": 58.27, "bs_rate_hb": 5.98, "bs_rate_tb": 1.17, "je_rate_03": 57.2, "je_rate_02": 53.78, "je_rate_y03": 56.48, "je_rate_hb": 3.42, "je_rate_tb": 0.72, "direction": "up"}, {"brand": "老乡鸡", "owner": "振哥", "reasons_up": ["金额渗透率环比↑14.7pp"], "reasons_down": [], "bs_rate_03": 17.31, "bs_rate_02": 16.25, "bs_rate_y03": 23.14, "bs_rate_hb": 1.06, "bs_rate_tb": -5.83, "je_rate_03": 33.4, "je_rate_02": 18.7, "je_rate_y03": 40.07, "je_rate_hb": 14.7, "je_rate_tb": -6.67, "direction": "up"}, {"brand": "绝味", "owner": "振哥", "reasons_up": ["笔数渗透率环比↑5.1pp"], "reasons_down": [], "bs_rate_03": 5.87, "bs_rate_02": 0.75, "bs_rate_y03": 1.78, "bs_rate_hb": 5.12, "bs_rate_tb": 4.09, "je_rate_03": 1.03, "je_rate_02": 0.57, "je_rate_y03": 1.15, "je_rate_hb": 0.46, "je_rate_tb": -0.12, "direction": "up"}, {"brand": "乡村基", "owner": "小雪", "reasons_up": [], "reasons_down": ["笔数渗透率环比↓6.7pp", "金额渗透率环比↓8.1pp"], "bs_rate_03": 18.51, "bs_rate_02": 25.18, "bs_rate_y03": 24.63, "bs_rate_hb": -6.67, "bs_rate_tb": -6.12, "je_rate_03": 22.5, "je_rate_02": 30.6, "je_rate_y03": 30.28, "je_rate_hb": -8.1, "je_rate_tb": -7.78, "direction": "down"}, {"brand": "汉堡王", "owner": "warm", "reasons_up": ["笔数渗透率环比↑8.6pp", "金额渗透率环比↑7.6pp"], "reasons_down": [], "bs_rate_03": 73.0, "bs_rate_02": 64.36, "bs_rate_y03": 73.09, "bs_rate_hb": 8.64, "bs_rate_tb": -0.09, "je_rate_03": 70.74, "je_rate_02": 63.1, "je_rate_y03": 72.94, "je_rate_hb": 7.64, "je_rate_tb": -2.2, "direction": "up"}]};
+const KA_DATA = {"overall": {"m03": {"bs_all": 2471.04,"je_all": 53371.53,"bs_xcx": 1506.09,"je_xcx": 34375.88,"bs_rate": 60.95,"je_rate": 64.41},"m02": {"bs_all": 2600.09,"je_all": 69303.67,"bs_xcx": 1599.55,"je_xcx": 45299.73,"bs_rate": 61.52,"je_rate": 65.36},"y03": {"bs_all": 2659.41,"je_all": 60668.02,"bs_xcx": 1596.31,"je_xcx": 39469.41,"bs_rate": 60.02,"je_rate": 65.06}},"brands": [{"品牌": "蜜雪冰城","品类": "饮品","负责人": "jancie","品牌id": "2746","次卡": "已上线","无忧会员": "","摇优惠": "未存活","m03_bs_all": 726.56,"m03_je_all": 6401.53,"m03_bs_xcx": 281.93,"m03_je_xcx": 2678.31,"m02_bs_all": 710.08,"m02_je_all": 8219.59,"m02_bs_xcx": 276.15,"m02_je_xcx": 3506.31,"y03_bs_all": 785.21,"y03_je_all": 6902.15,"y03_bs_xcx": 308.54,"y03_je_xcx": 2931.89,"bs_rate_03": 38.8,"je_rate_03": 41.84,"bs_rate_02": 38.89,"je_rate_02": 42.66,"bs_rate_y03": 39.29,"je_rate_y03": 42.48,"bs_rate_hb": -0.09,"je_rate_hb": -0.82,"bs_rate_tb": -0.49,"je_rate_tb": -0.64},{"品牌": "luckin coffee","品类": "饮品","负责人": "jancie","品牌id": "1743","次卡": "已上线","无忧会员": "有意向","摇优惠": "存活","m03_bs_all": 473.68,"m03_je_all": 7184.16,"m03_bs_xcx": 434.77,"m03_je_xcx": 6523.28,"m02_bs_all": 433.95,"m02_je_all": 7297.3,"m02_bs_xcx": 397.38,"m02_je_xcx": 6660.56,"y03_bs_all": 480.8,"y03_je_all": 7323.91,"y03_bs_xcx": 429.77,"y03_je_xcx": 6471.1,"bs_rate_03": 91.78,"je_rate_03": 90.8,"bs_rate_02": 91.57,"je_rate_02": 91.27,"bs_rate_y03": 89.39,"je_rate_y03": 88.36,"bs_rate_hb": 0.21,"je_rate_hb": -0.47,"bs_rate_tb": 2.39,"je_rate_tb": 2.44},{"品牌": "肯德基","品类": "西快","负责人": "warm","品牌id": "1805","次卡": "","无忧会员": "","摇优惠": "存活","m03_bs_all": 183.44,"m03_je_all": 6395.36,"m03_bs_xcx": 99.5,"m03_je_xcx": 3386.8,"m02_bs_all": 211.89,"m02_je_all": 9500.19,"m02_bs_xcx": 114.9,"m02_je_xcx": 4892.56,"y03_bs_all": 242.39,"y03_je_all": 8919.65,"y03_bs_xcx": 139.16,"y03_je_xcx": 5032.65,"bs_rate_03": 54.24,"je_rate_03": 52.96,"bs_rate_02": 54.22,"je_rate_02": 51.5,"bs_rate_y03": 57.41,"je_rate_y03": 56.42,"bs_rate_hb": 0.02,"je_rate_hb": 1.46,"bs_rate_tb": -3.17,"je_rate_tb": -3.46},{"品牌": "麦当劳","品类": "西快","负责人": "warm","品牌id": "1442","次卡": "","无忧会员": "有意向","摇优惠": "未存活","m03_bs_all": 169.09,"m03_je_all": 4855.74,"m03_bs_xcx": 100.4,"m03_je_xcx": 2823.28,"m02_bs_all": 174.76,"m02_je_all": 5974.28,"m02_bs_xcx": 100.77,"m02_je_xcx": 3419.65,"y03_bs_all": 187.03,"y03_je_all": 5650.06,"y03_bs_xcx": 117.42,"y03_je_xcx": 3530.76,"bs_rate_03": 59.38,"je_rate_03": 58.14,"bs_rate_02": 57.66,"je_rate_02": 57.24,"bs_rate_y03": 62.78,"je_rate_y03": 62.49,"bs_rate_hb": 1.72,"je_rate_hb": 0.9,"bs_rate_tb": -3.4,"je_rate_tb": -4.35},{"品牌": "古茗","品类": "饮品","负责人": "jancie","品牌id": "1018","次卡": "暂不考虑","无忧会员": "","摇优惠": "未存活","m03_bs_all": 139.35,"m03_je_all": 2716.12,"m03_bs_xcx": 120.77,"m03_je_xcx": 2332.31,"m02_bs_all": 190.9,"m02_je_all": 4703.35,"m02_bs_xcx": 167.07,"m02_je_xcx": 4143.39,"y03_bs_all": 112.26,"y03_je_all": 2285.28,"y03_bs_xcx": 94.25,"y03_je_xcx": 1896.21,"bs_rate_03": 86.67,"je_rate_03": 85.87,"bs_rate_02": 87.52,"je_rate_02": 88.09,"bs_rate_y03": 83.96,"je_rate_y03": 82.97,"bs_rate_hb": -0.85,"je_rate_hb": -2.22,"bs_rate_tb": 2.71,"je_rate_tb": 2.9},{"品牌": "霸王茶姬","品类": "饮品","负责人": "warm","品牌id": "2526","次卡": "已上线","无忧会员": "","摇优惠": "未存活","m03_bs_all": 80.23,"m03_je_all": 2141.74,"m03_bs_xcx": 73.89,"m03_je_xcx": 1928.86,"m02_bs_all": 99.79,"m02_je_all": 3124.54,"m02_bs_xcx": 92.03,"m02_je_xcx": 2850.71,"y03_bs_all": 106.33,"y03_je_all": 3097.67,"y03_bs_xcx": 98.57,"y03_je_xcx": 2832.84,"bs_rate_03": 92.1,"je_rate_03": 90.06,"bs_rate_02": 92.23,"je_rate_02": 91.24,"bs_rate_y03": 92.7,"je_rate_y03": 91.45,"bs_rate_hb": -0.13,"je_rate_hb": -1.18,"bs_rate_tb": -0.6,"je_rate_tb": -1.39},{"品牌": "塔斯汀","品类": "西快","负责人": "warm","品牌id": "10401","次卡": "","无忧会员": "有意向","摇优惠": "存活","m03_bs_all": 67.59,"m03_je_all": 1523.96,"m03_bs_xcx": 58.38,"m03_je_xcx": 1357.83,"m02_bs_all": 60.73,"m02_je_all": 1692.99,"m02_bs_xcx": 50.23,"m02_je_xcx": 1475.28,"y03_bs_all": 69.47,"y03_je_all": 1768.09,"y03_bs_xcx": 57.25,"y03_je_xcx": 1541.61,"bs_rate_03": 86.38,"je_rate_03": 89.1,"bs_rate_02": 82.72,"je_rate_02": 87.14,"bs_rate_y03": 82.42,"je_rate_y03": 87.19,"bs_rate_hb": 3.66,"je_rate_hb": 1.96,"bs_rate_tb": 3.96,"je_rate_tb": 1.91},{"品牌": "星巴克","品类": "饮品","负责人": "jancie","品牌id": "1330","次卡": "暂不考虑","无忧会员": "","摇优惠": "未在线","m03_bs_all": 48.02,"m03_je_all": 2525.61,"m03_bs_xcx": 20.46,"m03_je_xcx": 1029.25,"m02_bs_all": 52.7,"m02_je_all": 2800.17,"m02_bs_xcx": 22.74,"m02_je_xcx": 1174.35,"y03_bs_all": 54.31,"y03_je_all": 2769.28,"y03_bs_xcx": 21.88,"y03_je_xcx": 1095.88,"bs_rate_03": 42.61,"je_rate_03": 40.75,"bs_rate_02": 43.16,"je_rate_02": 41.94,"bs_rate_y03": 40.29,"je_rate_y03": 39.57,"bs_rate_hb": -0.55,"je_rate_hb": -1.19,"bs_rate_tb": 2.32,"je_rate_tb": 1.18},{"品牌": "幸运咖","品类": "饮品","负责人": "jancie","品牌id": "9400","次卡": "已上线","无忧会员": "","摇优惠": "存活","m03_bs_all": 50.65,"m03_je_all": 450.37,"m03_bs_xcx": 19.23,"m03_je_xcx": 186.36,"m02_bs_all": 46.8,"m02_je_all": 501.18,"m02_bs_xcx": 14.84,"m02_je_xcx": 180.05,"y03_bs_all": 36.91,"y03_je_all": 347.44,"y03_bs_xcx": 15.21,"y03_je_xcx": 150.49,"bs_rate_03": 37.97,"je_rate_03": 41.38,"bs_rate_02": 31.7,"je_rate_02": 35.93,"bs_rate_y03": 41.2,"je_rate_y03": 43.31,"bs_rate_hb": 6.27,"je_rate_hb": 5.45,"bs_rate_tb": -3.23,"je_rate_tb": -1.93},{"品牌": "喜茶","品类": "饮品","负责人": "jancie","品牌id": "1752","次卡": "","无忧会员": "","摇优惠": "未在线","has_data": false},{"品牌": "华莱士","品类": "西快","负责人": "warm","品牌id": "2682","次卡": "","无忧会员": "","摇优惠": "未存活","m03_bs_all": 34.41,"m03_je_all": 915.3,"m03_bs_xcx": 21.53,"m03_je_xcx": 643.55,"m02_bs_all": 41.11,"m02_je_all": 1216.96,"m02_bs_xcx": 25.82,"m02_je_xcx": 856.46,"y03_bs_all": 45.39,"y03_je_all": 1270.29,"y03_bs_xcx": 26.79,"y03_je_xcx": 865.72,"bs_rate_03": 62.56,"je_rate_03": 70.31,"bs_rate_02": 62.81,"je_rate_02": 70.38,"bs_rate_y03": 59.02,"je_rate_y03": 68.15,"bs_rate_hb": -0.25,"je_rate_hb": -0.07,"bs_rate_tb": 3.54,"je_rate_tb": 2.16},{"品牌": "茶百道","品类": "饮品","负责人": "jancie","品牌id": "3524","次卡": "已上线","无忧会员": "","摇优惠": "未存活","m03_bs_all": 29.16,"m03_je_all": 602.83,"m03_bs_xcx": 21.68,"m03_je_xcx": 427.5,"m02_bs_all": 38.38,"m02_je_all": 978.54,"m02_bs_xcx": 28.22,"m02_je_xcx": 716.33,"y03_bs_all": 42.44,"y03_je_all": 886.73,"y03_bs_xcx": 29.15,"y03_je_xcx": 582.08,"bs_rate_03": 74.33,"je_rate_03": 70.92,"bs_rate_02": 73.52,"je_rate_02": 73.2,"bs_rate_y03": 68.67,"je_rate_y03": 65.64,"bs_rate_hb": 0.81,"je_rate_hb": -2.28,"bs_rate_tb": 5.66,"je_rate_tb": 5.28},{"品牌": "正新鸡排","品类": "小吃","负责人": "振哥","品牌id": "10820","次卡": "","无忧会员": "","摇优惠": "未在线","m03_bs_all": 0.04,"m03_je_all": 0.73,"m03_bs_xcx": 0.01,"m03_je_xcx": 0.16,"m02_bs_all": 0.07,"m02_je_all": 1.45,"m02_bs_xcx": 0.02,"m02_je_xcx": 0.31,"y03_bs_all": 1.9,"y03_je_all": 32.09,"y03_bs_xcx": 0.47,"y03_je_xcx": 7.59,"bs_rate_03": 22.58,"je_rate_03": 22.05,"bs_rate_02": 22.6,"je_rate_02": 21.54,"bs_rate_y03": 24.57,"je_rate_y03": 23.66,"bs_rate_hb": -0.02,"je_rate_hb": 0.51,"bs_rate_tb": -1.99,"je_rate_tb": -1.61},{"品牌": "益禾堂","品类": "饮品","负责人": "warm","品牌id": "1632","次卡": "已上线","无忧会员": "","摇优惠": "存活","m03_bs_all": 30.91,"m03_je_all": 411.14,"m03_bs_xcx": 18.37,"m03_je_xcx": 235.18,"m02_bs_all": 33.9,"m02_je_all": 567.06,"m02_bs_xcx": 18.13,"m02_je_xcx": 304.98,"y03_bs_all": 36.02,"y03_je_all": 495.7,"y03_bs_xcx": 20.99,"y03_je_xcx": 279.96,"bs_rate_03": 59.44,"je_rate_03": 57.2,"bs_rate_02": 53.46,"je_rate_02": 53.78,"bs_rate_y03": 58.27,"je_rate_y03": 56.48,"bs_rate_hb": 5.98,"je_rate_hb": 3.42,"bs_rate_tb": 1.17,"je_rate_tb": 0.72},{"品牌": "沪上阿姨","品类": "饮品","负责人": "warm","品牌id": "2256","次卡": "已上线","无忧会员": "","摇优惠": "未存活","m03_bs_all": 35.05,"m03_je_all": 592.1,"m03_bs_xcx": 26.63,"m03_je_xcx": 406.14,"m02_bs_all": 45.53,"m02_je_all": 937.86,"m02_bs_xcx": 34.05,"m02_je_xcx": 635.52,"y03_bs_all": 29.33,"y03_je_all": 672.05,"y03_bs_xcx": 18.62,"y03_je_xcx": 389.88,"bs_rate_03": 75.99,"je_rate_03": 68.59,"bs_rate_02": 74.8,"je_rate_02": 67.76,"bs_rate_y03": 63.48,"je_rate_y03": 58.01,"bs_rate_hb": 1.19,"je_rate_hb": 0.83,"bs_rate_tb": 12.51,"je_rate_tb": 10.58},{"品牌": "1点点","品类": "饮品","负责人": "jancie","品牌id": "2480","次卡": "有意向","无忧会员": "","摇优惠": "存活","m03_bs_all": 39.32,"m03_je_all": 823.09,"m03_bs_xcx": 33.66,"m03_je_xcx": 695.4,"m02_bs_all": 45.55,"m02_je_all": 1084.41,"m02_bs_xcx": 39.48,"m02_je_xcx": 938.7,"y03_bs_all": 30.15,"y03_je_all": 626.75,"y03_bs_xcx": 25.63,"y03_je_xcx": 525.83,"bs_rate_03": 85.59,"je_rate_03": 84.49,"bs_rate_02": 86.67,"je_rate_02": 86.56,"bs_rate_y03": 84.99,"je_rate_y03": 83.9,"bs_rate_hb": -1.08,"je_rate_hb": -2.07,"bs_rate_tb": 0.6,"je_rate_tb": 0.59},{"品牌": "老乡鸡","品类": "中快","负责人": "振哥","品牌id": "1574","次卡": "","无忧会员": "有意向","摇优惠": "存活","m03_bs_all": 32.24,"m03_je_all": 1089.13,"m03_bs_xcx": 5.58,"m03_je_xcx": 363.72,"m02_bs_all": 30.93,"m02_je_all": 964.44,"m02_bs_xcx": 5.03,"m02_je_xcx": 180.33,"y03_bs_all": 28.29,"y03_je_all": 983.47,"y03_bs_xcx": 6.55,"y03_je_xcx": 394.13,"bs_rate_03": 17.31,"je_rate_03": 33.4,"bs_rate_02": 16.25,"je_rate_02": 18.7,"bs_rate_y03": 23.14,"je_rate_y03": 40.07,"bs_rate_hb": 1.06,"je_rate_hb": 14.7,"bs_rate_tb": -5.83,"je_rate_tb": -6.67},{"品牌": "必胜客","品类": "西快","负责人": "warm","品牌id": "1890","次卡": "","无忧会员": "有意向","摇优惠": "存活","m03_bs_all": 21.38,"m03_je_all": 1471.6,"m03_bs_xcx": 17.44,"m03_je_xcx": 1270.03,"m02_bs_all": 24.59,"m02_je_all": 2088.09,"m02_bs_xcx": 20.72,"m02_je_xcx": 1871.52,"y03_bs_all": 27.37,"y03_je_all": 1845.66,"y03_bs_xcx": 21.93,"y03_je_xcx": 1587.43,"bs_rate_03": 81.54,"je_rate_03": 86.3,"bs_rate_02": 84.24,"je_rate_02": 89.63,"bs_rate_y03": 80.12,"je_rate_y03": 86.01,"bs_rate_hb": -2.7,"je_rate_hb": -3.33,"bs_rate_tb": 1.42,"je_rate_tb": 0.29},{"品牌": "杨国福","品类": "中快","负责人": "振哥","品牌id": "2914","次卡": "","无忧会员": "","摇优惠": "未存活","m03_bs_all": 24.7,"m03_je_all": 718.58,"m03_bs_xcx": 0.05,"m03_je_xcx": 0.67,"m02_bs_all": 23.07,"m02_je_all": 722.5,"m02_bs_xcx": 0.05,"m02_je_xcx": 0.59,"y03_bs_all": 24.1,"y03_je_all": 689.5,"y03_bs_xcx": 0.08,"y03_je_xcx": 2.28,"bs_rate_03": 0.2,"je_rate_03": 0.09,"bs_rate_02": 0.23,"je_rate_02": 0.08,"bs_rate_y03": 0.32,"je_rate_y03": 0.33,"bs_rate_hb": -0.03,"je_rate_hb": 0.01,"bs_rate_tb": -0.12,"je_rate_tb": -0.24},{"品牌": "绝味","品类": "小吃","负责人": "振哥","品牌id": "3710","次卡": "","无忧会员": "有意向","摇优惠": "未存活","m03_bs_all": 18.77,"m03_je_all": 629.95,"m03_bs_xcx": 1.1,"m03_je_xcx": 6.48,"m02_bs_all": 21.96,"m02_je_all": 923.64,"m02_bs_xcx": 0.17,"m02_je_xcx": 5.24,"y03_bs_all": 27.66,"y03_je_all": 940.34,"y03_bs_xcx": 0.49,"y03_je_xcx": 10.81,"bs_rate_03": 5.87,"je_rate_03": 1.03,"bs_rate_02": 0.75,"je_rate_02": 0.57,"bs_rate_y03": 1.78,"je_rate_y03": 1.15,"bs_rate_hb": 5.12,"je_rate_hb": 0.46,"bs_rate_tb": 4.09,"je_rate_tb": -0.12},{"品牌": "甜啦啦","品类": "饮品","负责人": "jancie","品牌id": "2022","次卡": "有意向","无忧会员": "","摇优惠": "存活","m03_bs_all": 5.1,"m03_je_all": 51.22,"m03_bs_xcx": 5.1,"m03_je_xcx": 51.16,"m02_bs_all": 7.08,"m02_je_all": 108.42,"m02_bs_xcx": 7.07,"m02_je_xcx": 108.29,"y03_bs_all": 7.91,"y03_je_all": 87.07,"y03_bs_xcx": 4.8,"y03_je_xcx": 52.99,"bs_rate_03": 99.88,"je_rate_03": 99.88,"bs_rate_02": 99.85,"je_rate_02": 99.88,"bs_rate_y03": 60.69,"je_rate_y03": 60.86,"bs_rate_hb": 0.03,"je_rate_hb": 0.0,"bs_rate_tb": 39.19,"je_rate_tb": 39.02},{"品牌": "CoCo都可","品类": "饮品","负责人": "jancie","品牌id": "1206","次卡": "已上线","无忧会员": "","摇优惠": "未存活","m03_bs_all": 13.03,"m03_je_all": 216.9,"m03_bs_xcx": 11.25,"m03_je_xcx": 185.51,"m02_bs_all": 19.56,"m02_je_all": 384.99,"m02_bs_xcx": 16.13,"m02_je_xcx": 317.6,"y03_bs_all": 19.32,"y03_je_all": 374.07,"y03_bs_xcx": 14.42,"y03_je_xcx": 281.23,"bs_rate_03": 86.36,"je_rate_03": 85.53,"bs_rate_02": 82.49,"je_rate_02": 82.5,"bs_rate_y03": 74.65,"je_rate_y03": 75.18,"bs_rate_hb": 3.87,"je_rate_hb": 3.03,"bs_rate_tb": 11.71,"je_rate_tb": 10.35},{"品牌": "书亦","品类": "饮品","负责人": "jancie","品牌id": "1095","次卡": "有意向","无忧会员": "有意向","摇优惠": "存活","m03_bs_all": 14.49,"m03_je_all": 249.75,"m03_bs_xcx": 6.63,"m03_je_xcx": 101.97,"m02_bs_all": 24.17,"m02_je_all": 518.38,"m02_bs_xcx": 10.76,"m02_je_xcx": 224.37,"y03_bs_all": 17.55,"y03_je_all": 327.4,"y03_bs_xcx": 6.52,"y03_je_xcx": 114.19,"bs_rate_03": 45.73,"je_rate_03": 40.83,"bs_rate_02": 44.53,"je_rate_02": 43.28,"bs_rate_y03": 37.14,"je_rate_y03": 34.88,"bs_rate_hb": 1.2,"je_rate_hb": -2.45,"bs_rate_tb": 8.59,"je_rate_tb": 5.95},{"品牌": "茶颜悦色","品类": "饮品","负责人": "jancie","品牌id": "3757","次卡": "暂不考虑","无忧会员": "","摇优惠": "未在线","has_data": false},{"品牌": "乡村基","品类": "中快","负责人": "小雪","品牌id": "2002","次卡": "暂不考虑","无忧会员": "有意向","摇优惠": "未在线","m03_bs_all": 7.55,"m03_je_all": 181.31,"m03_bs_xcx": 1.4,"m03_je_xcx": 40.79,"m02_bs_all": 6.79,"m02_je_all": 186.49,"m02_bs_xcx": 1.71,"m02_je_xcx": 57.08,"y03_bs_all": 10.69,"y03_je_all": 251.5,"y03_bs_xcx": 2.63,"y03_je_xcx": 76.16,"bs_rate_03": 18.51,"je_rate_03": 22.5,"bs_rate_02": 25.18,"je_rate_02": 30.6,"bs_rate_y03": 24.63,"je_rate_y03": 30.28,"bs_rate_hb": -6.67,"je_rate_hb": -8.1,"bs_rate_tb": -6.12,"je_rate_tb": -7.78},{"品牌": "海底捞","品类": "正餐","负责人": "振哥","品牌id": "10269","次卡": "","无忧会员": "","摇优惠": "未存活","m03_bs_all": 16.61,"m03_je_all": 4052.2,"m03_bs_xcx": 13.79,"m03_je_xcx": 3340.99,"m02_bs_all": 21.4,"m02_je_all": 5986.73,"m02_bs_xcx": 17.97,"m02_je_xcx": 5031.12,"y03_bs_all": 16.24,"y03_je_all": 4279.24,"y03_bs_xcx": 14.73,"y03_je_xcx": 3903.13,"bs_rate_03": 82.98,"je_rate_03": 82.45,"bs_rate_02": 83.98,"je_rate_02": 84.04,"bs_rate_y03": 90.73,"je_rate_y03": 91.21,"bs_rate_hb": -1.0,"je_rate_hb": -1.59,"bs_rate_tb": -7.75,"je_rate_tb": -8.76},{"品牌": "德克士","品类": "西快","负责人": "warm","品牌id": "1151","次卡": "","无忧会员": "","摇优惠": "未在线","m03_bs_all": 13.27,"m03_je_all": 539.56,"m03_bs_xcx": 9.32,"m03_je_xcx": 389.81,"m02_bs_all": 19.38,"m02_je_all": 909.11,"m02_bs_xcx": 13.95,"m02_je_xcx": 683.58,"y03_bs_all": 15.67,"y03_je_all": 649.1,"y03_bs_xcx": 8.89,"y03_je_xcx": 388.33,"bs_rate_03": 70.25,"je_rate_03": 72.25,"bs_rate_02": 72.02,"je_rate_02": 75.19,"bs_rate_y03": 56.72,"je_rate_y03": 59.83,"bs_rate_hb": -1.77,"je_rate_hb": -2.94,"bs_rate_tb": 13.53,"je_rate_tb": 12.42},{"品牌": "奈雪茶","品类": "饮品","负责人": "jancie","品牌id": "1710","次卡": "有意向","无忧会员": "有意向","摇优惠": "存活","m03_bs_all": 11.56,"m03_je_all": 277.82,"m03_bs_xcx": 10.11,"m03_je_xcx": 237.13,"m02_bs_all": 12.75,"m02_je_all": 369.15,"m02_bs_xcx": 10.96,"m02_je_xcx": 317.43,"y03_bs_all": 14.91,"y03_je_all": 437.19,"y03_bs_xcx": 12.07,"y03_je_xcx": 359.34,"bs_rate_03": 87.46,"je_rate_03": 85.35,"bs_rate_02": 85.95,"je_rate_02": 85.99,"bs_rate_y03": 80.95,"je_rate_y03": 82.19,"bs_rate_hb": 1.51,"je_rate_hb": -0.64,"bs_rate_tb": 6.51,"je_rate_tb": 3.16},{"品牌": "DQ","品类": "饮品","负责人": "jancie","品牌id": "1310","次卡": "暂不考虑","无忧会员": "","摇优惠": "未在线","m03_bs_all": 6.77,"m03_je_all": 212.45,"m03_bs_xcx": 3.72,"m03_je_xcx": 125.66,"m02_bs_all": 12.02,"m02_je_all": 399.34,"m02_bs_xcx": 7.0,"m02_je_xcx": 249.03,"y03_bs_all": 8.15,"y03_je_all": 259.25,"y03_bs_xcx": 5.35,"y03_je_xcx": 179.22,"bs_rate_03": 55.04,"je_rate_03": 59.15,"bs_rate_02": 58.24,"je_rate_02": 62.36,"bs_rate_y03": 65.68,"je_rate_y03": 69.13,"bs_rate_hb": -3.2,"je_rate_hb": -3.21,"bs_rate_tb": -10.64,"je_rate_tb": -9.98},{"品牌": "茉莉奶白","品类": "饮品","负责人": "warm","品牌id": "8607","次卡": "已上线","无忧会员": "","摇优惠": "存活","m03_bs_all": 11.86,"m03_je_all": 331.41,"m03_bs_xcx": 10.12,"m03_je_xcx": 279.23,"m02_bs_all": 18.01,"m02_je_all": 546.05,"m02_bs_xcx": 15.48,"m02_je_xcx": 467.57,"y03_bs_all": 10.07,"y03_je_all": 339.04,"y03_bs_xcx": 8.36,"y03_je_xcx": 246.44,"bs_rate_03": 85.27,"je_rate_03": 84.26,"bs_rate_02": 85.94,"je_rate_02": 85.63,"bs_rate_y03": 83.08,"je_rate_y03": 72.69,"bs_rate_hb": -0.67,"je_rate_hb": -1.37,"bs_rate_tb": 2.19,"je_rate_tb": 11.57},{"品牌": "享哆味","品类": "西快","负责人": "warm","品牌id": "8756","次卡": "","无忧会员": "","摇优惠": "未存活","m03_bs_all": 10.13,"m03_je_all": 265.15,"m03_bs_xcx": 6.07,"m03_je_xcx": 161.17,"m02_bs_all": 14.68,"m02_je_all": 444.1,"m02_bs_xcx": 8.67,"m02_je_xcx": 281.71,"y03_bs_all": 8.91,"y03_je_all": 236.83,"y03_bs_xcx": 4.63,"y03_je_xcx": 127.2,"bs_rate_03": 59.94,"je_rate_03": 60.79,"bs_rate_02": 59.1,"je_rate_02": 63.43,"bs_rate_y03": 51.97,"je_rate_y03": 53.71,"bs_rate_hb": 0.84,"je_rate_hb": -2.64,"bs_rate_tb": 7.97,"je_rate_tb": 7.08},{"品牌": "袁记云饺","品类": "中快","负责人": "振哥","品牌id": "10040","次卡": "","无忧会员": "有意向","摇优惠": "存活","m03_bs_all": 24.74,"m03_je_all": 633.38,"m03_bs_xcx": 11.62,"m03_je_xcx": 288.98,"m02_bs_all": 20.81,"m02_je_all": 608.41,"m02_bs_xcx": 9.68,"m02_je_xcx": 274.96,"y03_bs_all": 24.32,"y03_je_all": 631.53,"y03_bs_xcx": 11.05,"y03_je_xcx": 284.68,"bs_rate_03": 46.96,"je_rate_03": 45.62,"bs_rate_02": 46.52,"je_rate_02": 45.19,"bs_rate_y03": 45.46,"je_rate_y03": 45.08,"bs_rate_hb": 0.44,"je_rate_hb": 0.43,"bs_rate_tb": 1.5,"je_rate_tb": 0.54},{"品牌": "喜家德","品类": "中快","负责人": "小雪","品牌id": "11206","次卡": "暂不考虑","无忧会员": "","摇优惠": "未在线","m03_bs_all": 7.62,"m03_je_all": 375.78,"m03_bs_xcx": 6.69,"m03_je_xcx": 342.1,"m02_bs_all": 7.65,"m02_je_all": 393.96,"m02_bs_xcx": 6.75,"m02_je_xcx": 357.88,"y03_bs_all": 10.46,"y03_je_all": 499.13,"y03_bs_xcx": 9.04,"y03_je_xcx": 445.75,"bs_rate_03": 87.77,"je_rate_03": 91.04,"bs_rate_02": 88.24,"je_rate_02": 90.84,"bs_rate_y03": 86.43,"je_rate_y03": 89.31,"bs_rate_hb": -0.47,"je_rate_hb": 0.2,"bs_rate_tb": 1.34,"je_rate_tb": 1.73},{"品牌": "达美乐","品类": "西快","负责人": "warm","品牌id": "5196","次卡": "","无忧会员": "","摇优惠": "未存活","m03_bs_all": 8.27,"m03_je_all": 634.72,"m03_bs_xcx": 6.73,"m03_je_xcx": 531.37,"m02_bs_all": 9.91,"m02_je_all": 831.33,"m02_bs_xcx": 8.04,"m02_je_xcx": 694.47,"y03_bs_all": 10.28,"y03_je_all": 835.48,"y03_bs_xcx": 8.63,"y03_je_xcx": 708.19,"bs_rate_03": 81.4,"je_rate_03": 83.72,"bs_rate_02": 81.14,"je_rate_02": 83.54,"bs_rate_y03": 83.98,"je_rate_y03": 84.76,"bs_rate_hb": 0.26,"je_rate_hb": 0.18,"bs_rate_tb": -2.58,"je_rate_tb": -1.04},{"品牌": "汉堡王","品类": "西快","负责人": "warm","品牌id": "1483","次卡": "","无忧会员": "","摇优惠": "未存活","m03_bs_all": 6.18,"m03_je_all": 228.28,"m03_bs_xcx": 4.51,"m03_je_xcx": 161.48,"m02_bs_all": 6.59,"m02_je_all": 289.88,"m02_bs_xcx": 4.24,"m02_je_xcx": 182.91,"y03_bs_all": 8.56,"y03_je_all": 323.67,"y03_bs_xcx": 6.26,"y03_je_xcx": 236.09,"bs_rate_03": 73.0,"je_rate_03": 70.74,"bs_rate_02": 64.36,"je_rate_02": 63.1,"bs_rate_y03": 73.09,"je_rate_y03": 72.94,"bs_rate_hb": 8.64,"je_rate_hb": 7.64,"bs_rate_tb": -0.09,"je_rate_tb": -2.2},{"品牌": "爷爷不泡茶","品类": "饮品","负责人": "warm","品牌id": "10987","次卡": "已上线","无忧会员": "","摇优惠": "未存活","m03_bs_all": 10.19,"m03_je_all": 243.83,"m03_bs_xcx": 8.18,"m03_je_xcx": 190.31,"m02_bs_all": 15.6,"m02_je_all": 424.35,"m02_bs_xcx": 12.65,"m02_je_xcx": 338.79,"y03_bs_all": 8.44,"y03_je_all": 213.74,"y03_bs_xcx": 5.94,"y03_je_xcx": 149.05,"bs_rate_03": 80.22,"je_rate_03": 78.05,"bs_rate_02": 81.08,"je_rate_02": 79.84,"bs_rate_y03": 70.35,"je_rate_y03": 69.73,"bs_rate_hb": -0.86,"je_rate_hb": -1.79,"bs_rate_tb": 9.87,"je_rate_tb": 8.32},{"品牌": "喜姐炸串","品类": "小吃","负责人": "振哥","品牌id": "6281","次卡": "有意向","无忧会员": "","摇优惠": "未存活","m03_bs_all": 5.95,"m03_je_all": 118.18,"m03_bs_xcx": 3.33,"m03_je_xcx": 65.93,"m02_bs_all": 7.83,"m02_je_all": 178.68,"m02_bs_xcx": 4.0,"m02_je_xcx": 96.39,"y03_bs_all": 8.19,"y03_je_all": 168.68,"y03_bs_xcx": 3.66,"y03_je_xcx": 81.21,"bs_rate_03": 56.03,"je_rate_03": 55.79,"bs_rate_02": 51.13,"je_rate_02": 53.94,"bs_rate_y03": 44.72,"je_rate_y03": 48.14,"bs_rate_hb": 4.9,"je_rate_hb": 1.85,"bs_rate_tb": 11.31,"je_rate_tb": 7.65},{"品牌": "阿水大杯茶","品类": "饮品","负责人": "warm","品牌id": "1705","次卡": "","无忧会员": "","摇优惠": "存活","m03_bs_all": 5.02,"m03_je_all": 95.77,"m03_bs_xcx": 4.39,"m03_je_xcx": 82.48,"m02_bs_all": 7.28,"m02_je_all": 160.12,"m02_bs_xcx": 6.38,"m02_je_xcx": 141.15,"y03_bs_all": 6.04,"y03_je_all": 113.42,"y03_bs_xcx": 4.77,"y03_je_xcx": 88.45,"bs_rate_03": 87.54,"je_rate_03": 86.13,"bs_rate_02": 87.55,"je_rate_02": 88.15,"bs_rate_y03": 78.98,"je_rate_y03": 77.99,"bs_rate_hb": -0.01,"je_rate_hb": -2.02,"bs_rate_tb": 8.56,"je_rate_tb": 8.14},{"品牌": "遇见小面","品类": "中快","负责人": "小雪","品牌id": "2287","次卡": "暂不考虑","无忧会员": "","摇优惠": "存活","m03_bs_all": 7.13,"m03_je_all": 349.71,"m03_bs_xcx": 6.99,"m03_je_xcx": 345.89,"m02_bs_all": 7.3,"m02_je_all": 349.45,"m02_bs_xcx": 7.15,"m02_je_xcx": 345.36,"y03_bs_all": 5.8,"y03_je_all": 310.89,"y03_bs_xcx": 5.67,"y03_je_xcx": 306.85,"bs_rate_03": 98.04,"je_rate_03": 98.91,"bs_rate_02": 97.99,"je_rate_02": 98.83,"bs_rate_y03": 97.77,"je_rate_y03": 98.7,"bs_rate_hb": 0.05,"je_rate_hb": 0.08,"bs_rate_tb": 0.27,"je_rate_tb": 0.21},{"品牌": "馬記永","品类": "中快","负责人": "小雪","品牌id": "6518","次卡": "有意向","无忧会员": "有意向","摇优惠": "存活","m03_bs_all": 5.52,"m03_je_all": 237.12,"m03_bs_xcx": 5.33,"m03_je_xcx": 230.69,"m02_bs_all": 5.72,"m02_je_all": 272.6,"m02_bs_xcx": 5.52,"m02_je_xcx": 265.28,"y03_bs_all": 5.5,"y03_je_all": 246.33,"y03_bs_xcx": 5.3,"y03_je_xcx": 239.15,"bs_rate_03": 96.6,"je_rate_03": 97.29,"bs_rate_02": 96.34,"je_rate_02": 97.32,"bs_rate_y03": 96.38,"je_rate_y03": 97.08,"bs_rate_hb": 0.26,"je_rate_hb": -0.03,"bs_rate_tb": 0.22,"je_rate_tb": 0.21},{"品牌": "朴大叔","品类": "中快","负责人": "小雪","品牌id": "11304","次卡": "有意向","无忧会员": "","摇优惠": "未存活","m03_bs_all": 4.07,"m03_je_all": 149.34,"m03_bs_xcx": 3.45,"m03_je_xcx": 136.51,"m02_bs_all": 5.15,"m02_je_all": 201.97,"m02_bs_xcx": 4.39,"m02_je_xcx": 185.73,"y03_bs_all": 5.63,"y03_je_all": 214.23,"y03_bs_xcx": 4.83,"y03_je_xcx": 195.87,"bs_rate_03": 84.86,"je_rate_03": 91.4,"bs_rate_02": 85.19,"je_rate_02": 91.96,"bs_rate_y03": 85.8,"je_rate_y03": 91.43,"bs_rate_hb": -0.33,"je_rate_hb": -0.56,"bs_rate_tb": -0.94,"je_rate_tb": -0.03},{"品牌": "M Stand","品类": "饮品","负责人": "jancie","品牌id": "3446","次卡": "已上线","无忧会员": "","摇优惠": "存活","m03_bs_all": 4.72,"m03_je_all": 209.57,"m03_bs_xcx": 4.3,"m03_je_xcx": 177.04,"m02_bs_all": 4.55,"m02_je_all": 206.1,"m02_bs_xcx": 4.13,"m02_je_xcx": 174.35,"y03_bs_all": 4.28,"y03_je_all": 225.41,"y03_bs_xcx": 3.94,"y03_je_xcx": 192.64,"bs_rate_03": 91.04,"je_rate_03": 84.48,"bs_rate_02": 90.88,"je_rate_02": 84.59,"bs_rate_y03": 91.94,"je_rate_y03": 85.46,"bs_rate_hb": 0.16,"je_rate_hb": -0.11,"bs_rate_tb": -0.9,"je_rate_tb": -0.98},{"品牌": "大米先生","品类": "中快","负责人": "振哥","品牌id": "2280","次卡": "","无忧会员": "有意向","摇优惠": "未存活","m03_bs_all": 37.26,"m03_je_all": 965.17,"m03_bs_xcx": 1.88,"m03_je_xcx": 70.31,"m02_bs_all": 29.42,"m02_je_all": 826.5,"m02_bs_xcx": 1.71,"m02_je_xcx": 69.53,"y03_bs_all": 29.22,"y03_je_all": 691.01,"y03_bs_xcx": 2.06,"y03_je_xcx": 59.44,"bs_rate_03": 5.04,"je_rate_03": 7.28,"bs_rate_02": 5.82,"je_rate_02": 8.41,"bs_rate_y03": 7.06,"je_rate_y03": 8.6,"bs_rate_hb": -0.78,"je_rate_hb": -1.13,"bs_rate_tb": -2.02,"je_rate_tb": -1.32},{"品牌": "TIMHORTONS","品类": "饮品","负责人": "jancie","品牌id": "1423","次卡": "有意向","无忧会员": "","摇优惠": "存活","m03_bs_all": 3.19,"m03_je_all": 112.12,"m03_bs_xcx": 2.56,"m03_je_xcx": 76.11,"m02_bs_all": 3.05,"m02_je_all": 111.52,"m02_bs_xcx": 2.42,"m02_je_xcx": 76.82,"y03_bs_all": 4.93,"y03_je_all": 155.73,"y03_bs_xcx": 4.18,"y03_je_xcx": 117.58,"bs_rate_03": 80.32,"je_rate_03": 67.88,"bs_rate_02": 79.22,"je_rate_02": 68.88,"bs_rate_y03": 84.81,"je_rate_y03": 75.51,"bs_rate_hb": 1.1,"je_rate_hb": -1.0,"bs_rate_tb": -4.49,"je_rate_tb": -7.63},{"品牌": "九毛九","品类": "正餐","负责人": "振哥","品牌id": "11409","次卡": "","无忧会员": "","摇优惠": "存活","m03_bs_all": 0.4,"m03_je_all": 37.19,"m03_bs_xcx": 0.21,"m03_je_xcx": 20.68,"m02_bs_all": 0.57,"m02_je_all": 57.25,"m02_bs_xcx": 0.29,"m02_je_xcx": 31.67,"y03_bs_all": 0.55,"y03_je_all": 53.6,"y03_bs_xcx": 0.31,"y03_je_xcx": 33.04,"bs_rate_03": 52.39,"je_rate_03": 55.59,"bs_rate_02": 51.2,"je_rate_02": 55.33,"bs_rate_y03": 56.11,"je_rate_y03": 61.65,"bs_rate_hb": 1.19,"je_rate_hb": 0.26,"bs_rate_tb": -3.72,"je_rate_tb": -6.06},{"品牌": "茶话弄","品类": "饮品","负责人": "jancie","品牌id": "6702","次卡": "有意向","无忧会员": "","摇优惠": "存活","m03_bs_all": 0.91,"m03_je_all": 20.81,"m03_bs_xcx": 0.57,"m03_je_xcx": 12.78,"m02_bs_all": 2.71,"m02_je_all": 68.74,"m02_bs_xcx": 1.75,"m02_je_xcx": 44.63,"y03_bs_all": 3.66,"y03_je_all": 87.23,"y03_bs_xcx": 2.22,"y03_je_xcx": 51.53,"bs_rate_03": 63.26,"je_rate_03": 61.39,"bs_rate_02": 64.49,"je_rate_02": 64.92,"bs_rate_y03": 60.78,"je_rate_y03": 59.07,"bs_rate_hb": -1.23,"je_rate_hb": -3.53,"bs_rate_tb": 2.48,"je_rate_tb": 2.32},{"品牌": "茶理宜世","品类": "饮品","负责人": "warm","品牌id": "2215","次卡": "已上线","无忧会员": "","摇优惠": "存活","m03_bs_all": 1.64,"m03_je_all": 41.16,"m03_bs_xcx": 1.33,"m03_je_xcx": 33.2,"m02_bs_all": 2.1,"m02_je_all": 57.28,"m02_bs_xcx": 1.73,"m02_je_xcx": 47.18,"y03_bs_all": 2.88,"y03_je_all": 77.9,"y03_bs_xcx": 2.25,"y03_je_xcx": 61.42,"bs_rate_03": 81.29,"je_rate_03": 80.65,"bs_rate_02": 82.42,"je_rate_02": 82.37,"bs_rate_y03": 77.96,"je_rate_y03": 78.84,"bs_rate_hb": -1.13,"je_rate_hb": -1.72,"bs_rate_tb": 3.33,"je_rate_tb": 1.81},{"品牌": "探鱼","品类": "正餐","负责人": "振哥","品牌id": "1993","次卡": "","无忧会员": "","摇优惠": "存活","m03_bs_all": 1.43,"m03_je_all": 191.85,"m03_bs_xcx": 0.73,"m03_je_xcx": 119.07,"m02_bs_all": 1.77,"m02_je_all": 266.2,"m02_bs_xcx": 0.95,"m02_je_xcx": 172.98,"y03_bs_all": 1.45,"y03_je_all": 222.57,"y03_bs_xcx": 0.7,"y03_je_xcx": 136.9,"bs_rate_03": 51.01,"je_rate_03": 62.07,"bs_rate_02": 53.29,"je_rate_02": 64.98,"bs_rate_y03": 47.94,"je_rate_y03": 61.51,"bs_rate_hb": -2.28,"je_rate_hb": -2.91,"bs_rate_tb": 3.07,"je_rate_tb": 0.56},{"品牌": "张亮麻辣烫","品类": "正餐","负责人": "振哥","品牌id": "1443","次卡": "","无忧会员": "待沟通","摇优惠": "未存活","m03_bs_all": 21.84,"m03_je_all": 900.74,"m03_bs_xcx": 0.4,"m03_je_xcx": 282.42,"m02_bs_all": 19.55,"m02_je_all": 848.03,"m02_bs_xcx": 0.27,"m02_je_xcx": 249.03,"y03_bs_all": 22.44,"y03_je_all": 850.67,"y03_bs_xcx": 0.35,"y03_je_xcx": 224.2,"bs_rate_03": 1.81,"je_rate_03": 31.35,"bs_rate_02": 1.36,"je_rate_02": 29.37,"bs_rate_y03": 1.54,"je_rate_y03": 26.36,"bs_rate_hb": 0.45,"je_rate_hb": 1.98,"bs_rate_tb": 0.27,"je_rate_tb": 4.99},{"品牌": "库迪咖啡","品类": "饮品","负责人": "jancie","品牌id": "/","次卡": "","无忧会员": "","摇优惠": "未在线","has_data": false},{"品牌": "Manner","品类": "饮品","负责人": "jancie","品牌id": "/","次卡": "暂不考虑","无忧会员": "","摇优惠": "未在线","has_data": false}],"alerts": [{"brand": "幸运咖","owner": "jancie","reasons_up": ["笔数渗透率环比↑6.3pp","金额渗透率环比↑5.5pp"],"reasons_down": [],"bs_rate_03": 37.97,"bs_rate_02": 31.7,"bs_rate_hb": 6.27,"bs_rate_tb": -3.23,"je_rate_03": 41.38,"je_rate_02": 35.93,"je_rate_hb": 5.45,"je_rate_tb": -1.93,"direction": "up"},{"brand": "益禾堂","owner": "warm","reasons_up": ["笔数渗透率环比↑6.0pp"],"reasons_down": [],"bs_rate_03": 59.44,"bs_rate_02": 53.46,"bs_rate_hb": 5.98,"bs_rate_tb": 1.17,"je_rate_03": 57.2,"je_rate_02": 53.78,"je_rate_hb": 3.42,"je_rate_tb": 0.72,"direction": "up"},{"brand": "老乡鸡","owner": "振哥","reasons_up": ["金额渗透率环比↑14.7pp"],"reasons_down": [],"bs_rate_03": 17.31,"bs_rate_02": 16.25,"bs_rate_hb": 1.06,"bs_rate_tb": -5.83,"je_rate_03": 33.4,"je_rate_02": 18.7,"je_rate_hb": 14.7,"je_rate_tb": -6.67,"direction": "up"},{"brand": "绝味","owner": "振哥","reasons_up": ["笔数渗透率环比↑5.1pp"],"reasons_down": [],"bs_rate_03": 5.87,"bs_rate_02": 0.75,"bs_rate_hb": 5.12,"bs_rate_tb": 4.09,"je_rate_03": 1.03,"je_rate_02": 0.57,"je_rate_hb": 0.46,"je_rate_tb": -0.12,"direction": "up"},{"brand": "乡村基","owner": "小雪","reasons_up": [],"reasons_down": ["笔数渗透率环比↓6.7pp","金额渗透率环比↓8.1pp"],"bs_rate_03": 18.51,"bs_rate_02": 25.18,"bs_rate_hb": -6.67,"bs_rate_tb": -6.12,"je_rate_03": 22.5,"je_rate_02": 30.6,"je_rate_hb": -8.1,"je_rate_tb": -7.78,"direction": "down"},{"brand": "汉堡王","owner": "warm","reasons_up": ["笔数渗透率环比↑8.6pp","金额渗透率环比↑7.6pp"],"reasons_down": [],"bs_rate_03": 73.0,"bs_rate_02": 64.36,"bs_rate_hb": 8.64,"bs_rate_tb": -0.09,"je_rate_03": 70.74,"je_rate_02": 63.1,"je_rate_hb": 7.64,"je_rate_tb": -2.2,"direction": "up"}]};
 
 const OWNERS = ['jancie','小雪','warm','振哥'];
 const OWNER_COLORS = { jancie:'#e91e63', '小雪':'#9c27b0', warm:'#ff9800', '振哥':'#009688' };
@@ -470,9 +472,7 @@ const OWNER_COLORS = { jancie:'#e91e63', '小雪':'#9c27b0', warm:'#ff9800', '�
 // Identity — use localStorage for cross-page persistence
 // ============================================================
 const IDENTITY_KEY = 'ka_dashboard_identity';
-// 默认老板视角，不再弹身份选择
-let currentIdentity = localStorage.getItem(IDENTITY_KEY) || '老板';
-if (!localStorage.getItem(IDENTITY_KEY)) localStorage.setItem(IDENTITY_KEY, '老板');
+let currentIdentity = localStorage.getItem(IDENTITY_KEY) || null;
 
 function selectIdentity(name) {
   currentIdentity = name;
@@ -547,38 +547,15 @@ function showToast(msg) {
 }
 
 // ============================================================
-// 访问埋点 — 记录每次页面访问
-// ============================================================
-function trackVisit(page) {
-  try {
-    const isMobile = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
-    const identity = localStorage.getItem(IDENTITY_KEY) || '未知';
-    const info = {
-      page,
-      identity,
-      device: isMobile ? '手机' : '电脑',
-      screen: screen.width + 'x' + screen.height,
-      referrer: document.referrer || '直接访问',
-      ua: navigator.userAgent.slice(0, 150),
-      ts: new Date().toISOString()
-    };
-    sbClient.from('ka_feedbacks').insert({
-      brand_name: 'visit::' + page,
-      text: JSON.stringify(info),
-      owner: identity
-    }).then(() => {});
-  } catch(e) { /* 埋点失败不影响页面 */ }
-}
-
-// ============================================================
 // Init
 // ============================================================
 function init() {
-  // 访问埋点
-  trackVisit('KA运营总览');
-
-  // Identity — 默认老板视角，点击header角标可切换
-  document.getElementById('identityBadge').textContent = '👤 ' + currentIdentity;
+  // Identity
+  if (!currentIdentity) {
+    document.getElementById('identityOverlay').style.display = 'flex';
+  } else {
+    document.getElementById('identityBadge').textContent = '👤 ' + currentIdentity;
+  }
   
   // Set initial period badge
   updatePeriodBadge('overview');
@@ -590,9 +567,6 @@ function init() {
   renderOverview();
   renderCika();
   renderWuyou();
-  
-  // 从 Supabase 加载云端备注 + 一次性迁移本地备注
-  migrateLocalCommentsToCloud().then(() => loadCommentsFromCloud());
 }
 
 function populateFilters() {
@@ -603,7 +577,7 @@ function populateFilters() {
     const sel = document.getElementById(id);
     if(sel) owners.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; sel.appendChild(opt); });
   });
-  ['overviewFilterCat','cikaFilterCat','wuyouFilterCat'].forEach(id => {
+  ['overviewFilterCat'].forEach(id => {
     const sel = document.getElementById(id);
     if(sel) cats.forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; sel.appendChild(opt); });
   });
@@ -613,33 +587,14 @@ function populateFilters() {
     const el = document.getElementById(id);
     if(el) el.addEventListener(el.tagName==='INPUT'?'input':'change', renderOverviewTable);
   });
-  ['cikaFilterOwner','cikaFilterCat','cikaFilterStatus'].forEach(id => {
+  ['cikaFilterOwner','cikaFilterStatus'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('change', renderCikaTable);
   });
-  ['wuyouFilterOwner','wuyouFilterCat','wuyouFilterStatus'].forEach(id => {
+  ['wuyouFilterOwner','wuyouFilterStatus'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('change', renderWuyouTable);
   });
-}
-
-function clearFilters(panel) {
-  if (panel === 'overview') {
-    document.getElementById('overviewFilterOwner').value = '';
-    document.getElementById('overviewFilterCat').value = '';
-    document.getElementById('overviewSearch').value = '';
-    renderOverviewTable();
-  } else if (panel === 'cika') {
-    document.getElementById('cikaFilterOwner').value = '';
-    document.getElementById('cikaFilterCat').value = '';
-    document.getElementById('cikaFilterStatus').value = '__all__';
-    renderCikaTable();
-  } else if (panel === 'wuyou') {
-    document.getElementById('wuyouFilterOwner').value = '';
-    document.getElementById('wuyouFilterCat').value = '';
-    document.getElementById('wuyouFilterStatus').value = '__all__';
-    renderWuyouTable();
-  }
 }
 
 // ============================================================
@@ -724,15 +679,83 @@ function renderOverview() {
 
 // 渗透率波动监测模块
 let currentAlertType = 'bs';
-let alertFeedbacks = JSON.parse(localStorage.getItem('ka_alert_feedbacks') || '{}');
 
-function renderAlertMonitor() {
+// 反馈云端存储 (Cloudflare Worker + KV)
+const FEEDBACK_API = 'https://ka-feedback.jingnanss21.workers.dev/feedback';
+let _feedbackCache = {};  // 本地缓存，减少读取延迟
+
+async function loadAlertFeedbackFromServer() {
+  try {
+    const resp = await fetch(FEEDBACK_API);
+    if (resp.ok) {
+      _feedbackCache = await resp.json();
+    }
+  } catch(e) {
+    console.warn('加载反馈失败，使用本地缓存:', e.message);
+    // 降级读 localStorage
+    try { _feedbackCache = JSON.parse(localStorage.getItem('ka_alert_feedback') || '{}'); } catch(e2) {}
+  }
+  // 一次性迁移：把 localStorage 中的历史反馈数据同步到云端
+  await migrateLocalFeedback();
+  return _feedbackCache;
+}
+
+async function migrateLocalFeedback() {
+  if (localStorage.getItem('ka_feedback_migrated')) return; // 已迁移过，跳过
+  let localData = {};
+  try { localData = JSON.parse(localStorage.getItem('ka_alert_feedback') || '{}'); } catch(e) { return; }
+  const keys = Object.keys(localData);
+  if (keys.length === 0) { localStorage.setItem('ka_feedback_migrated', '1'); return; }
+  let migrated = 0;
+  for (const key of keys) {
+    const val = localData[key];
+    if (!val) continue;
+    // 如果云端已有该条且非空，不覆盖（保留其他同事的更新）
+    if (_feedbackCache[key] && _feedbackCache[key].trim()) continue;
+    try {
+      await fetch(FEEDBACK_API, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value: val })
+      });
+      _feedbackCache[key] = val;
+      migrated++;
+    } catch(e) { console.warn('迁移反馈失败:', key, e.message); }
+  }
+  localStorage.setItem('ka_feedback_migrated', '1');
+  if (migrated > 0) console.log('已迁移 ' + migrated + ' 条本地反馈到云端');
+}
+
+function loadAlertFeedback() {
+  return _feedbackCache;
+}
+
+let _saveTimer = null;
+function saveAlertFeedback(brand, cmpType, text) {
+  const key = brand + '_' + cmpType;
+  if (text) _feedbackCache[key] = text; else delete _feedbackCache[key];
+  // 同步写 localStorage 作为降级
+  try { localStorage.setItem('ka_alert_feedback', JSON.stringify(_feedbackCache)); } catch(e) {}
+  // 防抖写远端
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    fetch(FEEDBACK_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value: text })
+    }).catch(e => console.warn('保存反馈失败:', e.message));
+  }, 500);
+}
+
+async function renderAlertMonitor() {
   const alerts = KA_DATA.alerts || [];
   if (alerts.length === 0) return;
   
   const section = document.getElementById('alertMonitorSection');
   section.style.display = '';
   
+  // 先从服务器加载反馈
+  await loadAlertFeedbackFromServer();
   renderAlertContent(currentAlertType);
 }
 
@@ -746,147 +769,159 @@ function renderAlertContent(type) {
   const alerts = KA_DATA.alerts || [];
   const prefix = type === 'bs' ? 'bs' : 'je';
   const label = type === 'bs' ? '笔数' : '金额';
+  const fb = loadAlertFeedback();
   
-  // 过滤出该类型有异常的品牌（环比>5pp）
-  const relevant = alerts.filter(a => {
+  // ========== 环比异常 ==========
+  const momRelevant = alerts.filter(a => {
     const hb = a[`${prefix}_rate_hb`];
     return hb !== null && hb !== undefined && Math.abs(hb) > 5;
-  }).sort((a, b) => Math.abs(b[`${prefix}_rate_hb`] || 0) - Math.abs(a[`${prefix}_rate_hb`] || 0));
+  }).sort((a, b) => Math.abs(b[`${prefix}_rate_hb`]) - Math.abs(a[`${prefix}_rate_hb`]));
   
-  const upItems = relevant.filter(a => a[`${prefix}_rate_hb`] > 0);
-  const downItems = relevant.filter(a => a[`${prefix}_rate_hb`] < 0);
+  const momUp = momRelevant.filter(a => a[`${prefix}_rate_hb`] > 0);
+  const momDown = momRelevant.filter(a => a[`${prefix}_rate_hb`] < 0);
   
-  // 构建表头
-  function buildTableHeader() {
-    return `<table class="alert-table">
-      <thead>
-        <tr>
-          <th style="min-width:80px;text-align:left;">品牌</th>
-          <th style="min-width:50px;">负责人</th>
-          <th style="min-width:80px;">本月渗透率<br><span style="font-weight:400;font-size:10px;color:#94a3b8;">2026.03</span></th>
-          <th style="min-width:100px;">环比<br><span style="font-weight:400;font-size:10px;color:#94a3b8;">vs 2026.02</span></th>
-          <th style="min-width:100px;">同比<br><span style="font-weight:400;font-size:10px;color:#94a3b8;">vs 2025.03</span></th>
-          <th style="min-width:140px;">运营反馈</th>
-        </tr>
-      </thead>
-      <tbody>`;
-  }
+  // ========== 同比异常 ==========
+  const yoyRelevant = alerts.filter(a => {
+    const tb = a[`${prefix}_rate_tb`];
+    return tb !== null && tb !== undefined && Math.abs(tb) > 5;
+  }).sort((a, b) => Math.abs(b[`${prefix}_rate_tb`]) - Math.abs(a[`${prefix}_rate_tb`]));
   
-  function renderRow(item, isUp) {
-    const rate03 = item[`${prefix}_rate_03`];
-    const rate02 = item[`${prefix}_rate_02`];
-    const rateY03 = item[`${prefix}_rate_y03`];
-    const hb = item[`${prefix}_rate_hb`];
-    const tb = item[`${prefix}_rate_tb`];
-    
-    const hbAbs = Math.abs(hb || 0);
-    const hbArrow = hb >= 0 ? '↑' : '↓';
-    
-    const tbAbs = Math.abs(tb || 0);
-    const tbArrow = tb >= 0 ? '↑' : '↓';
-    
-    // 人工反馈
-    const fbKey = `alert::${type}::${item.brand}`;
-    const fbText = alertFeedbacks[fbKey] || '';
-    
-    return `<tr>
-      <td style="font-weight:600;font-size:13px;">${item.brand}</td>
-      <td style="color:var(--text-secondary);font-size:12px;">${item.owner}</td>
-      <td><span style="font-weight:700;font-size:14px;color:var(--primary);">${rate03 != null ? rate03.toFixed(1) + '%' : '-'}</span></td>
-      <td>
-        <span class="change-badge ${hb >= 0 ? 'up' : 'down'}">${hbArrow} ${hbAbs.toFixed(1)}pp</span>
-        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">上月 ${rate02 != null ? rate02.toFixed(1) + '%' : '-'}</div>
-      </td>
-      <td>
-        ${tb != null ? `<span class="change-badge ${tb >= 0 ? 'up' : 'down'}">${tbArrow} ${tbAbs.toFixed(1)}pp</span>
-        <div style="font-size:11px;color:#94a3b8;margin-top:2px;">去年 ${rateY03 != null ? rateY03.toFixed(1) + '%' : '-'}</div>` : '<span style="color:#a3a3a3;">-</span>'}
-      </td>
-      <td class="alert-feedback">
-        <div class="cell-text${fbText ? '' : ' empty'}" onclick="editAlertFeedback(this,'${type}','${item.brand}')">${fbText || '点击添加...'}</div>
-      </td>
-    </tr>`;
-  }
+  const yoyUp = yoyRelevant.filter(a => a[`${prefix}_rate_tb`] > 0);
+  const yoyDown = yoyRelevant.filter(a => a[`${prefix}_rate_tb`] < 0);
   
   let html = '';
   
-  // 上升区域
-  html += `<div class="alert-direction-header up">
-    <span>📈 ${label}渗透率上升</span>
-    <span style="font-weight:400;font-size:12px;background:#dcfce7;padding:2px 8px;border-radius:10px;">${upItems.length}个品牌</span>
+  // ====== 环比 Block ======
+  html += '<div class="alert-block">';
+  html += `<div class="alert-block-header mom-hdr">
+    <span>📊 环比波动</span>
+    <span class="period-tag mom">2026年3月 vs 2026年2月</span>
+    <span class="count-tag">${momRelevant.length} 个品牌触发</span>
   </div>`;
-  if (upItems.length > 0) {
-    html += '<div class="alert-table-wrap up">';
-    html += buildTableHeader();
-    upItems.forEach(a => { html += renderRow(a, true); });
-    html += '</tbody></table></div>';
+  if (momRelevant.length === 0) {
+    html += `<div class="alert-no-data" style="border:1px solid #dbeafe;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}渗透率环比波动均 ≤ 5pp，无异常</div>`;
   } else {
-    html += `<div class="alert-table-wrap up" style="padding:20px;text-align:center;color:#a3a3a3;font-size:12px;">暂无${label}渗透率环比上升>5pp的品牌</div>`;
+    html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
+    html += renderAlertGroup(momUp, momDown, prefix, 'hb', '03', '02', '3月', '2月', 'mom', fb, label);
+    html += '</div>';
   }
+  html += '</div>';
   
-  // 下降区域
-  html += `<div class="alert-direction-header down">
-    <span>📉 ${label}渗透率下降</span>
-    <span style="font-weight:400;font-size:12px;background:#fee2e2;padding:2px 8px;border-radius:10px;">${downItems.length}个品牌</span>
+  // ====== 同比 Block ======
+  html += '<div class="alert-block">';
+  html += `<div class="alert-block-header yoy-hdr">
+    <span>📊 同比波动</span>
+    <span class="period-tag yoy">2026年3月 vs 2025年3月</span>
+    <span class="count-tag">${yoyRelevant.length} 个品牌触发</span>
   </div>`;
-  if (downItems.length > 0) {
-    html += '<div class="alert-table-wrap down">';
-    html += buildTableHeader();
-    downItems.forEach(a => { html += renderRow(a, false); });
-    html += '</tbody></table></div>';
+  if (yoyRelevant.length === 0) {
+    html += `<div class="alert-no-data" style="border:1px solid #f3e8ff;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}渗透率同比波动均 ≤ 5pp，无异常</div>`;
   } else {
-    html += `<div class="alert-table-wrap down" style="padding:20px;text-align:center;color:#a3a3a3;font-size:12px;">暂无${label}渗透率环比下降>5pp的品牌</div>`;
+    html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
+    html += renderAlertGroup(yoyUp, yoyDown, prefix, 'tb', '03', 'y03', '26年3月', '25年3月', 'yoy', fb, label);
+    html += '</div>';
   }
+  html += '</div>';
   
   document.getElementById('alertMonitorContent').innerHTML = html;
+  
+  // 绑定反馈输入事件
+  document.querySelectorAll('#alertMonitorContent .alert-feedback-input').forEach(input => {
+    input.addEventListener('change', function() {
+      saveAlertFeedback(this.dataset.brand, this.dataset.cmptype, this.value.trim());
+    });
+    input.addEventListener('blur', function() {
+      saveAlertFeedback(this.dataset.brand, this.dataset.cmptype, this.value.trim());
+    });
+  });
 }
 
-// 人工反馈编辑
-function editAlertFeedback(el, type, brand) {
-  const fbKey = `alert::${type}::${brand}`;
-  const current = alertFeedbacks[fbKey] || '';
-  el.innerHTML = `<input type="text" value="${current}" onblur="saveAlertFeedback(this,'${type}','${brand}')" onkeydown="if(event.key==='Enter')this.blur()" autofocus placeholder="输入反馈原因...">`;
-  el.querySelector('input').focus();
+function renderAlertGroup(upList, downList, prefix, suffix, curPeriod, prevPeriod, curLabel, prevLabel, cmpType, fb, label) {
+  const all = [...upList, ...downList];
+  const maxAbs = Math.max(...all.map(a => Math.abs(a[`${prefix}_rate_${suffix}`] || 0)), 10);
+  const barGradientUp = 'linear-gradient(90deg, #86efac, #22c55e)';
+  const barGradientDown = 'linear-gradient(90deg, #fca5a5, #ef4444)';
+  let html = '';
+  
+  // 列标题行
+  html += `<div class="alert-bar-row" style="background:#f9fafb;border-bottom:2px solid #e5e7eb;font-size:11px;font-weight:600;color:var(--text-secondary);padding:8px 14px;">
+    <div class="alert-bar-brand">品牌</div>
+    <div class="alert-bar-owner">负责人</div>
+    <div class="alert-bar-chart">变化幅度</div>
+    <div class="alert-bar-values" style="justify-content:center;">${curLabel} ← ${prevLabel}</div>
+    <div class="alert-bar-feedback" style="text-align:center;">反馈说明</div>
+  </div>`;
+  
+  // 上升品牌
+  if (upList.length > 0) {
+    html += `<div class="alert-sub-header up-hdr">📈 ${label}渗透率上升（${upList.length}个品牌）</div>`;
+    upList.forEach(a => {
+      const pp = a[`${prefix}_rate_${suffix}`];
+      const absHb = Math.abs(pp);
+      const barPct = Math.min((absHb / maxAbs) * 100, 100);
+      const curRate = a[`${prefix}_rate_${curPeriod}`];
+      const prevRate = a[`${prefix}_rate_${prevPeriod}`];
+      const fbKey = a.brand + '_' + cmpType;
+      const fbVal = fb[fbKey] || '';
+      html += `<div class="alert-bar-row">
+        <div class="alert-bar-brand">${a.brand}</div>
+        <div class="alert-bar-owner">${a.owner}</div>
+        <div class="alert-bar-chart">
+          <div class="alert-bar-track">
+            <div class="alert-bar-fill" style="width:${barPct}%;background:${barGradientUp};">
+              ${absHb >= 3 ? `↑${absHb.toFixed(1)}pp` : ''}
+            </div>
+          </div>
+          ${absHb < 3 ? `<span style="font-size:11px;font-weight:600;color:#15803d;">↑${absHb.toFixed(1)}pp</span>` : ''}
+        </div>
+        <div class="alert-bar-values">
+          <span title="${curLabel}渗透率"><b style="color:var(--primary)">${curRate != null ? curRate.toFixed(1) + '%' : '-'}</b></span>
+          <span style="color:#a3a3a3">←</span>
+          <span title="${prevLabel}渗透率" style="color:var(--text-secondary)">${prevRate != null ? prevRate.toFixed(1) + '%' : '-'}</span>
+        </div>
+        <div class="alert-bar-feedback"><input class="alert-feedback-input" data-brand="${a.brand}" data-cmptype="${cmpType}" placeholder="输入反馈..." value="${escAlertHtml(fbVal)}"/></div>
+      </div>`;
+    });
+  }
+  
+  // 下降品牌
+  if (downList.length > 0) {
+    html += `<div class="alert-sub-header down-hdr">📉 ${label}渗透率下降（${downList.length}个品牌）</div>`;
+    downList.forEach(a => {
+      const pp = a[`${prefix}_rate_${suffix}`];
+      const absHb = Math.abs(pp);
+      const barPct = Math.min((absHb / maxAbs) * 100, 100);
+      const curRate = a[`${prefix}_rate_${curPeriod}`];
+      const prevRate = a[`${prefix}_rate_${prevPeriod}`];
+      const fbKey = a.brand + '_' + cmpType;
+      const fbVal = fb[fbKey] || '';
+      html += `<div class="alert-bar-row">
+        <div class="alert-bar-brand">${a.brand}</div>
+        <div class="alert-bar-owner">${a.owner}</div>
+        <div class="alert-bar-chart">
+          <div class="alert-bar-track">
+            <div class="alert-bar-fill" style="width:${barPct}%;background:${barGradientDown};">
+              ${absHb >= 3 ? `↓${absHb.toFixed(1)}pp` : ''}
+            </div>
+          </div>
+          ${absHb < 3 ? `<span style="font-size:11px;font-weight:600;color:#dc2626;">↓${absHb.toFixed(1)}pp</span>` : ''}
+        </div>
+        <div class="alert-bar-values">
+          <span title="${curLabel}渗透率"><b style="color:var(--primary)">${curRate != null ? curRate.toFixed(1) + '%' : '-'}</b></span>
+          <span style="color:#a3a3a3">←</span>
+          <span title="${prevLabel}渗透率" style="color:var(--text-secondary)">${prevRate != null ? prevRate.toFixed(1) + '%' : '-'}</span>
+        </div>
+        <div class="alert-bar-feedback"><input class="alert-feedback-input" data-brand="${a.brand}" data-cmptype="${cmpType}" placeholder="输入反馈..." value="${escAlertHtml(fbVal)}"/></div>
+      </div>`;
+    });
+  }
+  
+  return html;
 }
 
-async function saveAlertFeedback(input, type, brand) {
-  const val = input.value.trim();
-  const fbKey = `alert::${type}::${brand}`;
-  const identity = localStorage.getItem(IDENTITY_KEY) || '';
-  
-  if (val) {
-    alertFeedbacks[fbKey] = val;
-  } else {
-    delete alertFeedbacks[fbKey];
-  }
-  localStorage.setItem('ka_alert_feedbacks', JSON.stringify(alertFeedbacks));
-  
-  const cell = input.parentElement;
-  cell.className = 'cell-text' + (val ? '' : ' empty');
-  cell.textContent = val || '点击添加反馈...';
-  
-  // 写 Supabase
-  try {
-    const sbBrand = 'alert_' + type + '::' + brand;
-    if (val) {
-      const { data: existing } = await sbClient.from('ka_feedbacks')
-        .select('id').eq('brand_name', sbBrand).limit(1);
-      if (existing && existing.length > 0) {
-        await sbClient.from('ka_feedbacks')
-          .update({ text: val, owner: identity })
-          .eq('id', existing[0].id);
-      } else {
-        await sbClient.from('ka_feedbacks')
-          .insert({ brand_name: sbBrand, text: val, owner: identity });
-      }
-    } else {
-      await sbClient.from('ka_feedbacks')
-        .delete().eq('brand_name', sbBrand);
-    }
-    if (val) showToast('反馈已保存（已同步云端）');
-  } catch (e) {
-    console.error('Supabase alert feedback save error:', e);
-    if (val) showToast('反馈已保存（本地）');
-  }
+function escAlertHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function scrollToSection(id) {
@@ -995,23 +1030,19 @@ document.getElementById('overviewTable').addEventListener('click', e => {
 // ============================================================ ============================================================
 // PANEL: Cika (次卡)
 // ============================================================
-let cikaComments = {}; // { brand: [{text, owner, time}] }
-let cikaSortCol = 'status'; // 'status' or 'comment'
-let cikaSortDir = null;
-let cikaStatusOverrides = JSON.parse(localStorage.getItem('ka_cika_status_overrides') || '{}');
+const cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}');
+let cikaSortDir = null; // null=默认(状态序), 'asc', 'desc'
 
 function renderCika() {
   const brands = KA_DATA.brands;
-  // 状态计数时考虑前端覆盖
-  const getStatus = b => cikaStatusOverrides[b['品牌']] || b['次卡'] || '';
-  const online = brands.filter(b => getStatus(b) === '已上线').length;
-  const interest = brands.filter(b => getStatus(b) === '有意向').length;
-  const notNow = brands.filter(b => getStatus(b) === '暂不考虑').length;
+  const online = brands.filter(b => b['次卡'] === '已上线').length;
+  const interest = brands.filter(b => b['次卡'] === '有意向').length;
+  const notConsider = brands.filter(b => b['次卡'] === '暂不考虑').length;
+  const notTalked = brands.filter(b => !b['次卡']).length;
   
   document.getElementById('cikaStatusGrid').innerHTML = `
     <div class="status-card sc-green"><div class="sc-icon">✅</div><div class="sc-value">${online}</div><div class="sc-label">已上线</div></div>
     <div class="status-card sc-yellow"><div class="sc-icon">💬</div><div class="sc-value">${interest}</div><div class="sc-label">有意向</div></div>
-    <div class="status-card sc-red"><div class="sc-icon">🚫</div><div class="sc-value">${notNow}</div><div class="sc-label">暂不考虑</div></div>
   `;
   
   renderCikaTable();
@@ -1019,63 +1050,41 @@ function renderCika() {
 
 function renderCikaTable() {
   const owner = document.getElementById('cikaFilterOwner').value;
-  const cat = document.getElementById('cikaFilterCat').value;
   const status = document.getElementById('cikaFilterStatus').value;
   
   let data = KA_DATA.brands.filter(b => {
-    const st = cikaStatusOverrides[b['品牌']] || b['次卡'] || '';
     if (owner && b['负责人'] !== owner) return false;
-    if (cat && b['品类'] !== cat) return false;
     if (status !== '__all__') {
-      if (status === '__empty__') { if (st) return false; }
-      else { if (st !== status) return false; }
+      if (status === '__empty__') { if (b['次卡']) return false; }
+      else { if (b['次卡'] !== status) return false; }
     }
     return true;
   });
   
+  // Sort: 已上线 first, then 有意向, then rest
   const statusOrder = {'已上线':0, '有意向':1, '暂不考虑':2, '':3};
-  
-  if (cikaSortCol === 'comment') {
-    // 按最新备注时间排序，有备注的在前，无备注的在后
+  if (cikaSortDir) {
     data.sort((a, b) => {
-      const ea = cikaComments[a['品牌']] || [];
-      const eb = cikaComments[b['品牌']] || [];
-      if (ea.length === 0 && eb.length === 0) return 0;
-      if (ea.length === 0) return 1;
-      if (eb.length === 0) return -1;
-      // 比较最新一条备注的时间（格式: M/D HH:MM）
-      const ta = ea[ea.length - 1].time || '';
-      const tb = eb[eb.length - 1].time || '';
-      if (cikaSortDir === 'asc') return ta.localeCompare(tb);
-      return tb.localeCompare(ta);
+      const va = statusOrder[a['次卡']]??3;
+      const vb = statusOrder[b['次卡']]??3;
+      return cikaSortDir === 'asc' ? va - vb : vb - va;
     });
   } else {
-    if (cikaSortDir) {
-      data.sort((a, b) => {
-        const va = statusOrder[cikaStatusOverrides[a['品牌']] || a['次卡'] || ''] ?? 3;
-        const vb = statusOrder[cikaStatusOverrides[b['品牌']] || b['次卡'] || ''] ?? 3;
-        return cikaSortDir === 'asc' ? va - vb : vb - va;
-      });
-    } else {
-      data.sort((a, b) => {
-        const va = statusOrder[cikaStatusOverrides[a['品牌']] || a['次卡'] || ''] ?? 3;
-        const vb = statusOrder[cikaStatusOverrides[b['品牌']] || b['次卡'] || ''] ?? 3;
-        return va - vb;
-      });
-    }
+    data.sort((a, b) => (statusOrder[a['次卡']]??3) - (statusOrder[b['次卡']]??3));
   }
   
   const tbody = document.getElementById('cikaTbody');
   tbody.innerHTML = data.map((b, idx) => {
-    const curStatus = cikaStatusOverrides[b['品牌']] || b['次卡'] || '';
-    const entries = cikaComments[b['品牌']] || [];
+    const comment = cikaComments[b['品牌']] || '';
     return `<tr>
       <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
       <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
       <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
-      <td>${renderStatusSelect('cika', b['品牌'], curStatus)}</td>
-      <td class="editable-cell">${renderFeedbackCell('cika', b['品牌'], entries)}</td>
+      <td>${statusTag(b['次卡'])}</td>
+      <td class="editable-cell">
+        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'cika','${b['品牌']}')">${comment || '点击添加备注...'}</div>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1084,44 +1093,29 @@ function renderCikaTable() {
 document.getElementById('cikaTable').addEventListener('click', e => {
   const th = e.target.closest('th.sortable');
   if (!th) return;
-  const sortKey = th.dataset.sort;
-  if (sortKey === 'cika-status') {
-    if (cikaSortCol !== 'status' || !cikaSortDir) { cikaSortCol = 'status'; cikaSortDir = 'asc'; }
-    else if (cikaSortDir === 'asc') cikaSortDir = 'desc';
-    else { cikaSortCol = 'status'; cikaSortDir = null; }
-  } else if (sortKey === 'cika-comment') {
-    if (cikaSortCol !== 'comment') { cikaSortCol = 'comment'; cikaSortDir = 'desc'; }
-    else if (cikaSortDir === 'desc') cikaSortDir = 'asc';
-    else { cikaSortCol = 'status'; cikaSortDir = null; }
-  }
-  document.querySelectorAll('#cikaTable th.sortable').forEach(t => t.classList.remove('sort-asc','sort-desc'));
-  if (cikaSortDir) {
-    const activeKey = cikaSortCol === 'comment' ? 'cika-comment' : 'cika-status';
-    const activeTh = document.querySelector(`#cikaTable th[data-sort="${activeKey}"]`);
-    if (activeTh) activeTh.classList.add('sort-' + cikaSortDir);
-  }
+  if (cikaSortDir === null) cikaSortDir = 'desc';
+  else if (cikaSortDir === 'desc') cikaSortDir = 'asc';
+  else cikaSortDir = null;
+  document.querySelectorAll('#cikaTable th.sortable').forEach(t => { t.classList.remove('sort-asc','sort-desc'); });
+  if (cikaSortDir) th.classList.add('sort-' + cikaSortDir);
   renderCikaTable();
 });
 
 // ============================================================
 // PANEL: Wuyou (无忧会员)
 // ============================================================
-let wuyouComments = {};
-let wuyouSortCol = 'status';
+const wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}');
 let wuyouSortDir = null;
-let wuyouStatusOverrides = JSON.parse(localStorage.getItem('ka_wuyou_status_overrides') || '{}');
 
 function renderWuyou() {
   const brands = KA_DATA.brands;
-  const getStatus = b => wuyouStatusOverrides[b['品牌']] || b['无忧会员'] || '';
-  const interest = brands.filter(b => getStatus(b) === '有意向').length;
-  const notNow = brands.filter(b => getStatus(b) === '暂不考虑').length;
-  const noContact = brands.filter(b => !getStatus(b)).length;
+  const interest = brands.filter(b => b['无忧会员'] === '有意向').length;
+  const pending = brands.filter(b => b['无忧会员'] === '待沟通').length;
+  const notTalked = brands.filter(b => !b['无忧会员']).length;
   
   document.getElementById('wuyouStatusGrid').innerHTML = `
     <div class="status-card sc-yellow"><div class="sc-icon">💬</div><div class="sc-value">${interest}</div><div class="sc-label">有意向</div></div>
-    <div class="status-card sc-red"><div class="sc-icon">🚫</div><div class="sc-value">${notNow}</div><div class="sc-label">暂不考虑</div></div>
-    <div class="status-card sc-blue"><div class="sc-icon">📋</div><div class="sc-value">${noContact}</div><div class="sc-label">未沟通</div></div>
+    <div class="status-card sc-blue"><div class="sc-icon">📞</div><div class="sc-value">${pending}</div><div class="sc-label">待沟通</div></div>
   `;
   
   renderWuyouTable();
@@ -1129,61 +1123,40 @@ function renderWuyou() {
 
 function renderWuyouTable() {
   const owner = document.getElementById('wuyouFilterOwner').value;
-  const cat = document.getElementById('wuyouFilterCat').value;
   const status = document.getElementById('wuyouFilterStatus').value;
   
   let data = KA_DATA.brands.filter(b => {
-    const st = wuyouStatusOverrides[b['品牌']] || b['无忧会员'] || '';
     if (owner && b['负责人'] !== owner) return false;
-    if (cat && b['品类'] !== cat) return false;
     if (status !== '__all__') {
-      if (status === '__empty__') { if (st) return false; }
-      else { if (st !== status) return false; }
+      if (status === '__empty__') { if (b['无忧会员']) return false; }
+      else { if (b['无忧会员'] !== status) return false; }
     }
     return true;
   });
   
-  const statusOrder = {'有意向':0, '暂不考虑':1, '':2};
-  
-  if (wuyouSortCol === 'comment') {
+  const statusOrder = {'有意向':0, '待沟通':1, '':2};
+  if (wuyouSortDir) {
     data.sort((a, b) => {
-      const ea = wuyouComments[a['品牌']] || [];
-      const eb = wuyouComments[b['品牌']] || [];
-      if (ea.length === 0 && eb.length === 0) return 0;
-      if (ea.length === 0) return 1;
-      if (eb.length === 0) return -1;
-      const ta = ea[ea.length - 1].time || '';
-      const tb = eb[eb.length - 1].time || '';
-      if (wuyouSortDir === 'asc') return ta.localeCompare(tb);
-      return tb.localeCompare(ta);
+      const va = statusOrder[a['无忧会员']]??2;
+      const vb = statusOrder[b['无忧会员']]??2;
+      return wuyouSortDir === 'asc' ? va - vb : vb - va;
     });
   } else {
-    if (wuyouSortDir) {
-      data.sort((a, b) => {
-        const va = statusOrder[wuyouStatusOverrides[a['品牌']] || a['无忧会员'] || ''] ?? 2;
-        const vb = statusOrder[wuyouStatusOverrides[b['品牌']] || b['无忧会员'] || ''] ?? 2;
-        return wuyouSortDir === 'asc' ? va - vb : vb - va;
-      });
-    } else {
-      data.sort((a, b) => {
-        const va = statusOrder[wuyouStatusOverrides[a['品牌']] || a['无忧会员'] || ''] ?? 2;
-        const vb = statusOrder[wuyouStatusOverrides[b['品牌']] || b['无忧会员'] || ''] ?? 2;
-        return va - vb;
-      });
-    }
+    data.sort((a, b) => (statusOrder[a['无忧会员']]??2) - (statusOrder[b['无忧会员']]??2));
   }
   
   const tbody = document.getElementById('wuyouTbody');
   tbody.innerHTML = data.map((b, idx) => {
-    const curStatus = wuyouStatusOverrides[b['品牌']] || b['无忧会员'] || '';
-    const entries = wuyouComments[b['品牌']] || [];
+    const comment = wuyouComments[b['品牌']] || '';
     return `<tr>
       <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
       <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
       <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
-      <td>${renderStatusSelect('wuyou', b['品牌'], curStatus)}</td>
-      <td class="editable-cell">${renderFeedbackCell('wuyou', b['品牌'], entries)}</td>
+      <td>${statusTag(b['无忧会员'])}</td>
+      <td class="editable-cell">
+        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'wuyou','${b['品牌']}')">${comment || '点击添加备注...'}</div>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1192,321 +1165,43 @@ function renderWuyouTable() {
 document.getElementById('wuyouTable').addEventListener('click', e => {
   const th = e.target.closest('th.sortable');
   if (!th) return;
-  const sortKey = th.dataset.sort;
-  if (sortKey === 'wuyou-status') {
-    if (wuyouSortCol !== 'status' || !wuyouSortDir) { wuyouSortCol = 'status'; wuyouSortDir = 'asc'; }
-    else if (wuyouSortDir === 'asc') wuyouSortDir = 'desc';
-    else { wuyouSortCol = 'status'; wuyouSortDir = null; }
-  } else if (sortKey === 'wuyou-comment') {
-    if (wuyouSortCol !== 'comment') { wuyouSortCol = 'comment'; wuyouSortDir = 'desc'; }
-    else if (wuyouSortDir === 'desc') wuyouSortDir = 'asc';
-    else { wuyouSortCol = 'status'; wuyouSortDir = null; }
-  }
-  document.querySelectorAll('#wuyouTable th.sortable').forEach(t => t.classList.remove('sort-asc','sort-desc'));
-  if (wuyouSortDir) {
-    const activeKey = wuyouSortCol === 'comment' ? 'wuyou-comment' : 'wuyou-status';
-    const activeTh = document.querySelector(`#wuyouTable th[data-sort="${activeKey}"]`);
-    if (activeTh) activeTh.classList.add('sort-' + wuyouSortDir);
-  }
+  if (wuyouSortDir === null) wuyouSortDir = 'desc';
+  else if (wuyouSortDir === 'desc') wuyouSortDir = 'asc';
+  else wuyouSortDir = null;
+  document.querySelectorAll('#wuyouTable th.sortable').forEach(t => { t.classList.remove('sort-asc','sort-desc'); });
+  if (wuyouSortDir) th.classList.add('sort-' + wuyouSortDir);
   renderWuyouTable();
 });
 
 // ============================================================
-// Status select rendering & editing
+// Editable comments
 // ============================================================
-const CIKA_STATUSES = ['已上线', '有意向', '暂不考虑', ''];
-const WUYOU_STATUSES = ['有意向', '暂不考虑', ''];
-
-function renderStatusSelect(type, brand, curStatus) {
-  const statuses = type === 'cika' ? CIKA_STATUSES : WUYOU_STATUSES;
-  const colorMap = { '已上线':['#dcfce7','#15803d'], '有意向':['#fef3c7','#d97706'], '暂不考虑':['#fee2e2','#dc2626'], '':['#f1f5f9','#64748b'] };
-  const colors = colorMap[curStatus] || colorMap[''];
+function editComment(el, type, brand) {
+  const storageKey = type === 'cika' ? 'ka_cika_comments' : 'ka_wuyou_comments';
+  const commentsObj = type === 'cika' ? cikaComments : wuyouComments;
+  const current = commentsObj[brand] || '';
   
-  let opts = statuses.map(s => {
-    const label = s || '未沟通';
-    const selected = s === curStatus ? 'selected' : '';
-    return `<option value="${s}" ${selected}>${label}</option>`;
-  }).join('');
-  
-  const safeBrand = brand.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-  return `<select class="status-select" style="background:${colors[0]};color:${colors[1]}" onchange="updateSelectColor(this);changeStatus('${type}','${safeBrand}',this.value)">${opts}</select>`;
+  el.innerHTML = `<input type="text" value="${current}" onblur="saveComment(this,'${type}','${brand}')" onkeydown="if(event.key==='Enter')this.blur()" autofocus placeholder="输入备注...">`;
+  el.querySelector('input').focus();
 }
 
-function updateSelectColor(sel) {
-  const colorMap = { '已上线':['#dcfce7','#15803d'], '有意向':['#fef3c7','#d97706'], '暂不考虑':['#fee2e2','#dc2626'], '':['#f1f5f9','#64748b'] };
-  const colors = colorMap[sel.value] || colorMap[''];
-  sel.style.background = colors[0];
-  sel.style.color = colors[1];
-}
-
-async function changeStatus(type, brand, newStatus) {
-  const overrides = type === 'cika' ? cikaStatusOverrides : wuyouStatusOverrides;
-  const storageKey = type === 'cika' ? 'ka_cika_status_overrides' : 'ka_wuyou_status_overrides';
-  
-  overrides[brand] = newStatus;
-  localStorage.setItem(storageKey, JSON.stringify(overrides));
-  
-  // 存 Supabase
-  try {
-    const sbBrand = 'status_' + type + '::' + brand;
-    const { data: existing } = await sbClient.from('ka_feedbacks')
-      .select('id').eq('brand_name', sbBrand).limit(1);
-    if (existing && existing.length > 0) {
-      await sbClient.from('ka_feedbacks')
-        .update({ text: newStatus, owner: localStorage.getItem(IDENTITY_KEY) || '' })
-        .eq('id', existing[0].id);
-    } else {
-      await sbClient.from('ka_feedbacks')
-        .insert({ brand_name: sbBrand, text: newStatus, owner: localStorage.getItem(IDENTITY_KEY) || '' });
-    }
-  } catch (e) { console.error('Status save error:', e); }
-  
-  // 重新渲染
-  if (type === 'cika') renderCika(); else renderWuyou();
-  showToast('状态已更新');
-}
-
-// ============================================================
-// Feedback cell with timestamps (multi-entry)
-// ============================================================
-function renderFeedbackCell(type, brand, entries) {
-  let html = '';
-  if (entries.length > 0) {
-    html += '<div class="fb-entries">';
-    entries.forEach((e, idx) => {
-      const timeStr = e.time || '';
-      const ownerStr = e.owner || '';
-      const safeText = escHtml(e.text);
-      const safeBrand = escHtml(brand).replace(/'/g, "\\'");
-      html += `<div class="fb-entry" data-idx="${idx}">
-        <div class="fb-content"><span class="fb-time">${timeStr}</span>${safeText}</div>
-        <div class="fb-actions">
-          <button class="fb-act-btn edit" title="编辑" onclick="editFbEntry('${type}','${safeBrand}',${idx})">✏️</button>
-          <button class="fb-act-btn del" title="删除" onclick="deleteFbEntry('${type}','${safeBrand}',${idx})">🗑</button>
-        </div>
-      </div>`;
-    });
-    html += '</div>';
-  }
-  html += `<span class="fb-add-btn" onclick="showFbInput(this,'${type}','${brand}')">＋ 添加备注</span>`;
-  return html;
-}
-
-function escHtml(s) {
-  return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
-}
-
-function showFbInput(el, type, brand) {
-  // Replace the add button with input
-  const wrap = el.parentElement;
-  el.outerHTML = `<div class="fb-input-wrap">
-    <input type="text" placeholder="输入备注..." onkeydown="if(event.key==='Enter'){event.preventDefault();submitFeedback(this,'${type}','${brand}');}">
-    <button onclick="submitFeedback(this.previousElementSibling,'${type}','${brand}')">提交</button>
-  </div>`;
-  wrap.querySelector('.fb-input-wrap input').focus();
-}
-
-async function submitFeedback(input, type, brand) {
+function saveComment(input, type, brand) {
   const val = input.value.trim();
-  if (!val) return;
-  
-  const identity = localStorage.getItem(IDENTITY_KEY) || '';
-  const now = new Date();
-  const timeStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  
-  // Add to local data
+  const storageKey = type === 'cika' ? 'ka_cika_comments' : 'ka_wuyou_comments';
   const commentsObj = type === 'cika' ? cikaComments : wuyouComments;
-  if (!commentsObj[brand]) commentsObj[brand] = [];
-  const newEntry = { text: val, owner: identity, time: timeStr };
-  commentsObj[brand].push(newEntry);
   
-  // 写 Supabase（追加模式，每条备注一行）
-  try {
-    const sbBrand = type + '::' + brand;
-    const { data: inserted } = await sbClient.from('ka_feedbacks')
-      .insert({ brand_name: sbBrand, text: val, owner: identity })
-      .select('id');
-    if (inserted && inserted[0]) newEntry.id = inserted[0].id;
-    showToast('备注已保存（已同步云端）');
-  } catch (e) {
-    console.error('Feedback save error:', e);
-    showToast('备注已保存（本地）');
-  }
-  
-  // Re-render
-  if (type === 'cika') renderCika(); else renderWuyou();
-}
-
-// 编辑已有反馈
-function editFbEntry(type, brand, idx) {
-  const commentsObj = type === 'cika' ? cikaComments : wuyouComments;
-  const entries = commentsObj[brand] || [];
-  if (idx >= entries.length) return;
-  const entry = entries[idx];
-  
-  // 找到对应DOM
-  const table = document.getElementById(type === 'cika' ? 'cikaTbody' : 'wuyouTbody');
-  const allEntryDivs = table.querySelectorAll(`.fb-entry[data-idx="${idx}"]`);
-  // 找到对应品牌行的那个
-  let targetDiv = null;
-  allEntryDivs.forEach(div => {
-    const cell = div.closest('.editable-cell');
-    if (cell) {
-      const row = cell.closest('tr');
-      const brandCell = row && row.children[1];
-      if (brandCell && brandCell.textContent.trim() === brand) targetDiv = div;
-    }
-  });
-  if (!targetDiv) return;
-  
-  targetDiv.innerHTML = `<div class="fb-edit-wrap">
-    <input type="text" value="${escHtml(entry.text)}" onkeydown="if(event.key==='Enter'){event.preventDefault();saveFbEdit(this,'${type}','${brand.replace(/'/g, "\\'")}',${idx});}" autofocus>
-    <button class="fb-save-btn" onclick="saveFbEdit(this.parentElement.querySelector('input'),'${type}','${brand.replace(/'/g, "\\'")}',${idx})">保存</button>
-    <button class="fb-cancel-btn" onclick="if('${type}'==='cika')renderCika();else renderWuyou();">取消</button>
-  </div>`;
-  targetDiv.querySelector('input').focus();
-}
-
-async function saveFbEdit(input, type, brand, idx) {
-  const val = input.value.trim();
-  if (!val) return;
-  
-  const commentsObj = type === 'cika' ? cikaComments : wuyouComments;
-  const entries = commentsObj[brand] || [];
-  if (idx >= entries.length) return;
-  
-  const entry = entries[idx];
-  const oldText = entry.text;
-  entry.text = val;
-  
-  // 更新 Supabase
-  if (entry.id) {
-    try {
-      await sbClient.from('ka_feedbacks').update({ text: val }).eq('id', entry.id);
-      showToast('备注已更新');
-    } catch (e) {
-      console.error('Feedback update error:', e);
-      showToast('备注已更新（本地）');
-    }
+  if (val) {
+    commentsObj[brand] = val;
   } else {
-    showToast('备注已更新（本地）');
+    delete commentsObj[brand];
   }
+  localStorage.setItem(storageKey, JSON.stringify(commentsObj));
   
-  if (type === 'cika') renderCika(); else renderWuyou();
-}
-
-// 删除已有反馈
-async function deleteFbEntry(type, brand, idx) {
-  if (!confirm('确定删除这条备注吗？')) return;
+  const cell = input.closest('.cell-text') || input.parentElement;
+  cell.className = 'cell-text' + (val ? '' : ' empty');
+  cell.textContent = val || '点击添加备注...';
   
-  const commentsObj = type === 'cika' ? cikaComments : wuyouComments;
-  const entries = commentsObj[brand] || [];
-  if (idx >= entries.length) return;
-  
-  const entry = entries[idx];
-  
-  // 从数组中移除
-  entries.splice(idx, 1);
-  if (entries.length === 0) delete commentsObj[brand];
-  
-  // 从 Supabase 删除
-  if (entry.id) {
-    try {
-      await sbClient.from('ka_feedbacks').delete().eq('id', entry.id);
-      showToast('备注已删除');
-    } catch (e) {
-      console.error('Feedback delete error:', e);
-      showToast('备注已删除（本地）');
-    }
-  } else {
-    showToast('备注已删除（本地）');
-  }
-  
-  if (type === 'cika') renderCika(); else renderWuyou();
-}
-
-// 从 Supabase 加载备注
-async function loadCommentsFromCloud() {
-  try {
-    const { data, error } = await sbClient.from('ka_feedbacks')
-      .select('id, brand_name, text, owner, created_at')
-      .or('brand_name.like.cika::%,brand_name.like.wuyou::%,brand_name.like.alert_%,brand_name.like.status_%')
-      .order('created_at', { ascending: true });
-    if (error) { console.error('Load comments error:', error); return; }
-    if (!data || data.length === 0) return;
-    
-    let cikaUpdated = false, wuyouUpdated = false, alertUpdated = false;
-    data.forEach(row => {
-      const parts = row.brand_name.split('::');
-      const type = parts[0];
-      const brand = parts.slice(1).join('::');
-      
-      if (type === 'status_cika') {
-        cikaStatusOverrides[brand] = row.text;
-        localStorage.setItem('ka_cika_status_overrides', JSON.stringify(cikaStatusOverrides));
-        cikaUpdated = true;
-      } else if (type === 'status_wuyou') {
-        wuyouStatusOverrides[brand] = row.text;
-        localStorage.setItem('ka_wuyou_status_overrides', JSON.stringify(wuyouStatusOverrides));
-        wuyouUpdated = true;
-      } else if (type === 'cika') {
-        if (!cikaComments[brand]) cikaComments[brand] = [];
-        const timeStr = row.created_at ? formatFbTime(row.created_at) : '';
-        cikaComments[brand].push({ id: row.id, text: row.text, owner: row.owner || '', time: timeStr });
-        cikaUpdated = true;
-      } else if (type === 'wuyou') {
-        if (!wuyouComments[brand]) wuyouComments[brand] = [];
-        const timeStr = row.created_at ? formatFbTime(row.created_at) : '';
-        wuyouComments[brand].push({ id: row.id, text: row.text, owner: row.owner || '', time: timeStr });
-        wuyouUpdated = true;
-      } else if (type.startsWith('alert_')) {
-        alertFeedbacks[`alert::${type.replace('alert_', '')}::${brand}`] = row.text;
-        alertUpdated = true;
-      }
-    });
-    // 重新渲染
-    if (cikaUpdated && typeof renderCika === 'function') renderCika();
-    if (wuyouUpdated && typeof renderWuyou === 'function') renderWuyou();
-    if (alertUpdated && typeof renderAlertContent === 'function') renderAlertContent(currentAlertType);
-    console.log(`✅ 云端备注已加载: cika=${cikaUpdated}, wuyou=${wuyouUpdated}, alert=${alertUpdated}`);
-  } catch (e) {
-    console.error('loadCommentsFromCloud error:', e);
-  }
-}
-
-function formatFbTime(isoStr) {
-  const d = new Date(isoStr);
-  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-}
-
-// 迁移本地 localStorage 备注到云端（一次性，兼容旧的纯字符串格式）
-async function migrateLocalCommentsToCloud() {
-  const migrated = localStorage.getItem('ka_comments_migrated_v2');
-  if (migrated) return;
-  
-  const identity = localStorage.getItem(IDENTITY_KEY) || '';
-  let count = 0;
-  
-  // 读取旧格式的 localStorage 备注（纯字符串格式）
-  const oldCika = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}');
-  const oldWuyou = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}');
-  
-  for (const [type, obj] of [['cika', oldCika], ['wuyou', oldWuyou]]) {
-    for (const [brand, text] of Object.entries(obj)) {
-      if (!text) continue;
-      const sbBrand = type + '::' + brand;
-      const { data: existing } = await sbClient.from('ka_feedbacks')
-        .select('id').eq('brand_name', sbBrand).limit(1);
-      if (!existing || existing.length === 0) {
-        await sbClient.from('ka_feedbacks')
-          .insert({ brand_name: sbBrand, text, owner: identity });
-        count++;
-      }
-    }
-  }
-  
-  localStorage.setItem('ka_comments_migrated_v2', '1');
-  if (count > 0) console.log(`✅ 已迁移 ${count} 条本地备注到云端`);
+  if (val) showToast('备注已保存');
 }
 
 // ============================================================
