@@ -459,6 +459,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // ============================================================
 // DATA
@@ -680,50 +681,26 @@ function renderOverview() {
 // 渗透率波动监测模块
 let currentAlertType = 'bs';
 
-// 反馈云端存储 (Cloudflare Worker + KV)
-const FEEDBACK_API = 'https://ka-feedback.jingnanss21.workers.dev/feedback';
-let _feedbackCache = {};  // 本地缓存，减少读取延迟
+// 反馈云端存储 (Supabase)
+const ALERT_SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
+const ALERT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
+const alertSb = window.supabase.createClient(ALERT_SUPABASE_URL, ALERT_SUPABASE_KEY);
+let _feedbackCache = {};  // 本地缓存，格式: { "品牌_cmpType": "反馈文字" }
 
 async function loadAlertFeedbackFromServer() {
   try {
-    const resp = await fetch(FEEDBACK_API);
-    if (resp.ok) {
-      _feedbackCache = await resp.json();
-    }
+    const { data, error } = await alertSb.from('ka_alert_feedbacks').select('*');
+    if (error) throw error;
+    _feedbackCache = {};
+    (data || []).forEach(row => {
+      const key = row.brand_name + '_' + row.cmp_type;
+      _feedbackCache[key] = row.text;
+    });
   } catch(e) {
     console.warn('加载反馈失败，使用本地缓存:', e.message);
-    // 降级读 localStorage
     try { _feedbackCache = JSON.parse(localStorage.getItem('ka_alert_feedback') || '{}'); } catch(e2) {}
   }
-  // 一次性迁移：把 localStorage 中的历史反馈数据同步到云端
-  await migrateLocalFeedback();
   return _feedbackCache;
-}
-
-async function migrateLocalFeedback() {
-  if (localStorage.getItem('ka_feedback_migrated')) return; // 已迁移过，跳过
-  let localData = {};
-  try { localData = JSON.parse(localStorage.getItem('ka_alert_feedback') || '{}'); } catch(e) { return; }
-  const keys = Object.keys(localData);
-  if (keys.length === 0) { localStorage.setItem('ka_feedback_migrated', '1'); return; }
-  let migrated = 0;
-  for (const key of keys) {
-    const val = localData[key];
-    if (!val) continue;
-    // 如果云端已有该条且非空，不覆盖（保留其他同事的更新）
-    if (_feedbackCache[key] && _feedbackCache[key].trim()) continue;
-    try {
-      await fetch(FEEDBACK_API, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, value: val })
-      });
-      _feedbackCache[key] = val;
-      migrated++;
-    } catch(e) { console.warn('迁移反馈失败:', key, e.message); }
-  }
-  localStorage.setItem('ka_feedback_migrated', '1');
-  if (migrated > 0) console.log('已迁移 ' + migrated + ' 条本地反馈到云端');
 }
 
 function loadAlertFeedback() {
@@ -736,14 +713,25 @@ function saveAlertFeedback(brand, cmpType, text) {
   if (text) _feedbackCache[key] = text; else delete _feedbackCache[key];
   // 同步写 localStorage 作为降级
   try { localStorage.setItem('ka_alert_feedback', JSON.stringify(_feedbackCache)); } catch(e) {}
-  // 防抖写远端
+  // 防抖写 Supabase
   clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => {
-    fetch(FEEDBACK_API, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, value: text })
-    }).catch(e => console.warn('保存反馈失败:', e.message));
+  _saveTimer = setTimeout(async () => {
+    try {
+      if (text) {
+        // upsert: 有就更新，没有就插入
+        const { error } = await alertSb.from('ka_alert_feedbacks').upsert({
+          brand_name: brand,
+          cmp_type: cmpType,
+          text: text,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'brand_name,cmp_type' });
+        if (error) throw error;
+      } else {
+        // 清空反馈 → 删除该行
+        await alertSb.from('ka_alert_feedbacks').delete()
+          .eq('brand_name', brand).eq('cmp_type', cmpType);
+      }
+    } catch(e) { console.warn('保存反馈失败:', e.message); }
   }, 500);
 }
 
@@ -1030,10 +1018,22 @@ document.getElementById('overviewTable').addEventListener('click', e => {
 // ============================================================ ============================================================
 // PANEL: Cika (次卡)
 // ============================================================
-const cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}');
+let cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}');
+
+async function loadCikaCommentsFromServer() {
+  try {
+    const { data, error } = await alertSb.from('ka_cika_comments').select('*');
+    if (error) throw error;
+    cikaComments = {};
+    (data || []).forEach(row => { cikaComments[row.brand_name] = row.comment; });
+  } catch(e) {
+    console.warn('加载次卡备注失败，使用本地缓存:', e.message);
+    try { cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}'); } catch(e2) {}
+  }
+}
 let cikaSortDir = null; // null=默认(状态序), 'asc', 'desc'
 
-function renderCika() {
+async function renderCika() {
   const brands = KA_DATA.brands;
   const online = brands.filter(b => b['次卡'] === '已上线').length;
   const interest = brands.filter(b => b['次卡'] === '有意向').length;
@@ -1045,6 +1045,7 @@ function renderCika() {
     <div class="status-card sc-yellow"><div class="sc-icon">💬</div><div class="sc-value">${interest}</div><div class="sc-label">有意向</div></div>
   `;
   
+  await loadCikaCommentsFromServer();
   renderCikaTable();
 }
 
@@ -1104,10 +1105,22 @@ document.getElementById('cikaTable').addEventListener('click', e => {
 // ============================================================
 // PANEL: Wuyou (无忧会员)
 // ============================================================
-const wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}');
+let wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}');
+
+async function loadWuyouCommentsFromServer() {
+  try {
+    const { data, error } = await alertSb.from('ka_wuyou_comments').select('*');
+    if (error) throw error;
+    wuyouComments = {};
+    (data || []).forEach(row => { wuyouComments[row.brand_name] = row.comment; });
+  } catch(e) {
+    console.warn('加载无忧备注失败，使用本地缓存:', e.message);
+    try { wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}'); } catch(e2) {}
+  }
+}
 let wuyouSortDir = null;
 
-function renderWuyou() {
+async function renderWuyou() {
   const brands = KA_DATA.brands;
   const interest = brands.filter(b => b['无忧会员'] === '有意向').length;
   const pending = brands.filter(b => b['无忧会员'] === '待沟通').length;
@@ -1118,6 +1131,7 @@ function renderWuyou() {
     <div class="status-card sc-blue"><div class="sc-icon">📞</div><div class="sc-value">${pending}</div><div class="sc-label">待沟通</div></div>
   `;
   
+  await loadWuyouCommentsFromServer();
   renderWuyouTable();
 }
 
@@ -1185,23 +1199,45 @@ function editComment(el, type, brand) {
   el.querySelector('input').focus();
 }
 
+let _commentSaveTimer = null;
 function saveComment(input, type, brand) {
   const val = input.value.trim();
   const storageKey = type === 'cika' ? 'ka_cika_comments' : 'ka_wuyou_comments';
   const commentsObj = type === 'cika' ? cikaComments : wuyouComments;
+  const tableName = type === 'cika' ? 'ka_cika_comments' : 'ka_wuyou_comments';
   
   if (val) {
     commentsObj[brand] = val;
   } else {
     delete commentsObj[brand];
   }
+  // localStorage 降级
   localStorage.setItem(storageKey, JSON.stringify(commentsObj));
   
   const cell = input.closest('.cell-text') || input.parentElement;
   cell.className = 'cell-text' + (val ? '' : ' empty');
   cell.textContent = val || '点击添加备注...';
   
-  if (val) showToast('备注已保存');
+  // 防抖写 Supabase
+  clearTimeout(_commentSaveTimer);
+  _commentSaveTimer = setTimeout(async () => {
+    try {
+      if (val) {
+        const { error } = await alertSb.from(tableName).upsert({
+          brand_name: brand,
+          comment: val,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'brand_name' });
+        if (error) throw error;
+      } else {
+        await alertSb.from(tableName).delete().eq('brand_name', brand);
+      }
+      showToast('备注已保存');
+    } catch(e) {
+      console.warn('保存备注到云端失败:', e.message);
+      showToast('备注已本地保存（云端同步失败）');
+    }
+  }, 500);
 }
 
 // ============================================================

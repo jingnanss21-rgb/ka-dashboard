@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KA 主看板反馈迁移工具：KV → Supabase</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; color: #333; }
+  .container { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 20px; margin-bottom: 8px; }
+  .desc { color: #666; font-size: 14px; margin-bottom: 20px; }
+  .step { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .step h2 { font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .step h2 .num { background: #2563eb; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .sql-box { background: #1e1e1e; color: #d4d4d4; padding: 14px; border-radius: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.6; overflow-x: auto; white-space: pre; margin: 10px 0; }
+  .copy-btn { padding: 6px 14px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; }
+  .copy-btn:hover { background: #1d4ed8; }
+  .btn { padding: 10px 24px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: #1d4ed8; }
+  .btn:disabled { background: #ccc; cursor: not-allowed; }
+  .btn.success { background: #16a34a; }
+  .btn.danger { background: #dc2626; }
+  #log { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; font-family: monospace; font-size: 12px; line-height: 1.8; max-height: 400px; overflow-y: auto; margin-top: 12px; white-space: pre-wrap; }
+  .log-ok { color: #16a34a; }
+  .log-err { color: #dc2626; }
+  .log-warn { color: #d97706; }
+  .log-info { color: #2563eb; }
+  .summary { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin-top: 12px; font-size: 14px; display: none; }
+  .summary.error { background: #fef2f2; border-color: #fecaca; }
+  .data-preview { margin-top: 12px; }
+  .data-preview table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-preview th { background: #f3f4f6; text-align: left; padding: 6px 10px; border-bottom: 2px solid #e5e7eb; }
+  .data-preview td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔄 KA 主看板反馈迁移工具</h1>
+  <p class="desc">将 Cloudflare KV 中的异动反馈数据迁移到 Supabase，迁移过程完全可视化，不会丢失任何数据。</p>
+
+  <!-- Step 1 -->
+  <div class="step">
+    <h2><span class="num">1</span> 在 Supabase SQL Editor 执行建表语句</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:10px;">
+      打开 <a href="https://supabase.com/dashboard/project/imogeucpwfburswopykq/sql/new" target="_blank" style="color:#2563eb;">Supabase SQL Editor</a>，
+      粘贴以下 SQL 并执行（如果表已存在会跳过，不影响已有数据）：
+    </p>
+    <div class="sql-box" id="sqlCode">-- 创建 KA 主看板异动反馈表
+CREATE TABLE IF NOT EXISTS ka_alert_feedbacks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  brand_name TEXT NOT NULL,
+  cmp_type TEXT NOT NULL,         -- 'mom' 或 'yoy'
+  text TEXT NOT NULL,
+  owner TEXT NOT NULL DEFAULT '未知',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(brand_name, cmp_type)    -- 每个品牌每种类型只保留最新一条
+);
+
+-- 启用实时订阅
+ALTER PUBLICATION supabase_realtime ADD TABLE ka_alert_feedbacks;
+
+-- 行级安全策略
+ALTER TABLE ka_alert_feedbacks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow all ka_alert_feedbacks" ON ka_alert_feedbacks
+  FOR ALL USING (true) WITH CHECK (true);</div>
+    <button class="copy-btn" onclick="copySQL()">📋 复制 SQL</button>
+    <span id="copyStatus" style="font-size:12px;color:#16a34a;margin-left:8px;"></span>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step">
+    <h2><span class="num">2</span> 读取 KV 数据 & 预览</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:12px;">点击按钮从 Cloudflare KV 拉取所有反馈数据，先预览确认再迁移。</p>
+    <button class="btn" id="btnLoad" onclick="loadKVData()">📥 读取 KV 数据</button>
+    <div id="preview" class="data-preview"></div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step">
+    <h2><span class="num">3</span> 执行迁移</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:12px;">确认数据无误后，点击按钮写入 Supabase。已存在的品牌+类型组合会更新文字，不会重复插入。</p>
+    <button class="btn" id="btnMigrate" onclick="runMigration()" disabled>🚀 开始迁移到 Supabase</button>
+    <div id="summary" class="summary"></div>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const KV_API = 'https://ka-feedback.jingnanss21.workers.dev/feedback';
+const SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let kvData = {};   // 原始 KV 数据
+let parsed = [];   // 解析后的 [{brand_name, cmp_type, text}]
+
+function copySQL() {
+  navigator.clipboard.writeText(document.getElementById('sqlCode').textContent);
+  document.getElementById('copyStatus').textContent = '✅ 已复制';
+  setTimeout(() => document.getElementById('copyStatus').textContent = '', 2000);
+}
+
+function log(msg, cls = '') {
+  const el = document.getElementById('log');
+  el.innerHTML += `<span class="${cls}">${msg}</span>\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function loadKVData() {
+  const btn = document.getElementById('btnLoad');
+  btn.disabled = true;
+  btn.textContent = '⏳ 读取中...';
+  
+  try {
+    const resp = await fetch(KV_API);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    kvData = await resp.json();
+    
+    const keys = Object.keys(kvData);
+    if (keys.length === 0) {
+      document.getElementById('preview').innerHTML = '<p style="color:#d97706;margin-top:12px;">⚠️ KV 中没有反馈数据。</p>';
+      btn.textContent = '📥 读取 KV 数据';
+      btn.disabled = false;
+      return;
+    }
+    
+    // 解析 key: "品牌名_cmpType" → { brand_name, cmp_type, text }
+    parsed = [];
+    keys.forEach(key => {
+      const val = kvData[key];
+      if (!val || !val.trim()) return;  // 跳过空值
+      
+      // key 可能是 "星巴克_mom" 或 "肯德基_yoy" 等
+      const lastUnderscore = key.lastIndexOf('_');
+      if (lastUnderscore === -1) {
+        parsed.push({ brand_name: key, cmp_type: 'unknown', text: val.trim() });
+      } else {
+        const brand = key.substring(0, lastUnderscore);
+        const cmpType = key.substring(lastUnderscore + 1);
+        parsed.push({ brand_name: brand, cmp_type: cmpType, text: val.trim() });
+      }
+    });
+    
+    // 显示预览表格
+    let html = `<p style="margin-bottom:8px;font-size:13px;font-weight:600;">✅ 读取成功，共 ${keys.length} 条记录（${parsed.length} 条有效）</p>`;
+    html += '<table><thead><tr><th>#</th><th>品牌</th><th>类型</th><th>反馈内容</th></tr></thead><tbody>';
+    parsed.forEach((item, i) => {
+      const typeLabel = item.cmp_type === 'mom' ? '环比' : item.cmp_type === 'yoy' ? '同比' : item.cmp_type;
+      html += `<tr><td>${i+1}</td><td>${item.brand_name}</td><td>${typeLabel}</td><td>${item.text}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('preview').innerHTML = html;
+    
+    // 启用迁移按钮
+    document.getElementById('btnMigrate').disabled = false;
+    btn.textContent = '✅ 读取完成';
+    btn.classList.add('success');
+    
+  } catch (err) {
+    document.getElementById('preview').innerHTML = `<p style="color:#dc2626;margin-top:12px;">❌ 读取失败：${err.message}</p>`;
+    btn.textContent = '📥 重新读取';
+    btn.disabled = false;
+  }
+}
+
+async function runMigration() {
+  if (parsed.length === 0) return;
+  
+  const btn = document.getElementById('btnMigrate');
+  btn.disabled = true;
+  btn.textContent = '⏳ 迁移中...';
+  
+  const logEl = document.getElementById('log');
+  logEl.innerHTML = '';
+  
+  let success = 0, failed = 0, updated = 0;
+  log(`🚀 开始迁移 ${parsed.length} 条反馈到 Supabase...`, 'log-info');
+  
+  for (const item of parsed) {
+    try {
+      // upsert: 如果 brand_name + cmp_type 已存在就更新，否则插入
+      const { data, error } = await sb
+        .from('ka_alert_feedbacks')
+        .upsert({
+          brand_name: item.brand_name,
+          cmp_type: item.cmp_type,
+          text: item.text,
+          owner: '未知',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'brand_name,cmp_type' })
+        .select();
+      
+      if (error) throw error;
+      
+      log(`  ✅ ${item.brand_name} (${item.cmp_type}): "${item.text.substring(0, 40)}${item.text.length > 40 ? '...' : ''}"`, 'log-ok');
+      success++;
+    } catch (err) {
+      log(`  ❌ ${item.brand_name} (${item.cmp_type}): ${err.message}`, 'log-err');
+      failed++;
+    }
+  }
+  
+  // 验证：从 Supabase 读回来计数
+  log('\n📋 验证迁移结果...', 'log-info');
+  const { data: checkData, error: checkErr } = await sb.from('ka_alert_feedbacks').select('*');
+  const dbCount = checkErr ? '未知' : checkData.length;
+  
+  const summaryEl = document.getElementById('summary');
+  summaryEl.style.display = 'block';
+  
+  if (failed === 0) {
+    summaryEl.className = 'summary';
+    summaryEl.innerHTML = `✅ <b>迁移完成！</b><br>
+      成功写入 ${success} 条反馈 → Supabase <code>ka_alert_feedbacks</code> 表<br>
+      Supabase 中当前共 ${dbCount} 条记录<br>
+      <span style="color:#666;font-size:12px;">所有历史反馈已完整保留，无数据丢失。</span>`;
+    btn.textContent = '✅ 迁移完成';
+    btn.classList.add('success');
+    log(`\n🎉 全部完成！${success} 条成功，Supabase 中共 ${dbCount} 条。`, 'log-ok');
+  } else {
+    summaryEl.className = 'summary error';
+    summaryEl.innerHTML = `⚠️ 迁移部分完成：${success} 条成功，${failed} 条失败。请查看日志排查。`;
+    btn.textContent = '🔄 重试迁移';
+    btn.disabled = false;
+    btn.classList.add('danger');
+    log(`\n⚠️ ${success} 条成功，${failed} 条失败。`, 'log-warn');
+  }
+}
+</script>
+</body>
+</html>
