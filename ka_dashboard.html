@@ -1022,14 +1022,38 @@ let cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}');
 
 async function loadCikaCommentsFromServer() {
   try {
+    // 1. 先读新表
     const { data, error } = await alertSb.from('ka_cika_comments').select('*');
     if (error) throw error;
     cikaComments = {};
     (data || []).forEach(row => { cikaComments[row.brand_name] = row.comment; });
+
+    // 2. 如果新表为空，从旧表 ka_feedbacks 迁移 cika:: 前缀的数据
+    if (Object.keys(cikaComments).length === 0) {
+      const { data: legacy } = await alertSb.from('ka_feedbacks')
+        .select('brand_name, text, owner, created_at')
+        .like('brand_name', 'cika::%');
+      if (legacy && legacy.length > 0) {
+        for (const row of legacy) {
+          const brand = row.brand_name.replace('cika::', '');
+          cikaComments[brand] = row.text;
+          // 写入新表（迁移）
+          try {
+            await alertSb.from('ka_cika_comments').upsert({
+              brand_name: brand, comment: row.text,
+              owner: row.owner || '', updated_at: row.created_at
+            }, { onConflict: 'brand_name' });
+          } catch(me) { console.warn('迁移次卡备注失败:', brand, me.message); }
+        }
+        console.log('✅ 已从旧表迁移', legacy.length, '条次卡备注到新表');
+      }
+    }
   } catch(e) {
     console.warn('加载次卡备注失败，使用本地缓存:', e.message);
     try { cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}'); } catch(e2) {}
   }
+  // 同步到 localStorage 作降级
+  try { localStorage.setItem('ka_cika_comments', JSON.stringify(cikaComments)); } catch(e) {}
 }
 let cikaSortDir = null; // null=默认(状态序), 'asc', 'desc'
 
@@ -1109,14 +1133,38 @@ let wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}'
 
 async function loadWuyouCommentsFromServer() {
   try {
+    // 1. 先读新表
     const { data, error } = await alertSb.from('ka_wuyou_comments').select('*');
     if (error) throw error;
     wuyouComments = {};
     (data || []).forEach(row => { wuyouComments[row.brand_name] = row.comment; });
+
+    // 2. 如果新表为空，从旧表 ka_feedbacks 迁移 wuyou:: 前缀的数据
+    if (Object.keys(wuyouComments).length === 0) {
+      const { data: legacy } = await alertSb.from('ka_feedbacks')
+        .select('brand_name, text, owner, created_at')
+        .like('brand_name', 'wuyou::%');
+      if (legacy && legacy.length > 0) {
+        for (const row of legacy) {
+          const brand = row.brand_name.replace('wuyou::', '');
+          wuyouComments[brand] = row.text;
+          // 写入新表（迁移）
+          try {
+            await alertSb.from('ka_wuyou_comments').upsert({
+              brand_name: brand, comment: row.text,
+              owner: row.owner || '', updated_at: row.created_at
+            }, { onConflict: 'brand_name' });
+          } catch(me) { console.warn('迁移无忧备注失败:', brand, me.message); }
+        }
+        console.log('✅ 已从旧表迁移', legacy.length, '条无忧备注到新表');
+      }
+    }
   } catch(e) {
     console.warn('加载无忧备注失败，使用本地缓存:', e.message);
     try { wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}'); } catch(e2) {}
   }
+  // 同步到 localStorage 作降级
+  try { localStorage.setItem('ka_wuyou_comments', JSON.stringify(wuyouComments)); } catch(e) {}
 }
 let wuyouSortDir = null;
 
