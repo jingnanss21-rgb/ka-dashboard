@@ -297,7 +297,7 @@ table.card-ch-table thead td { text-align:left !important; }
 </style>
 
 <!-- Supabase SDK -->
-<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Supabase CDN 移到body末尾 -->
 </head>
 <body>
 
@@ -353,7 +353,7 @@ window.__EMBEDDED_FEEDBACKS__ = {"星巴克": [{"id": "3655224f-e40e-430c-8cd6-5
 // ============================================================
 const SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
-const sbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let sbClient = null; // 延迟到init中创建
 
 // ============================================================
 // 身份管理
@@ -490,7 +490,9 @@ function trackVisit(page) {}
 
 async function init() {
   // Supabase SDK 可选（离线模式不需要）
-  if(!window.supabase) {
+  if(window.supabase) {
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
     console.warn('Supabase SDK 未加载，使用离线模式');
   }
 
@@ -2798,5 +2800,6 @@ function filterGoodCaseAll(viewId) {
 }
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </body>
 </html>
