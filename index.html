@@ -478,7 +478,8 @@ function subscribeRealtime() {
               feedbacks[r.brand_name].push({ id: r.id, text: r.text, owner: r.owner||'', time: new Date(r.created_at).toLocaleDateString('zh-CN'), rawTime: r.created_at });
             });
             DATA.feedbacks = feedbacks;
-            refreshAllFeedbackDisplays();
+            // 静默更新，不刷新页面（避免打断其他用户）
+            console.log('[RT] feedbacks updated silently');
           }
         } catch(e) {}
       }).subscribe();
@@ -1846,7 +1847,13 @@ function confirmDeleteFeedback(brandName, index) {
 
 // === 刷新当前视图 ===
 function rebuildCurrentView() {
-  setTimeout(function(){ location.reload(); }, 300);
+  // 局部刷新：只刷新品牌明细表（反馈列会重新渲染）
+  var nt = document.querySelector('.nav-tab.active');
+  if(nt) {
+    var viewId = nt.dataset.view;
+    var ownerFilter = viewId==='overall'?'':viewId.replace('owner-','');
+    try { refreshTable(viewId, ownerFilter); } catch(e) {}
+  }
 }
 
 function refreshAllFeedbackDisplays(brandName) {
