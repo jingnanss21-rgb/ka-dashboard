@@ -1849,13 +1849,27 @@ function confirmDeleteFeedback(brandName, index) {
 
 // === 刷新当前视图 ===
 function rebuildCurrentView() {
-  // 局部刷新：只刷新品牌明细表（反馈列会重新渲染）
+  // 1. 刷新品牌明细表
   var nt = document.querySelector('.nav-tab.active');
   if(nt) {
     var viewId = nt.dataset.view;
     var ownerFilter = viewId==='overall'?'':viewId.replace('owner-','');
     try { refreshTable(viewId, ownerFilter); } catch(e) {}
   }
+  // 2. 刷新品牌卡片中当前活跃的卡片
+  var activeCards = document.querySelectorAll('.case-tab-content.active');
+  activeCards.forEach(function(card) {
+    var brandName = card.dataset.brand;
+    if(!brandName) return;
+    var b = DATA.brands.find(function(x){ return x.name === brandName; });
+    if(!b) return;
+    var a = DATA.assignments.find(function(x){ return x.brand === brandName; }) || {};
+    var brandActs = (DATA.activities||[]).filter(function(x){ return x.brandName === brandName; });
+    var fb = feedbacks[brandName] || [];
+    try {
+      card.innerHTML = buildCaseCard(b, a, brandActs, [], fb, card.closest('[id*="good"]') !== null, nt ? nt.dataset.view : 'overall');
+    } catch(e) {}
+  });
 }
 
 function refreshAllFeedbackDisplays(brandName) {
