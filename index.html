@@ -297,7 +297,7 @@ table.card-ch-table thead td { text-align:left !important; }
 </style>
 
 <!-- Supabase SDK -->
-<!-- Supabase CDN 移到body末尾 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -353,7 +353,7 @@ window.__EMBEDDED_FEEDBACKS__ = {"星巴克": [{"id": "3655224f-e40e-430c-8cd6-5
 // ============================================================
 const SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
-let sbClient = null; // 延迟到init中创建
+const sbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 // ============================================================
 // 身份管理
@@ -443,7 +443,7 @@ async function loadData() {
     DATA = { brands, activities, assignments, overall, surpriseGoods, dataDate: overall.data_date||"" };
     DATA.feedbacks = feedbacks;
     try {
-      if(window.supabase && sbClient) {
+      if(sbClient) {
         const { data: fbRows } = await sbClient.from('ka_feedbacks').select('*').order('created_at', { ascending: true });
         if(fbRows && fbRows.length > 0) {
           feedbacks = {};
@@ -455,7 +455,7 @@ async function loadData() {
           DATA.feedbacks = feedbacks;
         }
       }
-    } catch(e) { console.warn('[FB]', e.message); }
+    } catch(e) {}
     return true;
   } catch(err) { console.error(err); return false; }
 }
@@ -464,7 +464,7 @@ async function loadData() {
 // 实时订阅：监听反馈表变化，自动刷新
 // ============================================================
 function subscribeRealtime() {
-  if(!window.supabase || !sbClient) return;
+  if(!sbClient) return;
   try {
     sbClient.channel('ka_feedbacks_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'ka_feedbacks' }, async () => {
@@ -478,8 +478,6 @@ function subscribeRealtime() {
               feedbacks[r.brand_name].push({ id: r.id, text: r.text, owner: r.owner||'', time: new Date(r.created_at).toLocaleDateString('zh-CN'), rawTime: r.created_at });
             });
             DATA.feedbacks = feedbacks;
-            // 静默更新，不刷新页面（避免打断其他用户）
-            console.log('[RT] feedbacks updated silently');
           }
         } catch(e) {}
       }).subscribe();
@@ -489,12 +487,8 @@ function subscribeRealtime() {
 function trackVisit(page) {}
 
 async function init() {
-  // Supabase SDK 可选（离线模式不需要）
-  if(window.supabase) {
-    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } else {
-    console.warn('Supabase SDK 未加载，使用离线模式');
-  }
+  // 检查 Supabase SDK 是否加载
+  if(!window.supabase) { console.warn('Supabase offline'); }
 
   // 访问埋点
   trackVisit('摇优惠看板');
@@ -1029,31 +1023,15 @@ function buildTableFbCell(brandName, viewId, ownerFilter) {
   var newFb = fb.filter(function(f){ return f.rawTime && f.rawTime.substring(0,10) >= cutoff; });
   var oldFb = fb.filter(function(f){ return !f.rawTime || f.rawTime.substring(0,10) < cutoff; });
   var out = '<div style="font-size:11px;">';
-  // 输入框
-  out += '<div style="display:flex;gap:4px;align-items:center;"><input id="tdfb-input-'+encId(brandName)+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:3px 6px;border:1px solid #ddd;border-radius:4px;font-size:11px;min-width:120px;" onkeydown="if(event.key===\'Enter\')submitTableFb(\''+escAttr(brandName)+'\')"><button onclick="submitTableFb(\''+escAttr(brandName)+'\')" style="padding:3px 8px;font-size:10px;border:none;border-radius:4px;background:#3b82f6;color:#fff;cursor:pointer;white-space:nowrap;">\u63d0\u4ea4</button></div>';
-  // 新增反馈（默认展开）
+  out += '<div style="display:flex;gap:4px;align-items:center;"><input id="tdfb-input-'+encId(brandName)+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:3px 6px;border:1px solid #ddd;border-radius:4px;font-size:11px;min-width:120px;" onkeydown="if(event.key===\'Enter\')submitTableFb(\''+escAttr(brandName)+'\')" /><button onclick="submitTableFb(\''+escAttr(brandName)+'\') " style="padding:3px 8px;font-size:10px;border:none;border-radius:4px;background:#3b82f6;color:#fff;cursor:pointer;">\u63d0\u4ea4</button></div>';
   if(newFb.length > 0) {
     out += '<div style="margin-top:4px;font-size:10px;color:#16a34a;font-weight:600;">\u65b0\u589e('+newFb.length+')</div>';
-    newFb.forEach(function(f2,fi2) {
-      var idx = fb.indexOf(f2);
-      var ts = f2.rawTime ? f2.rawTime.substring(0,16).replace('T',' ') : '';
-      out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;background:#f0fdf4;border-left:3px solid #16a34a;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick="confirmDeleteFeedback(\''+escAttr(brandName)+'\','+idx+')">\u00d7</span></span></div>';
-    });
+    newFb.forEach(function(f2){ var idx=fb.indexOf(f2); var ts=f2.rawTime?f2.rawTime.substring(0,16).replace('T',' '):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;background:#f0fdf4;border-left:3px solid #16a34a;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick="confirmDeleteFeedback(\''+escAttr(brandName)+'\','+idx+')">\u00d7</span></span></div>'; });
   }
-  // 历史反馈（折叠）
   if(oldFb.length > 0) {
     var gid = 'tdfb-hist-' + encId(brandName);
-    out += '<div style="margin-top:4px;"><span onclick="var el=document.getElementById(\''+gid+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.fba\').textContent=el.style.display===\'none\'?\'\u25b6\':\'\u25bc\'" style="cursor:pointer;font-size:10px;color:#92400e;font-weight:600;user-select:none;"><span class="fba">\u25b6</span> \u5386\u53f2\u53cd\u9988('+oldFb.length+')</span>';
-    out += '<div id="'+gid+'" style="display:none;margin-top:4px;">';
-    var groups = {};
-    oldFb.forEach(function(f) { var idx2 = fb.indexOf(f); f._idx = idx2; var d = f.rawTime ? f.rawTime.substring(0,10) : (f.time||''); if(!groups[d]) groups[d]=[]; groups[d].push(f); });
-    Object.keys(groups).sort().reverse().forEach(function(d) {
-      out += '<div style="font-size:9px;color:#999;margin-top:3px;font-weight:600;">'+d+'</div>';
-      groups[d].forEach(function(f2) {
-        var ts = f2.rawTime ? f2.rawTime.substring(11,16) : '';
-        out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+f2._idx+')">\u270e</span><span class="mini-btn del" onclick="confirmDeleteFeedback(\''+escAttr(brandName)+'\','+f2._idx+')">\u00d7</span></span></div>';
-      });
-    });
+    out += '<div style="margin-top:4px;"><span onclick="var el=document.getElementById(\''+gid+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.fba\').textContent=el.style.display===\'none\'?\'\u25b6\':\'\u25bc\'" style="cursor:pointer;font-size:10px;color:#92400e;font-weight:600;user-select:none;"><span class="fba">\u25b6</span> \u5386\u53f2('+oldFb.length+')</span><div id="'+gid+'" style="display:none;margin-top:4px;">';
+    oldFb.forEach(function(f2){ var idx=fb.indexOf(f2); var ts=f2.rawTime?f2.rawTime.substring(11,16):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick="confirmDeleteFeedback(\''+escAttr(brandName)+'\','+idx+')">\u00d7</span></span></div>'; });
     out += '</div></div>';
   }
   out += '</div>';
@@ -1813,67 +1791,40 @@ async function submitFeedback(brandName, owner, sourceViewId) {
 // === 编辑反馈（弹窗）===
 function editFeedback(brandName, index) {
   if(!feedbacks[brandName] || !feedbacks[brandName][index]) return;
-  const f = feedbacks[brandName][index];
-  showModal('编辑反馈 — ' + brandName, f.text, async (newText) => {
-    if(f.id) {
-      try {
-        const { error } = await sbClient.from('ka_feedbacks').update({ text: newText }).eq('id', f.id);
-        if(error) { showToast('更新失败: ' + error.message, 'warning'); return; }
-      } catch(e) {}
-    }
+  var f = feedbacks[brandName][index];
+  showModal('\u7f16\u8f91\u53cd\u9988 \u2014 ' + brandName, f.text, async function(newText) {
     feedbacks[brandName][index].text = newText;
     DATA.feedbacks = feedbacks;
-    showToast('反馈已更新', 'success');
+    showToast('\u53cd\u9988\u5df2\u66f4\u65b0', 'success');
     rebuildCurrentView();
+    try { if(sbClient && f.id) await sbClient.from('ka_feedbacks').update({ text: newText }).eq('id', f.id); } catch(e) {}
   });
 }
 
 // === 删除反馈（确认弹窗）===
 function confirmDeleteFeedback(brandName, index) {
   if(!feedbacks[brandName] || !feedbacks[brandName][index]) return;
-  const f = feedbacks[brandName][index];
-  showConfirm('确认删除', `确定要删除这条反馈吗？<br><br><em style="color:var(--text-secondary);">"${escHtml(f.text.substring(0,50))}${f.text.length>50?'...':''}"</em>`, async () => {
-    if(f.id) {
-      try {
-        const { error } = await sbClient.from('ka_feedbacks').delete().eq('id', f.id);
-        if(error) { showToast('删除失败: ' + error.message, 'warning'); return; }
-      } catch(e) {}
-    }
+  var f = feedbacks[brandName][index];
+  showConfirm('\u786e\u8ba4\u5220\u9664', '\u786e\u5b9a\u8981\u5220\u9664\u8fd9\u6761\u53cd\u9988\u5417\uff1f', async function() {
     feedbacks[brandName].splice(index, 1);
-    if(feedbacks[brandName].length === 0) delete feedbacks[brandName];
+    if(!feedbacks[brandName].length) delete feedbacks[brandName];
     DATA.feedbacks = feedbacks;
-    showToast('反馈已删除', 'info');
+    showToast('\u53cd\u9988\u5df2\u5220\u9664', 'info');
     rebuildCurrentView();
-  });
-}
-
-// === 刷新当前视图 ===
-function rebuildCurrentView() {
-  // 1. 刷新品牌明细表
-  var nt = document.querySelector('.nav-tab.active');
-  if(nt) {
-    var viewId = nt.dataset.view;
-    var ownerFilter = viewId==='overall'?'':viewId.replace('owner-','');
-    try { refreshTable(viewId, ownerFilter); } catch(e) {}
-  }
-  // 2. 刷新品牌卡片中当前活跃的卡片
-  var activeCards = document.querySelectorAll('.case-tab-content.active');
-  activeCards.forEach(function(card) {
-    var brandName = card.dataset.brand;
-    if(!brandName) return;
-    var b = DATA.brands.find(function(x){ return x.name === brandName; });
-    if(!b) return;
-    var a = DATA.assignments.find(function(x){ return x.brand === brandName; }) || {};
-    var brandActs = (DATA.activities||[]).filter(function(x){ return x.brandName === brandName; });
-    var fb = feedbacks[brandName] || [];
-    try {
-      card.innerHTML = buildCaseCard(b, a, brandActs, [], fb, card.closest('[id*="good"]') !== null, nt ? nt.dataset.view : 'overall');
-    } catch(e) {}
+    try { if(sbClient && f.id) await sbClient.from('ka_feedbacks').delete().eq('id', f.id); } catch(e) {}
   });
 }
 
 function refreshAllFeedbackDisplays(brandName) {
-  rebuildCurrentView();
+  // 只刷新当前活跃视图的表格，不重建所有面板（避免筛选器/Tab状态丢失）
+  const activeTab = document.querySelector('.nav-tab.active');
+  if(activeTab) {
+    const viewId = activeTab.dataset.view;
+    const ownerFilter = viewId==='overall'?'':viewId.replace('owner-','');
+    refreshTable(viewId, ownerFilter);
+  }
+  // 刷新反馈汇总区域
+  renderAllFeedbackSummary();
 }
 
 function renderAllFeedbackSummary() {
@@ -1907,36 +1858,47 @@ function addFeedback(brandName) {
     DATA.feedbacks = feedbacks;
     showToast('\u53cd\u9988\u5df2\u63d0\u4ea4', 'success');
     rebuildCurrentView();
-    try { if(window.supabase && sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text.trim(), owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
+    try { if(sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text.trim(), owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
   });
 }
-
 async function submitTableFb(brandName) {
   var input = document.getElementById('tdfb-input-' + encId(brandName));
-  if(!input) return;
+  if(!input || !input.value.trim()) return;
   var text = input.value.trim();
-  if(!text) return;
   if(!feedbacks[brandName]) feedbacks[brandName] = [];
   feedbacks[brandName].push({ id: Date.now().toString(), text: text, owner: '', time: new Date().toLocaleDateString('zh-CN'), rawTime: new Date().toISOString() });
-  DATA.feedbacks = feedbacks;
-  input.value = '';
+  DATA.feedbacks = feedbacks; input.value = '';
   showToast('\u53cd\u9988\u5df2\u63d0\u4ea4', 'success');
   rebuildCurrentView();
-  try { if(window.supabase && sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text, owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
+  try { if(sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text, owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
 }
-
 async function submitCardFb(brandName) {
   var input = document.getElementById('cardfb-input-' + brandName.replace(/\W/g,''));
-  if(!input) return;
+  if(!input || !input.value.trim()) return;
   var text = input.value.trim();
-  if(!text) return;
   if(!feedbacks[brandName]) feedbacks[brandName] = [];
   feedbacks[brandName].push({ id: Date.now().toString(), text: text, owner: '', time: new Date().toLocaleDateString('zh-CN'), rawTime: new Date().toISOString() });
   DATA.feedbacks = feedbacks;
   showToast('\u53cd\u9988\u5df2\u63d0\u4ea4', 'success');
   rebuildCurrentView();
-  try { if(window.supabase && sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text, owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
+  try { if(sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text, owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
 }
+function rebuildCurrentView() {
+  var nt = document.querySelector('.nav-tab.active');
+  if(nt) {
+    var viewId = nt.dataset.view;
+    var ow = viewId==='overall'?'':viewId.replace('owner-','');
+    try { refreshTable(viewId, ow); } catch(e) {}
+  }
+  document.querySelectorAll('.case-tab-content.active').forEach(function(card) {
+    var bn = card.dataset.brand; if(!bn) return;
+    var b = DATA.brands.find(function(x){ return x.name===bn; }); if(!b) return;
+    var a = DATA.assignments.find(function(x){ return x.brand===bn; }) || {};
+    var acts = (DATA.activities||[]).filter(function(x){ return x.brandName===bn; });
+    try { card.innerHTML = buildCaseCard(b, a, acts, [], feedbacks[bn]||[], false, nt?nt.dataset.view:'overall'); } catch(e) {}
+  });
+}
+function refreshAllFeedbackDisplays(bn) { rebuildCurrentView(); }
 
 function showModal(title, defaultText, onSave) {
   const root = document.getElementById('modalRoot');
@@ -2814,6 +2776,5 @@ function filterGoodCaseAll(viewId) {
 }
 
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </body>
 </html>
