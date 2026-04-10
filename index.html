@@ -1846,16 +1846,7 @@ function confirmDeleteFeedback(brandName, index) {
 
 // === 刷新当前视图 ===
 function rebuildCurrentView() {
-  try {
-    var nt = document.querySelector('.nav-tab.active');
-    if(!nt) { location.reload(); return; }
-    var viewId = nt.dataset.view;
-    var ownerFilter = viewId==='overall'?'':viewId.replace('owner-','');
-    buildViewPanel(viewId, ownerFilter);
-  } catch(e) {
-    // buildViewPanel失败就直接刷新页面
-    location.reload();
-  }
+  setTimeout(function(){ location.reload(); }, 300);
 }
 
 function refreshAllFeedbackDisplays(brandName) {
