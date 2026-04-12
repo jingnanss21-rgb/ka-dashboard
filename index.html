@@ -2115,12 +2115,28 @@ async function submitFeedback(brandName, owner, sourceViewId) {
 function editFeedback(brandName, index) {
   if(!feedbacks[brandName] || !feedbacks[brandName][index]) return;
   var f = feedbacks[brandName][index];
-  showModal('\u7f16\u8f91\u53cd\u9988 \u2014 ' + brandName, f.text, async function(newText) {
+  showModal('\u7f16\u8f91\u53cd\u9988 \u2014 ' + brandName, f.text, function(newText) {
+    var oldText = feedbacks[brandName][index].text;
     feedbacks[brandName][index].text = newText;
     DATA.feedbacks = feedbacks;
     showToast('\u53cd\u9988\u5df2\u66f4\u65b0', 'success');
-    rebuildCurrentView();
-    try { if(sbClient && f.id) await sbClient.from('ka_feedbacks').update({ text: newText }).eq('id', f.id); } catch(e) {}
+    refreshFeedbackUiForBrand(brandName);
+    var fid = f.id;
+    var skipServer = !fid || (typeof fid === 'string' && fid.indexOf('local-') === 0);
+    if(!sbClient || skipServer) return;
+    sbClient.from('ka_feedbacks').update({ text: newText }).eq('id', fid).then(function(res) {
+      if(res.error) {
+        feedbacks[brandName][index].text = oldText;
+        DATA.feedbacks = feedbacks;
+        refreshFeedbackUiForBrand(brandName);
+        showToast('\u4fdd\u5b58\u5931\u8d25: ' + res.error.message, 'warning');
+      }
+    }).catch(function(e) {
+      feedbacks[brandName][index].text = oldText;
+      DATA.feedbacks = feedbacks;
+      refreshFeedbackUiForBrand(brandName);
+      showToast('\u4fdd\u5b58\u5931\u8d25: ' + (e && e.message ? e.message : String(e)), 'warning');
+    });
   });
 }
 
@@ -2128,13 +2144,34 @@ function editFeedback(brandName, index) {
 function confirmDeleteFeedback(brandName, index) {
   if(!feedbacks[brandName] || !feedbacks[brandName][index]) return;
   var f = feedbacks[brandName][index];
-  showConfirm('\u786e\u8ba4\u5220\u9664', '\u786e\u5b9a\u8981\u5220\u9664\u8fd9\u6761\u53cd\u9988\u5417\uff1f', async function() {
-    feedbacks[brandName].splice(index, 1);
-    if(!feedbacks[brandName].length) delete feedbacks[brandName];
+  var insertIdx = index;
+  showConfirm('\u786e\u8ba4\u5220\u9664', '\u786e\u5b9a\u8981\u5220\u9664\u8fd9\u6761\u53cd\u9988\u5417\uff1f', function() {
+    var arr = feedbacks[brandName];
+    if(!arr || !arr[insertIdx]) return;
+    var backup = arr[insertIdx];
+    var fid = backup.id;
+    arr.splice(insertIdx, 1);
+    if(!arr.length) delete feedbacks[brandName];
     DATA.feedbacks = feedbacks;
     showToast('\u53cd\u9988\u5df2\u5220\u9664', 'info');
-    rebuildCurrentView();
-    try { if(sbClient && f.id) await sbClient.from('ka_feedbacks').delete().eq('id', f.id); } catch(e) {}
+    refreshFeedbackUiForBrand(brandName);
+    var skipServer = !sbClient || !fid || (typeof fid === 'string' && fid.indexOf('local-') === 0);
+    if(skipServer) return;
+    sbClient.from('ka_feedbacks').delete().eq('id', fid).then(function(res) {
+      if(res.error) {
+        if(!feedbacks[brandName]) feedbacks[brandName] = [];
+        feedbacks[brandName].splice(insertIdx, 0, backup);
+        DATA.feedbacks = feedbacks;
+        refreshFeedbackUiForBrand(brandName);
+        showToast('\u5220\u9664\u5931\u8d25: ' + res.error.message, 'warning');
+      }
+    }).catch(function(e) {
+      if(!feedbacks[brandName]) feedbacks[brandName] = [];
+      feedbacks[brandName].splice(insertIdx, 0, backup);
+      DATA.feedbacks = feedbacks;
+      refreshFeedbackUiForBrand(brandName);
+      showToast('\u5220\u9664\u5931\u8d25: ' + (e && e.message ? e.message : String(e)), 'warning');
+    });
   });
 }
 
@@ -2235,6 +2272,10 @@ function rebuildActiveCaseCardsForBrand(brandName) {
     var analysis = isGoodCard ? (globalMed ? analyzeGoodCase(b, globalMed) : []) : diagnoseBrand(b, acts, globalMed);
     try { card.innerHTML = buildCaseCard(b, a, acts, analysis, feedbacks[bn]||[], isGoodCard, viewIdForCard); } catch(e) {}
   });
+}
+function refreshFeedbackUiForBrand(brandName) {
+  rebuildActiveCaseCardsForBrand(brandName);
+  refreshAllFeedbackDisplays(brandName);
 }
 function submitCardFbFromTrigger(el) {
   var be = el.getAttribute('data-cfb-b');
