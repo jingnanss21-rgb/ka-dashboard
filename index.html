@@ -1348,12 +1348,12 @@ function buildTableFbCell(brandName, viewId, ownerFilter) {
   out += '<div style="display:flex;gap:4px;align-items:center;"><input id="'+tdfbId+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:3px 6px;border:1px solid #ddd;border-radius:4px;font-size:11px;min-width:120px;" onkeydown="if(event.key===\'Enter\')submitTableFb(\''+escAttr(brandName)+'\',\''+escAttr(viewId)+'\')" /><button onclick="submitTableFb(\''+escAttr(brandName)+'\',\''+escAttr(viewId)+'\')" style="padding:3px 8px;font-size:10px;border:none;border-radius:4px;background:#3b82f6;color:#fff;cursor:pointer;">\u63d0\u4ea4</button></div>';
   if(newFb.length > 0) {
     out += '<div style="margin-top:4px;font-size:10px;color:#16a34a;font-weight:600;">\u65b0\u589e('+newFb.length+')</div>';
-    newFb.forEach(function(f2){ var idx=fb.indexOf(f2); var ts=f2.rawTime?f2.rawTime.substring(0,16).replace('T',' '):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;background:#f0fdf4;border-left:3px solid #16a34a;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick="confirmDeleteFeedback(\''+escAttr(brandName)+'\','+idx+')">\u00d7</span></span></div>'; });
+    newFb.forEach(function(f2){ var idx=fb.indexOf(f2); var ts=f2.rawTime?f2.rawTime.substring(0,16).replace('T',' '):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;background:#f0fdf4;border-left:3px solid #16a34a;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick=\'deleteFeedback('+JSON.stringify('i'+idx)+','+JSON.stringify(brandName)+')\'>\u00d7</span></span></div>'; });
   }
   if(oldFb.length > 0) {
     var gid = 'tdfb-hist-' + encId(viewId + '::' + brandName);
     out += '<div style="margin-top:4px;"><span onclick="var el=document.getElementById(\''+gid+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.fba\').textContent=el.style.display===\'none\'?\'\u25b6\':\'\u25bc\'" style="cursor:pointer;font-size:10px;color:#92400e;font-weight:600;user-select:none;"><span class="fba">\u25b6</span> \u5386\u53f2('+oldFb.length+')</span><div id="'+gid+'" style="display:none;margin-top:4px;">';
-    oldFb.forEach(function(f2){ var idx=fb.indexOf(f2); var ts=f2.rawTime?f2.rawTime.substring(11,16):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick="confirmDeleteFeedback(\''+escAttr(brandName)+'\','+idx+')">\u00d7</span></span></div>'; });
+    oldFb.forEach(function(f2){ var idx=fb.indexOf(f2); var ts=f2.rawTime?f2.rawTime.substring(11,16):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick=\'deleteFeedback('+JSON.stringify('i'+idx)+','+JSON.stringify(brandName)+')\'>\u00d7</span></span></div>'; });
     out += '</div></div>';
   }
   out += '</div>';
@@ -1374,7 +1374,7 @@ function buildFeedbackItemHtml(brandName, f, i) {
     <div class="fb-meta">${weekTag}${f.owner||''}</div>
     <div class="fb-actions">
       <span class="fb-action-btn edit" onclick="editFeedback('${escAttr(brandName)}',${i})" title="编辑">✎</span>
-      <span class="fb-action-btn delete" onclick="confirmDeleteFeedback('${escAttr(brandName)}',${i})" title="删除">×</span>
+      <span class="fb-action-btn delete" onclick='deleteFeedback(${JSON.stringify('i'+i)},${JSON.stringify(brandName)})' title="删除">×</span>
     </div>
   </div>`;
 }
@@ -1510,7 +1510,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
         var timeStr = fb2.rawTime ? fb2.rawTime.substring(0,16).replace('T',' ') : (fb2.time||'');
         h += '<div style="margin:5px 0;padding:8px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-left:3px solid #16a34a;border-radius:6px;font-size:12px;">';
         h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="color:#999;font-size:10px;">' + timeStr + '</span>';
-        h += '<span style="display:flex;gap:8px;"><span onclick="editFeedback(\'' + b.name.replace(/'/g,"\\'") + '\',' + fb2._idx + ')" style="cursor:pointer;font-size:11px;color:#3b82f6;font-weight:500;">\u7f16\u8f91</span><span onclick="confirmDeleteFeedback(\'' + b.name.replace(/'/g,"\\'") + '\',' + fb2._idx + ')" style="cursor:pointer;font-size:11px;color:#dc2626;font-weight:500;">\u5220\u9664</span></span></div>';
+        h += '<span style="display:flex;gap:8px;"><span onclick="editFeedback(\'' + b.name.replace(/'/g,"\\'") + '\',' + fb2._idx + ')" style="cursor:pointer;font-size:11px;color:#3b82f6;font-weight:500;">\u7f16\u8f91</span><span onclick=\'deleteFeedback(' + JSON.stringify('i' + fb2._idx) + ',' + JSON.stringify(b.name) + ')\' style="cursor:pointer;font-size:11px;color:#dc2626;font-weight:500;">\u5220\u9664</span></span></div>';
         h += '<div style="line-height:1.6;color:#333;">' + (fb2.text||'') + '</div></div>';
       });
       h += '</div>';
@@ -1528,7 +1528,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
           var timeStr = fb2.rawTime ? fb2.rawTime.substring(0,16).replace('T',' ') : (fb2.time||'');
           h += '<div style="margin:4px 0;padding:8px 10px;background:#fff;border:1px solid #fde68a;border-left:3px solid #f59e0b;border-radius:6px;font-size:12px;">';
           h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="color:#999;font-size:10px;">' + timeStr + '</span>';
-          h += '<span style="display:flex;gap:8px;"><span onclick="editFeedback(\'' + b.name.replace(/'/g,"\\'") + '\',' + fb2._idx + ')" style="cursor:pointer;font-size:11px;color:#3b82f6;font-weight:500;">\u7f16\u8f91</span><span onclick="confirmDeleteFeedback(\'' + b.name.replace(/'/g,"\\'") + '\',' + fb2._idx + ')" style="cursor:pointer;font-size:11px;color:#dc2626;font-weight:500;">\u5220\u9664</span></span></div>';
+          h += '<span style="display:flex;gap:8px;"><span onclick="editFeedback(\'' + b.name.replace(/'/g,"\\'") + '\',' + fb2._idx + ')" style="cursor:pointer;font-size:11px;color:#3b82f6;font-weight:500;">\u7f16\u8f91</span><span onclick=\'deleteFeedback(' + JSON.stringify('i' + fb2._idx) + ',' + JSON.stringify(b.name) + ')\' style="cursor:pointer;font-size:11px;color:#dc2626;font-weight:500;">\u5220\u9664</span></span></div>';
           h += '<div style="line-height:1.6;color:#333;">' + (fb2.text||'') + '</div></div>';
         });
       });
@@ -2111,7 +2111,51 @@ async function submitFeedback(brandName, owner, sourceViewId) {
   refreshAllFeedbackDisplays(brandName);
 }
 
-// === 编辑反馈（弹窗）===
+// === 解析删除定位：真实 id，或 "i0"/"i1" 表示 feedbacks[brandName] 下标 ===
+function resolveFeedbackIndex(idOrIdxKey, brandName) {
+  var arr = feedbacks[brandName];
+  if(!arr) return -1;
+  if(typeof idOrIdxKey === 'string' && /^i[0-9]+$/.test(idOrIdxKey)) {
+    var ix = parseInt(idOrIdxKey.slice(1), 10);
+    return ix >= 0 && ix < arr.length ? ix : -1;
+  }
+  return arr.findIndex(function(f) { return f && String(f.id) === String(idOrIdxKey); });
+}
+
+// === 删除反馈（无确认；乐观更新 + 后台 DELETE，失败回滚）===
+function deleteFeedback(idOrIdxKey, brandName) {
+  if(!brandName) return;
+  var arr = feedbacks[brandName];
+  if(!arr || !arr.length) return;
+  var idx = resolveFeedbackIndex(idOrIdxKey, brandName);
+  if(idx < 0) return;
+  var backup = arr[idx];
+  var sid = backup.id;
+  arr.splice(idx, 1);
+  if(!arr.length) delete feedbacks[brandName];
+  DATA.feedbacks = feedbacks;
+  refreshFeedbackUiForBrand(brandName);
+  showToast('\u5df2\u5220\u9664', 'success');
+  var skipServer = !sbClient || sid == null || (typeof sid === 'string' && sid.indexOf('local-') === 0);
+  if(skipServer) return;
+  sbClient.from('ka_feedbacks').delete().eq('id', sid).then(function(res) {
+    if(res.error) {
+      if(!feedbacks[brandName]) feedbacks[brandName] = [];
+      feedbacks[brandName].splice(idx, 0, backup);
+      DATA.feedbacks = feedbacks;
+      refreshFeedbackUiForBrand(brandName);
+      showToast('\u5220\u9664\u540c\u6b65\u5931\u8d25: ' + res.error.message, 'warning');
+    }
+  }).catch(function(e) {
+    if(!feedbacks[brandName]) feedbacks[brandName] = [];
+    feedbacks[brandName].splice(idx, 0, backup);
+    DATA.feedbacks = feedbacks;
+    refreshFeedbackUiForBrand(brandName);
+    showToast('\u5220\u9664\u540c\u6b65\u5931\u8d25', 'warning');
+  });
+}
+
+// === 编辑反馈（弹窗）；服务端用 DELETE+INSERT 替代 PATCH，避免 CORS 拦截 ===
 function editFeedback(brandName, index) {
   if(!feedbacks[brandName] || !feedbacks[brandName][index]) return;
   var f = feedbacks[brandName][index];
@@ -2122,54 +2166,45 @@ function editFeedback(brandName, index) {
     showToast('\u53cd\u9988\u5df2\u66f4\u65b0', 'success');
     refreshFeedbackUiForBrand(brandName);
     var fid = f.id;
-    var skipServer = !fid || (typeof fid === 'string' && fid.indexOf('local-') === 0);
-    if(!sbClient || skipServer) return;
-    sbClient.from('ka_feedbacks').update({ text: newText }).eq('id', fid).then(function(res) {
-      if(res.error) {
+    var skipServer = !sbClient || !fid || (typeof fid === 'string' && fid.indexOf('local-') === 0);
+    if(skipServer) return;
+    var ownerSave = f.owner || currentIdentity || '\u672a\u77e5';
+    var createdAt = f.rawTime || f.created_at;
+    var bRow = DATA.brands.find(function(br){ return br.name === brandName; }) || { name: brandName };
+    var asg = findAssignmentForBrand(bRow);
+    sbClient.from('ka_feedbacks').delete().eq('id', fid).then(function(delRes) {
+      if(delRes.error) {
         feedbacks[brandName][index].text = oldText;
         DATA.feedbacks = feedbacks;
         refreshFeedbackUiForBrand(brandName);
-        showToast('\u4fdd\u5b58\u5931\u8d25: ' + res.error.message, 'warning');
+        showToast('\u4fdd\u5b58\u5931\u8d25: ' + delRes.error.message, 'warning');
+        return null;
       }
+      var ins = { brand_name: brandName, text: newText, owner: ownerSave };
+      if(createdAt) ins.created_at = createdAt;
+      if(asg && asg.brandId > 0) ins.brand_id = asg.brandId;
+      return sbClient.from('ka_feedbacks').insert(ins).select('id');
+    }).then(function(insRes) {
+      if(!insRes) return;
+      if(insRes.error) {
+        feedbacks[brandName][index].text = oldText;
+        DATA.feedbacks = feedbacks;
+        refreshFeedbackUiForBrand(brandName);
+        showToast('\u4fdd\u5b58\u5931\u8d25: ' + insRes.error.message, 'warning');
+        mergeFeedbacksFromSupabase().then(function(){ refreshFeedbackUiForBrand(brandName); }).catch(function(){});
+        return;
+      }
+      var newId = insRes.data && insRes.data[0] && insRes.data[0].id;
+      if(newId) feedbacks[brandName][index].id = newId;
+      DATA.feedbacks = feedbacks;
+      mergeFeedbacksFromSupabase().then(function(){ refreshFeedbackUiForBrand(brandName); }).catch(function(){});
     }).catch(function(e) {
       feedbacks[brandName][index].text = oldText;
       DATA.feedbacks = feedbacks;
       refreshFeedbackUiForBrand(brandName);
       showToast('\u4fdd\u5b58\u5931\u8d25: ' + (e && e.message ? e.message : String(e)), 'warning');
+      mergeFeedbacksFromSupabase().then(function(){ refreshFeedbackUiForBrand(brandName); }).catch(function(){});
     });
-  });
-}
-
-// === 删除反馈（原生 confirm，避免自定义弹窗层级/点击穿透问题）===
-function confirmDeleteFeedback(brandName, index) {
-  if(!feedbacks[brandName] || !feedbacks[brandName][index]) return;
-  if(!window.confirm('\u786e\u5b9a\u8981\u5220\u9664\u8fd9\u6761\u53cd\u9988\u5417\uff1f')) return;
-  var insertIdx = index;
-  var arr = feedbacks[brandName];
-  if(!arr || !arr[insertIdx]) return;
-  var backup = arr[insertIdx];
-  var fid = backup.id;
-  arr.splice(insertIdx, 1);
-  if(!arr.length) delete feedbacks[brandName];
-  DATA.feedbacks = feedbacks;
-  showToast('\u53cd\u9988\u5df2\u5220\u9664', 'info');
-  refreshFeedbackUiForBrand(brandName);
-  var skipServer = !sbClient || !fid || (typeof fid === 'string' && fid.indexOf('local-') === 0);
-  if(skipServer) return;
-  sbClient.from('ka_feedbacks').delete().eq('id', fid).then(function(res) {
-    if(res.error) {
-      if(!feedbacks[brandName]) feedbacks[brandName] = [];
-      feedbacks[brandName].splice(insertIdx, 0, backup);
-      DATA.feedbacks = feedbacks;
-      refreshFeedbackUiForBrand(brandName);
-      showToast('\u5220\u9664\u5931\u8d25: ' + res.error.message, 'warning');
-    }
-  }).catch(function(e) {
-    if(!feedbacks[brandName]) feedbacks[brandName] = [];
-    feedbacks[brandName].splice(insertIdx, 0, backup);
-    DATA.feedbacks = feedbacks;
-    refreshFeedbackUiForBrand(brandName);
-    showToast('\u5220\u9664\u5931\u8d25: ' + (e && e.message ? e.message : String(e)), 'warning');
   });
 }
 
