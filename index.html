@@ -1136,7 +1136,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       else badCat2='其他';
       const bOwner2 = a.owner||'';
       const bCat2 = b.category||'';
-      html += '<div class="case-tab-content'+(idx===0?' active':'')+'" id="bad-card-'+viewId+'-'+idx+'" data-badcat="'+badCat2+'" data-owner="'+escAttr(bOwner2)+'" data-category="'+escAttr(bCat2)+'" data-brand="'+escAttr(b.name)+'">';
+      html += '<div class="case-tab-content'+(idx===0?' active':'')+'" id="bad-card-'+viewId+'-'+idx+'" data-is-good="0" data-badcat="'+badCat2+'" data-owner="'+escAttr(bOwner2)+'" data-category="'+escAttr(bCat2)+'" data-brand="'+escAttr(b.name)+'">';
       html += buildCaseCard(b, a, brandActs, issues, fb, false, viewId);
       html += '</div>';
     });
@@ -1199,7 +1199,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       var brandActs3 = DATA.activities.filter(function(x){return x.brandName===b.name;});
       var insights3 = analyzeGoodCase(b, globalMed);
       var fb3 = feedbacks[b.name]||[];
-      html += '<div class="case-tab-content'+(idx===0?' active':'')+'" id="good-card-'+viewId+'-'+idx+'">';
+      html += '<div class="case-tab-content'+(idx===0?' active':'')+'" id="good-card-'+viewId+'-'+idx+'" data-is-good="1" data-brand="'+escAttr(b.name)+'">';
       html += buildCaseCard(b, a3, brandActs3, insights3, fb3, true, viewId);
       html += '</div>';
     });
@@ -1493,7 +1493,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   if(analysis&&analysis.length>0){h+='<div class="diagnosis" style="margin-top:12px;">';analysis.forEach(function(item){h+='<div class="issue">'+(typeof item==="string"?item:(item.text||item.desc||""))+'</div>';});h+='</div>';}
   // === 其他补充反馈 ===
   var fbs = feedbacks[b.name] || [];
-  h += '<div style="margin:16px 0;padding:16px;background:linear-gradient(135deg,#fffbeb 0%,#fef9c3 100%);border-radius:10px;border:1px solid #fde68a;">';
+  h += '<div style="position:relative;z-index:2;margin:16px 0;padding:16px;background:linear-gradient(135deg,#fffbeb 0%,#fef9c3 100%);border-radius:10px;border:1px solid #fde68a;">';
   h += '<h5 style="font-size:14px;color:#92400e;margin:0 0 10px 0;">\ud83d\udcdd \u5176\u4ed6\u8865\u5145\u53cd\u9988 <span style="font-size:11px;color:#999;font-weight:400;">(' + fbs.length + '\u6761)</span></h5>';
   if(fbs.length === 0) {
     h += '<p style="color:#999;font-size:12px;margin:0;">\u6682\u65e0\u53cd\u9988</p>';
@@ -1517,7 +1517,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
     // 历史反馈（折叠）
     if(oldFbs.length > 0) {
       var hgid = 'cardfb-hist-' + cardFbEnc;
-      h += '<div><div onclick="var el=document.getElementById(\'' + hgid + '\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.fba\').textContent=el.style.display===\'none\'?\'\u25b6\':\'\u25bc\'" style="cursor:pointer;font-size:12px;font-weight:600;color:#92400e;padding:5px 0;border-bottom:1px dashed #fde68a;user-select:none;"><span class="fba">\u25b6</span> \u5386\u53f2\u53cd\u9988(' + oldFbs.length + ')</div>';
+      h += '<div><div onclick="var el=document.getElementById(\'' + hgid + '\');if(!el)return;el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.fba\').textContent=el.style.display===\'none\'?\'\u25b6\':\'\u25bc\'" style="cursor:pointer;font-size:12px;font-weight:600;color:#92400e;padding:5px 0;border-bottom:1px dashed #fde68a;user-select:none;"><span class="fba">\u25b6</span> \u5386\u53f2\u53cd\u9988(' + oldFbs.length + ')</div>';
       h += '<div id="' + hgid + '" style="display:none;">';
       var fbGroups = {};
       oldFbs.forEach(function(f2) { var d2 = f2.rawTime ? f2.rawTime.substring(0,10) : (f2.time||''); if(!fbGroups[d2]) fbGroups[d2]=[]; fbGroups[d2].push(f2); });
@@ -2204,40 +2204,46 @@ async function submitTableFb(brandName, viewId) {
   showToast('反馈保存成功', 'success');
   rebuildCurrentView();
 }
+function findCardFbInput(vid, brandName) {
+  var id = 'cardfb-input-' + encId((vid || 'overall') + '::' + brandName);
+  var panel = document.querySelector('.view-panel.active');
+  if(panel && typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+    var el = panel.querySelector('#' + CSS.escape(id));
+    if(el) return el;
+  }
+  return document.getElementById(id);
+}
 async function submitCardFb(brandName, viewId) {
   if(!sbClient) { showToast('Supabase 未初始化', 'warning'); return; }
   var vid = viewId || 'overall';
-  var input = document.getElementById('cardfb-input-' + encId(vid + '::' + brandName));
+  var input = findCardFbInput(vid, brandName);
   if(!input || !input.value.trim()) { showToast('请输入反馈内容', 'warning'); return; }
   var text = input.value.trim();
   const fbOwner = currentIdentity || '未知';
-  const { data: insRows, error } = await sbClient.from('ka_feedbacks').insert({
-    brand_name: brandName,
-    text: text,
-    owner: fbOwner
-  }).select('id');
+  const { error } = await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text, owner: fbOwner });
   if(error) { showToast('保存失败: ' + error.message, 'warning'); return; }
-  const newId = insRows && insRows[0] && insRows[0].id;
-  if(!feedbacks[brandName]) feedbacks[brandName] = [];
-  feedbacks[brandName].push({ id: newId, text: text, owner: fbOwner, time: new Date().toLocaleString('zh-CN'), rawTime: new Date().toISOString() });
-  DATA.feedbacks = feedbacks;
+  await mergeFeedbacksFromSupabase();
   input.value = '';
   showToast('反馈保存成功', 'success');
   rebuildCurrentView();
 }
 function rebuildCurrentView() {
   var nt = document.querySelector('.nav-tab.active');
+  var viewIdForCard = nt ? nt.dataset.view : 'overall';
   if(nt) {
     var viewId = nt.dataset.view;
     var ow = viewId==='overall'?'':viewId.replace('owner-','');
     try { refreshTable(viewId, ow); } catch(e) {}
   }
+  var globalMed = DATA && DATA.overall;
   document.querySelectorAll('.case-tab-content.active').forEach(function(card) {
     var bn = card.dataset.brand; if(!bn) return;
     var b = DATA.brands.find(function(x){ return x.name===bn; }); if(!b) return;
     var a = DATA.assignments.find(function(x){ return x.brand===bn; }) || {};
     var acts = (DATA.activities||[]).filter(function(x){ return x.brandName===bn; });
-    try { card.innerHTML = buildCaseCard(b, a, acts, [], feedbacks[bn]||[], false, nt?nt.dataset.view:'overall'); } catch(e) {}
+    var isGoodCard = card.dataset.isGood === '1';
+    var analysis = isGoodCard ? (globalMed ? analyzeGoodCase(b, globalMed) : []) : diagnoseBrand(b, acts, globalMed);
+    try { card.innerHTML = buildCaseCard(b, a, acts, analysis, feedbacks[bn]||[], isGoodCard, viewIdForCard); } catch(e) {}
   });
 }
 function refreshAllFeedbackDisplays(bn) { rebuildCurrentView(); }
@@ -3111,7 +3117,10 @@ function tagRate(r) {
 }
 function encId(s) { return btoa(unescape(encodeURIComponent(s))).replace(/[+/=]/g,'_'); }
 function escHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
-function escAttr(s) { return s.replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+function escAttr(s) {
+  if(s==null||s===undefined) return '';
+  return String(s).replace(/\\/g,'\\\\').replace(/&/g,'&amp;').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\r?\n/g,' ');
+}
 init();
 
 function filterGoodCaseAll(viewId) {
