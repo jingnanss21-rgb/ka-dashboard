@@ -1404,6 +1404,8 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   function pb(p,lb){var v=Math.min(p*100,100);var c2=v>=80?"#16a34a":v>=50?"#d97706":"#dc2626";return'<div style="margin-top:4px;"><div style="display:flex;justify-content:space-between;font-size:10px;"><span>'+lb+'</span><span>'+(p*100).toFixed(1)+'%</span></div><div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+Math.max(v,1)+'%;border-radius:3px;background:'+c2+';"></div></div></div>';}
   function pv(v){return v!==null&&v!==undefined?(v*100).toFixed(1)+"%":"-";}
   function sec(t){return'<div style="font-weight:700;font-size:14px;margin:18px 0 10px;padding:8px 0;border-bottom:2px solid #e2e8f0;">'+t+'</div>';}
+  var cardVid = viewId || 'overall';
+  var cardFbEnc = encId(cardVid + '::' + b.name);
   var h='<div class="case-card '+(isGood?"good-case":"")+'">';
   h+='<div class="case-header"><div><span class="brand-name">'+b.name+'</span><span class="tag '+(alive?"tag-green":"tag-red")+'" style="margin-left:8px;">'+(alive?"\u5b58\u6d3b":"\u672a\u5b58\u6d3b")+'</span>';
   if(a.owner)h+='<span class="tag tag-gray" style="margin-left:4px;">'+a.owner+'</span>';
@@ -1489,11 +1491,10 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
     h+='</tbody></table></div>';
   }
   if(analysis&&analysis.length>0){h+='<div class="diagnosis" style="margin-top:12px;">';analysis.forEach(function(item){h+='<div class="issue">'+(typeof item==="string"?item:(item.text||item.desc||""))+'</div>';});h+='</div>';}
-  h+='</div>';
   // === 其他补充反馈 ===
   var fbs = feedbacks[b.name] || [];
   h += '<div style="margin:16px 0;padding:16px;background:linear-gradient(135deg,#fffbeb 0%,#fef9c3 100%);border-radius:10px;border:1px solid #fde68a;">';
-  h += '<h5 style="font-size:14px;color:#92400e;margin:0 0 10px 0;">\u{1f4dd} \u5176\u4ed6\u8865\u5145\u53cd\u9988 <span style="font-size:11px;color:#999;font-weight:400;">(' + fbs.length + '\u6761)</span></h5>';
+  h += '<h5 style="font-size:14px;color:#92400e;margin:0 0 10px 0;">\ud83d\udcdd \u5176\u4ed6\u8865\u5145\u53cd\u9988 <span style="font-size:11px;color:#999;font-weight:400;">(' + fbs.length + '\u6761)</span></h5>';
   if(fbs.length === 0) {
     h += '<p style="color:#999;font-size:12px;margin:0;">\u6682\u65e0\u53cd\u9988</p>';
   } else {
@@ -1515,7 +1516,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
     }
     // 历史反馈（折叠）
     if(oldFbs.length > 0) {
-      var hgid = 'cardfb-hist-' + b.name.replace(/\W/g,'');
+      var hgid = 'cardfb-hist-' + cardFbEnc;
       h += '<div><div onclick="var el=document.getElementById(\'' + hgid + '\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.fba\').textContent=el.style.display===\'none\'?\'\u25b6\':\'\u25bc\'" style="cursor:pointer;font-size:12px;font-weight:600;color:#92400e;padding:5px 0;border-bottom:1px dashed #fde68a;user-select:none;"><span class="fba">\u25b6</span> \u5386\u53f2\u53cd\u9988(' + oldFbs.length + ')</div>';
       h += '<div id="' + hgid + '" style="display:none;">';
       var fbGroups = {};
@@ -1533,8 +1534,8 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
       h += '</div></div>';
     }
   }
-  h += '<div style="margin-top:10px;display:flex;gap:6px;align-items:center;"><input id="cardfb-input-'+b.name.replace(/\W/g,'')+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:6px 10px;border:1px solid #fde68a;border-radius:6px;font-size:12px;background:#fff;" onkeydown="if(event.key===\'Enter\')submitCardFb(\''+b.name.replace(/'/g,"\\'")+'\')"><button onclick="submitCardFb(\''+b.name.replace(/'/g,"\\'")+'\')" style="padding:6px 14px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;white-space:nowrap;">\u63d0\u4ea4</button></div>';
-  h += '</div>';
+  h += '<div style="margin-top:10px;display:flex;gap:6px;align-items:center;"><input id="cardfb-input-'+cardFbEnc+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:6px 10px;border:1px solid #fde68a;border-radius:6px;font-size:12px;background:#fff;" onkeydown="if(event.key===\'Enter\')submitCardFb(\''+escAttr(b.name)+'\',\''+escAttr(cardVid)+'\')"><button onclick="submitCardFb(\''+escAttr(b.name)+'\',\''+escAttr(cardVid)+'\')" style="padding:6px 14px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;white-space:nowrap;">\u63d0\u4ea4</button></div>';
+  h += '</div></div>';
 
   return h;
 }
@@ -2203,16 +2204,26 @@ async function submitTableFb(brandName, viewId) {
   showToast('反馈保存成功', 'success');
   rebuildCurrentView();
 }
-async function submitCardFb(brandName) {
-  var input = document.getElementById('cardfb-input-' + brandName.replace(/\W/g,''));
-  if(!input || !input.value.trim()) return;
+async function submitCardFb(brandName, viewId) {
+  if(!sbClient) { showToast('Supabase 未初始化', 'warning'); return; }
+  var vid = viewId || 'overall';
+  var input = document.getElementById('cardfb-input-' + encId(vid + '::' + brandName));
+  if(!input || !input.value.trim()) { showToast('请输入反馈内容', 'warning'); return; }
   var text = input.value.trim();
+  const fbOwner = currentIdentity || '未知';
+  const { data: insRows, error } = await sbClient.from('ka_feedbacks').insert({
+    brand_name: brandName,
+    text: text,
+    owner: fbOwner
+  }).select('id');
+  if(error) { showToast('保存失败: ' + error.message, 'warning'); return; }
+  const newId = insRows && insRows[0] && insRows[0].id;
   if(!feedbacks[brandName]) feedbacks[brandName] = [];
-  feedbacks[brandName].push({ id: Date.now().toString(), text: text, owner: '', time: new Date().toLocaleDateString('zh-CN'), rawTime: new Date().toISOString() });
+  feedbacks[brandName].push({ id: newId, text: text, owner: fbOwner, time: new Date().toLocaleString('zh-CN'), rawTime: new Date().toISOString() });
   DATA.feedbacks = feedbacks;
-  showToast('\u53cd\u9988\u5df2\u63d0\u4ea4', 'success');
+  input.value = '';
+  showToast('反馈保存成功', 'success');
   rebuildCurrentView();
-  try { if(sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text, owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
 }
 function rebuildCurrentView() {
   var nt = document.querySelector('.nav-tab.active');
