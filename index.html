@@ -1504,7 +1504,6 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
     h += '<p style="color:#999;font-size:12px;margin:0;">\u6682\u65e0\u53cd\u9988</p>';
   } else {
     var cutoff = '2026-04-08';
-    fbs.forEach(function(f2, fi2) { f2._idx = fi2; });
     var newFbs = fbs.filter(function(f2){ return f2.rawTime && f2.rawTime.substring(0,10) >= cutoff; });
     var oldFbs = fbs.filter(function(f2){ return !f2.rawTime || f2.rawTime.substring(0,10) < cutoff; });
     // 新增反馈（默认展开）
