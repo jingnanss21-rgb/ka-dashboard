@@ -1343,13 +1343,14 @@ function buildTableFbCell(brandName, viewId, ownerFilter) {
   var newFb = fb.filter(function(f){ return f.rawTime && f.rawTime.substring(0,10) >= cutoff; });
   var oldFb = fb.filter(function(f){ return !f.rawTime || f.rawTime.substring(0,10) < cutoff; });
   var out = '<div style="font-size:11px;">';
-  out += '<div style="display:flex;gap:4px;align-items:center;"><input id="tdfb-input-'+encId(brandName)+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:3px 6px;border:1px solid #ddd;border-radius:4px;font-size:11px;min-width:120px;" onkeydown="if(event.key===\'Enter\')submitTableFb(\''+escAttr(brandName)+'\')" /><button onclick="submitTableFb(\''+escAttr(brandName)+'\') " style="padding:3px 8px;font-size:10px;border:none;border-radius:4px;background:#3b82f6;color:#fff;cursor:pointer;">\u63d0\u4ea4</button></div>';
+  var tdfbId = 'tdfb-input-' + encId(viewId + '::' + brandName);
+  out += '<div style="display:flex;gap:4px;align-items:center;"><input id="'+tdfbId+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:3px 6px;border:1px solid #ddd;border-radius:4px;font-size:11px;min-width:120px;" onkeydown="if(event.key===\'Enter\')submitTableFb(\''+escAttr(brandName)+'\',\''+escAttr(viewId)+'\')" /><button onclick="submitTableFb(\''+escAttr(brandName)+'\',\''+escAttr(viewId)+'\')" style="padding:3px 8px;font-size:10px;border:none;border-radius:4px;background:#3b82f6;color:#fff;cursor:pointer;">\u63d0\u4ea4</button></div>';
   if(newFb.length > 0) {
     out += '<div style="margin-top:4px;font-size:10px;color:#16a34a;font-weight:600;">\u65b0\u589e('+newFb.length+')</div>';
     newFb.forEach(function(f2){ var idx=fb.indexOf(f2); var ts=f2.rawTime?f2.rawTime.substring(0,16).replace('T',' '):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;background:#f0fdf4;border-left:3px solid #16a34a;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick="confirmDeleteFeedback(\''+escAttr(brandName)+'\','+idx+')">\u00d7</span></span></div>'; });
   }
   if(oldFb.length > 0) {
-    var gid = 'tdfb-hist-' + encId(brandName);
+    var gid = 'tdfb-hist-' + encId(viewId + '::' + brandName);
     out += '<div style="margin-top:4px;"><span onclick="var el=document.getElementById(\''+gid+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.fba\').textContent=el.style.display===\'none\'?\'\u25b6\':\'\u25bc\'" style="cursor:pointer;font-size:10px;color:#92400e;font-weight:600;user-select:none;"><span class="fba">\u25b6</span> \u5386\u53f2('+oldFb.length+')</span><div id="'+gid+'" style="display:none;margin-top:4px;">';
     oldFb.forEach(function(f2){ var idx=fb.indexOf(f2); var ts=f2.rawTime?f2.rawTime.substring(11,16):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick="editFeedback(\''+escAttr(brandName)+'\','+idx+')">\u270e</span><span class="mini-btn del" onclick="confirmDeleteFeedback(\''+escAttr(brandName)+'\','+idx+')">\u00d7</span></span></div>'; });
     out += '</div></div>';
@@ -2181,16 +2182,26 @@ function addFeedback(brandName) {
     try { if(sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text.trim(), owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
   });
 }
-async function submitTableFb(brandName) {
-  var input = document.getElementById('tdfb-input-' + encId(brandName));
-  if(!input || !input.value.trim()) return;
+async function submitTableFb(brandName, viewId) {
+  if(!sbClient) { showToast('Supabase 未初始化', 'warning'); return; }
+  var vid = viewId || 'overall';
+  var input = document.getElementById('tdfb-input-' + encId(vid + '::' + brandName));
+  if(!input || !input.value.trim()) { showToast('请输入反馈内容', 'warning'); return; }
   var text = input.value.trim();
+  const fbOwner = currentIdentity || '未知';
+  const { data: insRows, error } = await sbClient.from('ka_feedbacks').insert({
+    brand_name: brandName,
+    text: text,
+    owner: fbOwner
+  }).select('id');
+  if(error) { showToast('保存失败: ' + error.message, 'warning'); return; }
+  const newId = insRows && insRows[0] && insRows[0].id;
   if(!feedbacks[brandName]) feedbacks[brandName] = [];
-  feedbacks[brandName].push({ id: Date.now().toString(), text: text, owner: '', time: new Date().toLocaleDateString('zh-CN'), rawTime: new Date().toISOString() });
-  DATA.feedbacks = feedbacks; input.value = '';
-  showToast('\u53cd\u9988\u5df2\u63d0\u4ea4', 'success');
+  feedbacks[brandName].push({ id: newId, text: text, owner: fbOwner, time: new Date().toLocaleString('zh-CN'), rawTime: new Date().toISOString() });
+  DATA.feedbacks = feedbacks;
+  input.value = '';
+  showToast('反馈保存成功', 'success');
   rebuildCurrentView();
-  try { if(sbClient) await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text, owner: localStorage.getItem('ka_dashboard_identity')||'' }); } catch(e) {}
 }
 async function submitCardFb(brandName) {
   var input = document.getElementById('cardfb-input-' + brandName.replace(/\W/g,''));
