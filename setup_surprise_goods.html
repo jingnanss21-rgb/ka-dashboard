@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>导入惊喜货盘数据</title>
+<style>
+body{font-family:-apple-system,'PingFang SC',sans-serif;max-width:700px;margin:60px auto;padding:20px;background:#f5f7fa;}
+.card{background:#fff;border-radius:12px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,0.1);}
+h2{color:#1a73e8;margin-bottom:8px;}
+p{color:#666;margin-bottom:24px;line-height:1.7;}
+button{background:#1a73e8;color:#fff;border:none;padding:14px 32px;border-radius:8px;font-size:16px;cursor:pointer;width:100%;}
+button:hover{background:#1557b0;}
+button:disabled{background:#ccc;cursor:not-allowed;}
+.log{margin-top:20px;background:#f0f4f8;border-radius:8px;padding:16px;font-size:13px;color:#333;line-height:1.8;min-height:60px;max-height:300px;overflow-y:auto;}
+.ok{color:#34a853;font-weight:600;}
+.err{color:#ea4335;font-weight:600;}
+.warn{color:#f9ab00;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>🎁 导入惊喜货盘数据</h2>
+  <p>
+    点击按钮后，将自动在 Supabase 中创建 <code>ka_surprise_goods</code> 表并写入 <strong>50 条</strong>惊喜货盘数据。<br>
+    （如表已存在，会先清空再重新插入，不会影响其他表）
+  </p>
+  <button id="btn" onclick="run()">🚀 开始导入</button>
+  <div class="log" id="log">等待操作...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DATA = [{"category":"饮品","brand":"蜜雪冰城","owner":"jancie","target":2,"online":0,"content":""},{"category":"饮品","brand":"luckin coffee","owner":"jancie","target":2,"online":0,"content":"超值3次卡（最低9.8）"},{"category":"西快","brand":"肯德基","owner":"warm","target":2,"online":1,"content":"5元折上折券"},{"category":"西快","brand":"麦当劳","owner":"warm","target":2,"online":0,"content":""},{"category":"饮品","brand":"古茗","owner":"jancie","target":2,"online":0,"content":""},{"category":"饮品","brand":"霸王茶姬","owner":"warm","target":2,"online":0,"content":""},{"category":"西快","brand":"塔斯汀","owner":"warm","target":2,"online":2,"content":"0元辣堡（任意消费）0元粗薯（满10元）"},{"category":"饮品","brand":"星巴克","owner":"jancie","target":1,"online":1,"content":"0元升杯券"},{"category":"饮品","brand":"库迪咖啡","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"幸运咖","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"喜茶","owner":"jancie","target":1,"online":0,"content":""},{"category":"西快","brand":"华莱士","owner":"warm","target":1,"online":1,"content":"1元元气鸡排特价券"},{"category":"饮品","brand":"茶百道","owner":"jancie","target":1,"online":0,"content":""},{"category":"小吃","brand":"正新鸡排","owner":"振哥","target":1,"online":0,"content":""},{"category":"饮品","brand":"益禾堂","owner":"warm","target":1,"online":1,"content":"0元零食券"},{"category":"饮品","brand":"沪上阿姨","owner":"warm","target":1,"online":0,"content":""},{"category":"饮品","brand":"1点点","owner":"jancie","target":1,"online":0,"content":""},{"category":"中快","brand":"老乡鸡","owner":"小雪","target":1,"online":1,"content":"0元蒸蛋"},{"category":"西快","brand":"必胜客","owner":"warm","target":2,"online":2,"content":"必胜客全场叠加券
+0元椒麻小酥肉"},{"category":"中快","brand":"杨国福","owner":"振哥","target":1,"online":0,"content":""},{"category":"小吃","brand":"绝味鸭脖","owner":"振哥","target":2,"online":2,"content":"0元翅尖（满15元可用）
+9.9元5个鸡翅尖"},{"category":"饮品","brand":"甜啦啦","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"CoCo都可","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"书亦","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"茶颜悦色","owner":"jancie","target":1,"online":0,"content":""},{"category":"中快","brand":"乡村基","owner":"小雪","target":1,"online":0,"content":""},{"category":"正餐","brand":"海底捞","owner":"振哥","target":1,"online":0,"content":""},{"category":"西快","brand":"德克士","owner":"warm","target":1,"online":0,"content":""},{"category":"饮品","brand":"Manner","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"奈雪的茶","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"DQ","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"茉莉奶白","owner":"warm","target":1,"online":0,"content":""},{"category":"西快","brand":"享哆味","owner":"warm","target":1,"online":0,"content":""},{"category":"中快","brand":"袁记云饺","owner":"振哥","target":1,"online":0,"content":""},{"category":"中快","brand":"喜家德","owner":"小雪","target":1,"online":0,"content":""},{"category":"西快","brand":"达美乐","owner":"warm","target":1,"online":1,"content":"0元蛋挞券"},{"category":"西快","brand":"汉堡王","owner":"warm","target":1,"online":1,"content":"0元小食任选（满10元）"},{"category":"饮品","brand":"爷爷不泡茶","owner":"warm","target":1,"online":0,"content":""},{"category":"小吃","brand":"喜姐炸串","owner":"振哥","target":1,"online":0,"content":""},{"category":"饮品","brand":"阿水大杯茶","owner":"warm","target":1,"online":0,"content":""},{"category":"中快","brand":"遇见小面","owner":"小雪","target":1,"online":1,"content":"4.99金碗酸辣粉"},{"category":"中快","brand":"馬記永","owner":"小雪","target":1,"online":0,"content":""},{"category":"中快","brand":"朴大叔","owner":"小雪","target":1,"online":0,"content":""},{"category":"饮品","brand":"M Stand","owner":"jancie","target":2,"online":2,"content":"经典咖啡5折券
+指定咖啡5折券"},{"category":"中快","brand":"大米先生","owner":"振哥","target":1,"online":0,"content":""},{"category":"饮品","brand":"TIMHORTONS","owner":"jancie","target":2,"online":2,"content":"0元升杯券
+0元小食券（任意消费）"},{"category":"正餐","brand":"九毛九","owner":"振哥","target":2,"online":2,"content":"0元小米粥
+0.99元大骨头"},{"category":"饮品","brand":"茶话弄","owner":"jancie","target":1,"online":0,"content":""},{"category":"饮品","brand":"茶理宜世","owner":"warm","target":1,"online":0,"content":""},{"category":"正餐","brand":"呷哺呷哺","owner":"振哥","target":1,"online":0,"content":""}];
+
+function log(msg, cls='') {
+  const el = document.getElementById('log');
+  el.innerHTML += `<div class="${cls}">${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function run() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  document.getElementById('log').innerHTML = '';
+  log('🔍 检查表是否存在...');
+
+  // 1. 尝试读取表（判断是否存在）
+  const { error: checkErr } = await sb.from('ka_surprise_goods').select('id').limit(1);
+  
+  if(checkErr && checkErr.code === 'PGRST116') {
+    // 表不存在，需要用 SQL Editor 手动建
+    log('⚠️ 表 ka_surprise_goods 不存在，正在通过 RPC 创建...', 'warn');
+  }
+
+  // 2. 先尝试删除旧数据
+  const { error: delErr } = await sb.from('ka_surprise_goods').delete().neq('id', 0);
+  if(delErr) {
+    if(delErr.code === 'PGRST116' || delErr.message.includes('does not exist') || delErr.message.includes('schema cache')) {
+      log('📋 表不存在，请先在 Supabase SQL Editor 执行建表 SQL！', 'err');
+      log('👉 建表 SQL 已在下方显示，复制到 <a href="https://supabase.com/dashboard/project/imogeucpwfburswopykq/editor" target="_blank">SQL Editor</a> 执行后再重试', 'warn');
+      document.getElementById('sql-section').style.display='block';
+      btn.disabled = false;
+      return;
+    }
+    log('清空旧数据时出错: ' + delErr.message, 'warn');
+  } else {
+    log('✅ 已清空旧数据');
+  }
+
+  // 3. 分批插入
+  log('📥 开始插入 ' + DATA.length + ' 条记录...');
+  const batchSize = 20;
+  let inserted = 0;
+  for(let i=0; i<DATA.length; i+=batchSize) {
+    const batch = DATA.slice(i, i+batchSize);
+    const { error: insErr } = await sb.from('ka_surprise_goods').insert(batch);
+    if(insErr) {
+      log('❌ 插入失败 (第' + (i+1) + '批): ' + insErr.message, 'err');
+      btn.disabled = false;
+      return;
+    }
+    inserted += batch.length;
+    log('✅ 已插入 ' + inserted + ' / ' + DATA.length + ' 条');
+  }
+
+  log('🎉 全部完成！共导入 ' + inserted + ' 条惊喜货盘数据', 'ok');
+  log('👉 可以刷新 Dashboard 查看新数据了', 'ok');
+  btn.textContent = '✅ 导入完成';
+}
+</script>
+
+<div id="sql-section" style="display:none;margin-top:24px;background:#fff;border-radius:12px;padding:24px;">
+  <h3 style="color:#ea4335;margin-bottom:12px;">⚠️ 需要先建表</h3>
+  <p style="color:#666;">请复制以下 SQL，在 <a href="https://supabase.com/dashboard/project/imogeucpwfburswopykq/editor" target="_blank">Supabase SQL Editor</a> 执行后，再回来点击"开始导入"：</p>
+  <textarea style="width:100%;height:180px;font-family:monospace;font-size:12px;padding:12px;border:1px solid #ddd;border-radius:8px;" readonly>CREATE TABLE IF NOT EXISTS ka_surprise_goods (
+  id SERIAL PRIMARY KEY,
+  category TEXT,
+  brand TEXT,
+  owner TEXT,
+  target INTEGER DEFAULT 0,
+  online INTEGER DEFAULT 0,
+  content TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE ka_surprise_goods ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all" ON ka_surprise_goods FOR ALL USING (true) WITH CHECK (true);</textarea>
+</div>
+
+</body>
+</html>
