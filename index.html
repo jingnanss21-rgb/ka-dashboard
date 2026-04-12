@@ -799,6 +799,7 @@ function subscribeRealtime() {
 function trackVisit(page) {}
 
 async function init() {
+  bindCardFeedbackDelegation();
   // 检查 Supabase SDK 是否加载
   if(!window.supabase) { console.warn('Supabase offline'); }
 
@@ -1119,7 +1120,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       else { statusTag='其他'; statusCls='tag-gray'; badCat='其他'; }
       const bOwner = (findAssignmentForBrand(b)||{}).owner||'';
       const bCat = b.category||'';
-      html += `<div class="case-tab bad-tab${idx===0?' active':''}" data-target="bad-card-${viewId}-${idx}" data-badcat="${badCat}" data-owner="${escAttr(bOwner)}" data-category="${escAttr(bCat)}" data-brand="${escAttr(b.name)}" onclick="switchCaseTab(this,'bad-tabs-${viewId}','bad-cards-${viewId}')">${b.name} <span class="tag ${statusCls}" style="font-size:10px;margin-left:4px;">${statusTag}</span>${hasGrowth?`<span class="tag tag-green" style="font-size:10px;margin-left:2px;">环比+${(grTab*100).toFixed(0)}%</span>`:grTab==='new'?`<span class="tag tag-blue" style="font-size:10px;margin-left:2px;">新上线</span>`:''}</div>`;
+      html += `<div class="case-tab bad-tab${idx===0?' active':''}" data-target="bad-card-${viewId}-${idx}" data-badcat="${badCat}" data-owner="${escAttr(bOwner)}" data-category="${escAttr(bCat)}" data-brand="${encodeURIComponent(b.name)}" onclick="switchCaseTab(this,'bad-tabs-${viewId}','bad-cards-${viewId}')">${b.name} <span class="tag ${statusCls}" style="font-size:10px;margin-left:4px;">${statusTag}</span>${hasGrowth?`<span class="tag tag-green" style="font-size:10px;margin-left:2px;">环比+${(grTab*100).toFixed(0)}%</span>`:grTab==='new'?`<span class="tag tag-blue" style="font-size:10px;margin-left:2px;">新上线</span>`:''}</div>`;
     });
     html += '</div><div id="bad-cards-'+viewId+'">';
     badBrands.forEach((b,idx) => {
@@ -1136,7 +1137,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       else badCat2='其他';
       const bOwner2 = a.owner||'';
       const bCat2 = b.category||'';
-      html += '<div class="case-tab-content'+(idx===0?' active':'')+'" id="bad-card-'+viewId+'-'+idx+'" data-is-good="0" data-badcat="'+badCat2+'" data-owner="'+escAttr(bOwner2)+'" data-category="'+escAttr(bCat2)+'" data-brand="'+escAttr(b.name)+'">';
+      html += '<div class="case-tab-content'+(idx===0?' active':'')+'" id="bad-card-'+viewId+'-'+idx+'" data-is-good="0" data-badcat="'+badCat2+'" data-owner="'+escAttr(bOwner2)+'" data-category="'+escAttr(bCat2)+'" data-brand="'+encodeURIComponent(b.name)+'">';
       html += buildCaseCard(b, a, brandActs, issues, fb, false, viewId);
       html += '</div>';
     });
@@ -1191,7 +1192,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       var grLabel = typeof grGood==='number' ? (grGood>0?'+':'')+(grGood*100).toFixed(0)+'%' : '新上线';
       var bOwner3 = (findAssignmentForBrand(b)||{}).owner||'';
       var bCat3 = b.category||'';
-      html += '<div class="case-tab good-tab'+(idx===0?' active':'')+'" data-target="good-card-'+viewId+'-'+idx+'" data-owner="'+escAttr(bOwner3)+'" data-category="'+escAttr(bCat3)+'" data-brand="'+escAttr(b.name)+'" onclick="switchCaseTab(this,\'good-tabs-'+viewId+'\',\'good-cards-'+viewId+'\')">'+b.name+' <span class="tag tag-green" style="font-size:10px;margin-left:4px;">'+grLabel+'</span></div>';
+      html += '<div class="case-tab good-tab'+(idx===0?' active':'')+'" data-target="good-card-'+viewId+'-'+idx+'" data-owner="'+escAttr(bOwner3)+'" data-category="'+escAttr(bCat3)+'" data-brand="'+encodeURIComponent(b.name)+'" onclick="switchCaseTab(this,\'good-tabs-'+viewId+'\',\'good-cards-'+viewId+'\')">'+b.name+' <span class="tag tag-green" style="font-size:10px;margin-left:4px;">'+grLabel+'</span></div>';
     });
     html += '</div><div id="good-cards-'+viewId+'">';
     goodBrands.forEach(function(b,idx) {
@@ -1199,7 +1200,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       var brandActs3 = DATA.activities.filter(function(x){return x.brandName===b.name;});
       var insights3 = analyzeGoodCase(b, globalMed);
       var fb3 = feedbacks[b.name]||[];
-      html += '<div class="case-tab-content'+(idx===0?' active':'')+'" id="good-card-'+viewId+'-'+idx+'" data-is-good="1" data-brand="'+escAttr(b.name)+'">';
+      html += '<div class="case-tab-content'+(idx===0?' active':'')+'" id="good-card-'+viewId+'-'+idx+'" data-is-good="1" data-brand="'+encodeURIComponent(b.name)+'">';
       html += buildCaseCard(b, a3, brandActs3, insights3, fb3, true, viewId);
       html += '</div>';
     });
@@ -1264,7 +1265,7 @@ function filterBadCaseAll(viewId, catTagEl) {
     const matchCat = cat==='all' || t.dataset.badcat===cat;
     const matchOwner = !ownerVal || t.dataset.owner===ownerVal;
     const matchCategory = !catVal || t.dataset.category===catVal;
-    const matchSearch = !searchVal || (t.dataset.brand||'').toLowerCase().includes(searchVal);
+    const matchSearch = !searchVal || readCaseTabBrand(t).toLowerCase().includes(searchVal);
     const show = matchCat && matchOwner && matchCategory && matchSearch;
     t.style.display = show ? '' : 'none';
     t.classList.remove('active');
@@ -1274,7 +1275,7 @@ function filterBadCaseAll(viewId, catTagEl) {
     const matchCat = cat==='all' || c.dataset.badcat===cat;
     const matchOwner = !ownerVal || c.dataset.owner===ownerVal;
     const matchCategory = !catVal || c.dataset.category===catVal;
-    const matchSearch = !searchVal || (c.dataset.brand||'').toLowerCase().includes(searchVal);
+    const matchSearch = !searchVal || readCaseTabBrand(c).toLowerCase().includes(searchVal);
     const show = matchCat && matchOwner && matchCategory && matchSearch;
     c.style.display = show ? '' : 'none';
     c.classList.remove('active');
@@ -1534,7 +1535,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
       h += '</div></div>';
     }
   }
-  h += '<div style="margin-top:10px;display:flex;gap:6px;align-items:center;"><input id="cardfb-input-'+cardFbEnc+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:6px 10px;border:1px solid #fde68a;border-radius:6px;font-size:12px;background:#fff;" onkeydown="if(event.key===\'Enter\')submitCardFb(\''+escAttr(b.name)+'\',\''+escAttr(cardVid)+'\')"><button onclick="submitCardFb(\''+escAttr(b.name)+'\',\''+escAttr(cardVid)+'\')" style="padding:6px 14px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;white-space:nowrap;">\u63d0\u4ea4</button></div>';
+  h += '<div class="card-fb-row" style="margin-top:10px;display:flex;gap:6px;align-items:center;"><input class="card-fb-inp" id="cardfb-input-'+cardFbEnc+'" type="text" placeholder="\u6dfb\u52a0\u53cd\u9988..." style="flex:1;padding:6px 10px;border:1px solid #fde68a;border-radius:6px;font-size:12px;background:#fff;" data-cfb-b="'+encodeURIComponent(b.name)+'" data-cfb-v="'+encodeURIComponent(cardVid)+'"><button type="button" class="card-fb-btn" data-cfb-b="'+encodeURIComponent(b.name)+'" data-cfb-v="'+encodeURIComponent(cardVid)+'" style="padding:6px 14px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;white-space:nowrap;">\u63d0\u4ea4</button></div>';
   h += '</div></div>';
 
   return h;
@@ -2204,6 +2205,12 @@ async function submitTableFb(brandName, viewId) {
   showToast('反馈保存成功', 'success');
   rebuildCurrentView();
 }
+function readCaseTabBrand(el) {
+  if(!el) return '';
+  var raw = el.getAttribute('data-brand');
+  if(raw==null||raw==='') return '';
+  try { return decodeURIComponent(raw); } catch(e) { return raw; }
+}
 function findCardFbInput(vid, brandName) {
   var id = 'cardfb-input-' + encId((vid || 'overall') + '::' + brandName);
   var panel = document.querySelector('.view-panel.active');
@@ -2213,19 +2220,98 @@ function findCardFbInput(vid, brandName) {
   }
   return document.getElementById(id);
 }
-async function submitCardFb(brandName, viewId) {
-  if(!sbClient) { showToast('Supabase 未初始化', 'warning'); return; }
+function rebuildActiveCaseCardsForBrand(brandName) {
+  var nt = document.querySelector('.nav-tab.active');
+  var viewIdForCard = nt ? nt.dataset.view : 'overall';
+  var globalMed = DATA && DATA.overall;
+  document.querySelectorAll('.case-tab-content.active').forEach(function(card) {
+    var bn = readCaseTabBrand(card);
+    if(bn !== brandName) return;
+    var b = DATA.brands.find(function(x){ return x.name===bn; });
+    if(!b) return;
+    var a = DATA.assignments.find(function(x){ return x.brand===bn; }) || {};
+    var acts = (DATA.activities||[]).filter(function(x){ return x.brandName===bn; });
+    var isGoodCard = card.dataset.isGood === '1';
+    var analysis = isGoodCard ? (globalMed ? analyzeGoodCase(b, globalMed) : []) : diagnoseBrand(b, acts, globalMed);
+    try { card.innerHTML = buildCaseCard(b, a, acts, analysis, feedbacks[bn]||[], isGoodCard, viewIdForCard); } catch(e) {}
+  });
+}
+function submitCardFbFromTrigger(el) {
+  var be = el.getAttribute('data-cfb-b');
+  var ve = el.getAttribute('data-cfb-v');
+  if(!be) return;
+  var brandName;
+  var viewId;
+  try { brandName = decodeURIComponent(be); } catch(e) { brandName = be; }
+  try { viewId = ve ? decodeURIComponent(ve) : 'overall'; } catch(e) { viewId = 'overall'; }
+  var cardRoot = el.closest('.case-card');
+  var input = cardRoot ? cardRoot.querySelector('.card-fb-inp') : null;
+  if(!input) input = findCardFbInput(viewId, brandName);
+  if(!input) { showToast('\u672a\u627e\u5230\u8f93\u5165\u6846', 'warning'); return; }
+  submitCardFbCore(brandName, viewId, input);
+}
+function bindCardFeedbackDelegation() {
+  if(window.__cardFbDelegBound) return;
+  window.__cardFbDelegBound = true;
+  document.addEventListener('click', function(e) {
+    var btn = e.target && e.target.closest && e.target.closest('.card-fb-btn');
+    if(!btn) return;
+    e.preventDefault();
+    submitCardFbFromTrigger(btn);
+  });
+  document.addEventListener('keydown', function(e) {
+    if(e.key !== 'Enter' && e.which !== 13 && e.keyCode !== 13) return;
+    var t = e.target;
+    if(!t || !t.classList || !t.classList.contains('card-fb-inp')) return;
+    e.preventDefault();
+    submitCardFbFromTrigger(t);
+  }, true);
+}
+async function submitCardFbCore(brandName, viewId, input) {
+  if(!sbClient) { showToast('Supabase \u672a\u521d\u59cb\u5316', 'warning'); return; }
+  var text = (input && input.value || '').trim();
+  if(!text) { showToast('\u8bf7\u8f93\u5165\u53cd\u9988\u5185\u5bb9', 'warning'); return; }
+  var fbOwner = currentIdentity || '\u672a\u77e5';
+  var bRow = DATA.brands.find(function(br){ return br.name === brandName; }) || { name: brandName };
+  var asg = findAssignmentForBrand(bRow);
+  var pendingId = 'local-' + Date.now();
+  input.value = '';
+  if(!feedbacks[brandName]) feedbacks[brandName] = [];
+  feedbacks[brandName].push({ id: pendingId, text: text, owner: fbOwner, time: new Date().toLocaleString('zh-CN'), rawTime: new Date().toISOString() });
+  DATA.feedbacks = feedbacks;
+  rebuildActiveCaseCardsForBrand(brandName);
+  showToast('\u53cd\u9988\u5df2\u63d0\u4ea4', 'success');
+  var ins = { brand_name: brandName, text: text, owner: fbOwner };
+  if(asg && asg.brandId > 0) ins.brand_id = asg.brandId;
+  var err = null;
+  try {
+    var res = await sbClient.from('ka_feedbacks').insert(ins);
+    err = res.error;
+    if(err && ins.brand_id != null) {
+      var ins2 = { brand_name: brandName, text: text, owner: fbOwner };
+      res = await sbClient.from('ka_feedbacks').insert(ins2);
+      err = res.error;
+    }
+  } catch(ex) { err = ex; }
+  if(err) {
+    var arr = feedbacks[brandName];
+    if(arr) {
+      var ix = arr.findIndex(function(f){ return f.id === pendingId; });
+      if(ix >= 0) arr.splice(ix, 1);
+    }
+    rebuildActiveCaseCardsForBrand(brandName);
+    var inp2 = findCardFbInput(viewId, brandName);
+    if(inp2) inp2.value = text;
+    var msg = (err && err.message) ? err.message : String(err);
+    showToast('\u4fdd\u5b58\u5931\u8d25: ' + msg, 'warning');
+    return;
+  }
+  mergeFeedbacksFromSupabase().then(function(){ rebuildActiveCaseCardsForBrand(brandName); }).catch(function(){});
+}
+function submitCardFb(brandName, viewId) {
   var vid = viewId || 'overall';
   var input = findCardFbInput(vid, brandName);
-  if(!input || !input.value.trim()) { showToast('请输入反馈内容', 'warning'); return; }
-  var text = input.value.trim();
-  const fbOwner = currentIdentity || '未知';
-  const { error } = await sbClient.from('ka_feedbacks').insert({ brand_name: brandName, text: text, owner: fbOwner });
-  if(error) { showToast('保存失败: ' + error.message, 'warning'); return; }
-  await mergeFeedbacksFromSupabase();
-  input.value = '';
-  showToast('反馈保存成功', 'success');
-  rebuildCurrentView();
+  if(input) submitCardFbCore(brandName, vid, input);
 }
 function rebuildCurrentView() {
   var nt = document.querySelector('.nav-tab.active');
@@ -2237,7 +2323,7 @@ function rebuildCurrentView() {
   }
   var globalMed = DATA && DATA.overall;
   document.querySelectorAll('.case-tab-content.active').forEach(function(card) {
-    var bn = card.dataset.brand; if(!bn) return;
+    var bn = readCaseTabBrand(card); if(!bn) return;
     var b = DATA.brands.find(function(x){ return x.name===bn; }); if(!b) return;
     var a = DATA.assignments.find(function(x){ return x.brand===bn; }) || {};
     var acts = (DATA.activities||[]).filter(function(x){ return x.brandName===bn; });
@@ -3134,7 +3220,7 @@ function filterGoodCaseAll(viewId) {
   var cards = cardsContainer.querySelectorAll('.case-tab-content');
   var visibleCount = 0, firstVisibleTab = null;
   tabs.forEach(function(t) {
-    var show = (!ownerVal || t.dataset.owner===ownerVal) && (!catVal || t.dataset.category===catVal) && (!searchVal || (t.dataset.brand||'').toLowerCase().indexOf(searchVal)>=0);
+    var show = (!ownerVal || t.dataset.owner===ownerVal) && (!catVal || t.dataset.category===catVal) && (!searchVal || readCaseTabBrand(t).toLowerCase().indexOf(searchVal)>=0);
     t.style.display = show ? '' : 'none';
     if(show) { visibleCount++; if(!firstVisibleTab) firstVisibleTab = t; }
   });
