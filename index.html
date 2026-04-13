@@ -509,6 +509,8 @@ function rebuildNavTabsDOM() {
   el.innerHTML = h;
 }
 let DATA = null;
+// 品牌名别名映射：文档名 → assignments 标准名。双向查询，确保 surprise_goods 与 assignments 品牌名一定能匹配。
+const BRAND_ALIAS = {"奈雪的茶":"奈雪茶","奈雪茶":"奈雪的茶","绝味鸭脖":"绝味","绝味":"绝味鸭脖"};
 let feedbacks = window.__EMBEDDED_FEEDBACKS__ || {};
 let OWNERS = ['jancie','小雪','warm','振哥'];
 const OWNER_COLORS = {'jancie':'#e91e63','小雪':'#9c27b0','warm':'#ff9800','振哥':'#009688'};
@@ -1808,7 +1810,7 @@ function refreshTable(viewId, ownerFilter) {
 
   const merged = assignments.map(a=>{
     const b = findBrandRowForAssignment(a);
-    const sg = (DATA.surpriseGoods||[]).find(r=>(r.brand||r.brandName)===a.brand) || {};
+    const sg = (DATA.surpriseGoods||[]).find(r=>{const n=r.brand||r.brandName; return n===a.brand || n===BRAND_ALIAS[a.brand];}) || {};
     const cd = (CHANNEL_DATA.brandChannelData||{})[b.name] || (CHANNEL_DATA.brandChannelData||{})[a.brand] || {};
     const expEstimated = parseFloat(a.estimatedExposure)||parseFloat(b.estimatedExposure)||parseFloat(b.estimatedExposureTarget)||0;
     const convTarget = parseFloat(a.conversionTarget)||0;
