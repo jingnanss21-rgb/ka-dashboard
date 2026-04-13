@@ -314,7 +314,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div class="subtitle">微信支付 · 餐饮行业KA商户整体运营数据中心</div>
   </div>
   <div class="right-info">
-    <span class="date-badge" id="periodBadge">数据周期: 2026年3月 (月报)</span>
+    <span class="date-badge" id="periodBadge">数据周期: 加载中…</span>
     <button class="current-identity" id="identityBadge" onclick="showIdentitySelector()">👤 加载中...</button>
   </div>
 </div>
@@ -393,7 +393,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
       <div style="text-align:center;">
         <div style="font-size:40px;margin-bottom:12px;">🎰</div>
         <div style="color:var(--text-secondary);">加载摇优惠周报看板...</div>
-        <a href="https://ka-dashboard-81p.pages.dev/" target="_blank" style="color:var(--primary);font-size:12px;margin-top:8px;display:inline-block;">如无法加载，点击在新窗口打开 →</a>
+        <a id="shakeOpenNewTab" href="https://jingnanss21-rgb.github.io/ka-dashboard/" target="_blank" rel="noopener" style="color:var(--primary);font-size:12px;margin-top:8px;display:inline-block;">如无法加载，点击在新窗口打开 →</a>
       </div>
     </div>
   </div>
@@ -404,7 +404,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
   <div class="status-grid" id="cikaStatusGrid"></div>
   
   <div class="section">
-    <div class="section-title"><div class="icon" style="background:var(--success)"></div> 次卡项目进展 <span class="badge" style="background:#dcfce7;color:#15803d;">0318-0324周期</span></div>
+    <div class="section-title"><div class="icon" style="background:var(--success)"></div> 次卡项目进展 <span id="cikaPeriodBadge" class="badge" style="background:#dcfce7;color:#15803d;">推进中</span></div>
     <div class="filter-bar">
       <select id="cikaFilterOwner"><option value="">全部负责人</option></select>
       <select id="cikaFilterStatus"><option value="__all__">全部状态</option><option value="已上线">已上线</option><option value="有意向">有意向</option><option value="暂不考虑">暂不考虑</option><option value="__empty__">未沟通</option></select>
@@ -432,7 +432,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
   <div class="status-grid" id="wuyouStatusGrid"></div>
   
   <div class="section">
-    <div class="section-title"><div class="icon" style="background:var(--purple)"></div> 无忧会员项目进展 <span class="badge" style="background:#ede9fe;color:#7c3aed;">0318-0324周期</span></div>
+    <div class="section-title"><div class="icon" style="background:var(--purple)"></div> 无忧会员项目进展 <span id="wuyouPeriodBadge" class="badge" style="background:#ede9fe;color:#7c3aed;">推进中</span></div>
     <div class="filter-bar">
       <select id="wuyouFilterOwner"><option value="">全部负责人</option></select>
       <select id="wuyouFilterStatus"><option value="__all__">全部状态</option><option value="有意向">有意向</option><option value="待沟通">待沟通</option><option value="__empty__">未沟通</option></select>
@@ -469,6 +469,19 @@ const KA_DATA = {"overall": {"m03": {"bs_all": 2471.04,"je_all": 53371.53,"bs_xc
 const OWNERS = ['jancie','小雪','warm','振哥'];
 const OWNER_COLORS = { jancie:'#e91e63', '小雪':'#9c27b0', warm:'#ff9800', '振哥':'#009688' };
 
+/** 嵌入的 KA_DATA 为 m03 月报时，与 JSON 中字段一致，更新月报时改此文案 */
+const EMBEDDED_TRADE_MONTH_LABEL = '2026年3月 · 月报';
+/** 摇优惠子看板（GitHub Pages，与 deploy 的 index 同源） */
+const SHAKE_DASHBOARD_BASE_URL = 'https://jingnanss21-rgb.github.io/ka-dashboard/';
+const MIN_KA_SNAPSHOT_DATE = '2026-04-01';
+
+let latestKaSnapshot = { report_date: null, data_date_label: null };
+let gOverviewShakeSubtitle = '摇优惠周报';
+
+const ALERT_SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
+const ALERT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
+const alertSb = window.supabase.createClient(ALERT_SUPABASE_URL, ALERT_SUPABASE_KEY);
+
 // ============================================================
 // Identity — use localStorage for cross-page persistence
 // ============================================================
@@ -499,15 +512,52 @@ document.querySelectorAll('.project-tab').forEach(tab => {
   });
 });
 
-// 周期标识映射
-const PERIOD_MAP = {
-  overview: '2026年3月 · 月报 | 0318-0324 · 周报',
-  shake: '0318-0324 · 周报',
+let PERIOD_MAP = {
+  overview: '',
+  shake: '',
   cika: '推进中',
   wuyou: '推进中'
 };
+function rebuildPeriodMapFromSnapshot() {
+  const lab = latestKaSnapshot.data_date_label || latestKaSnapshot.report_date;
+  const shakeLine = lab
+    ? (String(lab).indexOf('周报') >= 0 ? String(lab) : String(lab) + ' · 周报')
+    : '摇优惠周报（暂无快照，请同步数据）';
+  gOverviewShakeSubtitle = shakeLine;
+  PERIOD_MAP = {
+    overview: EMBEDDED_TRADE_MONTH_LABEL + ' | ' + shakeLine,
+    shake: shakeLine,
+    cika: lab ? (String(lab) + ' · 同周报周期') : '推进中',
+    wuyou: lab ? (String(lab) + ' · 同周报周期') : '推进中'
+  };
+  const cikaEl = document.getElementById('cikaPeriodBadge');
+  const wuyouEl = document.getElementById('wuyouPeriodBadge');
+  if (cikaEl) cikaEl.textContent = PERIOD_MAP.cika;
+  if (wuyouEl) wuyouEl.textContent = PERIOD_MAP.wuyou;
+}
 function updatePeriodBadge(project) {
-  document.getElementById('periodBadge').textContent = '数据周期: ' + (PERIOD_MAP[project] || '');
+  const el = document.getElementById('periodBadge');
+  if (el) el.textContent = '数据周期: ' + (PERIOD_MAP[project] || '');
+}
+async function refreshKaSnapshotPeriod() {
+  try {
+    const { data, error } = await alertSb.from('ka_daily_snapshot')
+      .select('report_date, data_date_label')
+      .gte('report_date', MIN_KA_SNAPSHOT_DATE)
+      .order('report_date', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    if (data) {
+      latestKaSnapshot.report_date = data.report_date;
+      latestKaSnapshot.data_date_label = data.data_date_label || data.report_date;
+    }
+  } catch (e) {
+    console.warn('refreshKaSnapshotPeriod:', e.message || e);
+  }
+  rebuildPeriodMapFromSnapshot();
+  const active = document.querySelector('.project-tab.active');
+  if (active) updatePeriodBadge(active.dataset.project);
 }
 
 // ============================================================
@@ -550,21 +600,19 @@ function showToast(msg) {
 // ============================================================
 // Init
 // ============================================================
-function init() {
-  // Identity
+async function init() {
+  await refreshKaSnapshotPeriod();
+
   if (!currentIdentity) {
     document.getElementById('identityOverlay').style.display = 'flex';
   } else {
     document.getElementById('identityBadge').textContent = '👤 ' + currentIdentity;
   }
-  
-  // Set initial period badge
+
   updatePeriodBadge('overview');
-  
-  // Populate filters
+
   populateFilters();
-  
-  // Render all panels
+
   renderOverview();
   renderCika();
   renderWuyou();
@@ -620,7 +668,7 @@ function renderOverview() {
     <div class="overview-card">
       <div class="oc-header">
         <div class="oc-icon" style="background:#dbeafe;">💳</div>
-        <div><div class="oc-title">基础交易</div><div class="oc-subtitle">2026年3月 · ${hasTradeData}个品牌</div></div>
+        <div><div class="oc-title">基础交易</div><div class="oc-subtitle">${EMBEDDED_TRADE_MONTH_LABEL} · ${hasTradeData}个品牌</div></div>
       </div>
       <div class="oc-stats">
         <div class="oc-stat"><div class="os-value">${fmt(o.m03.bs_all, 0)}万</div><div class="os-label">日均笔数</div></div>
@@ -632,7 +680,7 @@ function renderOverview() {
     <div class="overview-card" onclick="switchToTab('shake')">
       <div class="oc-header">
         <div class="oc-icon" style="background:#fef3c7;">🎰</div>
-        <div><div class="oc-title">摇优惠</div><div class="oc-subtitle">0318-0324 · 周报</div></div>
+        <div><div class="oc-title">摇优惠</div><div class="oc-subtitle">${gOverviewShakeSubtitle}</div></div>
       </div>
       <div class="oc-stats">
         <div class="oc-stat"><div class="os-value">${shakeOnline}</div><div class="os-label">在线品牌</div></div>
@@ -681,10 +729,6 @@ function renderOverview() {
 // 渗透率波动监测模块
 let currentAlertType = 'bs';
 
-// 反馈云端存储 (Supabase)
-const ALERT_SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
-const ALERT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
-const alertSb = window.supabase.createClient(ALERT_SUPABASE_URL, ALERT_SUPABASE_KEY);
 let _feedbackCache = {};  // 本地缓存，格式: { "品牌_cmpType": "反馈文字" }
 
 async function loadAlertFeedbackFromServer() {
@@ -931,7 +975,7 @@ let shakeLoaded = false;
 function loadShakeIframe() {
   if (shakeLoaded) return;
   const iframe = document.getElementById('shakeIframe');
-  iframe.src = 'https://ka-dashboard-81p.pages.dev/';
+  iframe.src = SHAKE_DASHBOARD_BASE_URL;
   iframe.onload = () => {
     document.getElementById('shakeLoading').style.display = 'none';
     shakeLoaded = true;
@@ -1291,7 +1335,7 @@ function saveComment(input, type, brand) {
 // ============================================================
 // Init on load
 // ============================================================
-init();
+init().catch(function(e) { console.error(e); });
 </script>
 </body>
 </html>
