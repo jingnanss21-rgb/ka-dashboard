@@ -552,34 +552,23 @@ function parseSnapshotBrandsArray(raw) {
 }
 
 /**
- * 在线：日均曝光 dailyExposure > 0；若快照中均无曝光字段则退化为品牌总数。
- * 存活：survivalRate > 0；若无存活率字段则退化为 isAlive 为真的品牌数。
+ * 在线：isAlive（当日是否在线）；存活：isSurvived（近7日是否存活）。与快照 brands 结构一致。
  */
 function computeShakeBrandCountsFromSnapshotBrands(rawBrands) {
   const brands = parseSnapshotBrandsArray(rawBrands);
   if (!brands.length) return null;
 
-  const expDefined = brands.some(function(b) {
-    return b && b.dailyExposure != null && b.dailyExposure !== '';
-  });
-  let online = brands.filter(function(b) {
-    return (Number(b && b.dailyExposure) || 0) > 0;
+  const online = brands.filter(function(b) {
+    if (!b) return false;
+    const v = b.isAlive;
+    return v === true || v === 1 || v === '1';
   }).length;
-  if (!expDefined) online = brands.length;
 
-  const srDefined = brands.some(function(b) {
-    return b && b.survivalRate != null && b.survivalRate !== '';
-  });
-  let alive = brands.filter(function(b) {
-    return (Number(b && b.survivalRate) || 0) > 0;
+  const alive = brands.filter(function(b) {
+    if (!b) return false;
+    const v = b.isSurvived;
+    return v === true || v === 1 || v === '1';
   }).length;
-  if (!srDefined) {
-    alive = brands.filter(function(b) {
-      if (!b) return false;
-      var v = b.isAlive;
-      return v === true || v === 1 || v === 1.0 || v === '1' || v === '是' || v === 'True' || v === 'true';
-    }).length;
-  }
 
   return { online: online, alive: alive };
 }
