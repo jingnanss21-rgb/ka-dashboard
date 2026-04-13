@@ -75,6 +75,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 table { width:100%; border-collapse:separate; border-spacing:0; font-size:12px; }
 table thead th { background:var(--bg); padding:10px 10px; text-align:center; font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0; white-space:nowrap; font-size:11px; color:var(--text-secondary); letter-spacing:0.3px; z-index:4; box-shadow:0 2px 0 var(--border); }
 table thead tr.thead-row2 th { position:sticky; top:36px; z-index:4; background:var(--bg); box-shadow:0 2px 0 var(--border); }
+table thead tr.thead-row3 th { position:sticky; top:72px; z-index:4; background:var(--bg); box-shadow:0 2px 0 var(--border); padding:4px 6px; }
 table thead th.group-header { background:#e8f0fe; color:var(--primary); font-size:12px; font-weight:700; border-bottom:1px solid #c2d7f7; box-shadow:0 1px 0 #c2d7f7; }
 table tbody td { padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; text-align:center; transition:background .15s; }
 table tbody tr:hover { background:linear-gradient(90deg,#f0f6ff 0%,#fafbff 100%); }
@@ -312,6 +313,8 @@ table.card-ch-table thead td { text-align:left !important; }
 
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+
 </head>
 <body>
 
@@ -370,9 +373,6 @@ table.card-ch-table thead td { text-align:left !important; }
 <div class="toast" id="toast"></div>
 <div id="modalRoot"></div>
 
-<script>
-window.__EMBEDDED_FEEDBACKS__ = {"星巴克": [{"id": "3655224f-e40e-430c-8cd6-5282c8014183", "text": "先推动面对面履约，履约完成后再上线", "owner": "老板", "time": "2026-03-20", "rawTime": "2026-03-20T10:53:34.970586+00:00"}], "DQ": [{"id": "ecd4ed6e-3776-4dd9-b818-ad486a643e2b", "text": "前期已投放，商户对效果不满意不愿意优化货盘，且核销体验差无法改造，暂不引入", "owner": "老板", "time": "2026-03-20", "rawTime": "2026-03-20T10:54:07.572992+00:00"}], "爷爷不泡茶": [{"id": "4ad8b14e-b791-425b-bd42-7e06f5fb41f6", "text": "1、周边入口曝光量暴增，但该渠道几乎不转化，大量无效曝光拉低整体数据：其中，“周边”入口贡献了总曝光83%（30.9w/37w），但曝光核销率仅 0.04%。\n2、货盘吸引力不足：企迈统一改为API投放，分层投放→通投，牺牲更优货盘（但周价格力反而小幅增加），部分更优货盘下线（如新客-整单7折、沉+流-整单7折）。\n3、货盘类型变化：企迈为提升返佣金额、避免流量挤占，5月前下架旧版次卡（商品券2.0次卡企迈开发中，5月上线），仅保留单张券。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:01:08.618761+00:00"}, {"id": "8f4c75a8-f226-4815-bcf0-55dcc6de67fb", "text": "1、周边入口曝光量暴增，但该渠道几乎不转化，大量无效曝光拉低整体数据；2、上周已沟通品牌侧提供更优质货盘（降低折扣），4月初上线", "owner": "老板", "time": "2026-03-29", "rawTime": "2026-03-29T05:50:15.579874+00:00"}], "必胜客": [{"id": "7c38298a-bfc5-488d-8635-3c4c81f7ae91", "text": "1、基于3.31前消耗完25年营销金目标，短期下架商家券活动，仅保留代金券活动；代金券活动力度by周调整，最新数据较优（3.18单日核销4.6w张）。2、3月底沟通分层商家券活动，4月中旬前恢复投放。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:03:44.8854+00:00"}], "华莱士": [{"id": "24a81e48-3168-4c0e-8c2c-627fff42be95", "text": "上一批货盘投放时间较长（横跨春节），已沟通更换新货盘，预计本周内上线。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:06:28.435004+00:00"}, {"id": "898b1f61-1e56-4aaa-bf27-6abafe572400", "text": "新货盘3.24已上线，日均核销（1k增长到6k），曝光核销率由0.2%增长到0.4%。", "owner": "老板", "time": "2026-03-29", "rawTime": "2026-03-29T05:52:36.827902+00:00"}], "肯德基": [{"id": "5cdc2329-6503-4379-9394-c508f0c47e83", "text": "营销金代金券活动，预计新一周期可存活；同步积极沟通26年营销金固定比例投放摇优惠、及商家券投放中。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:10:20.989949+00:00"}], "正新鸡排": [{"id": "6bb4ce34-e74e-489a-adf2-b375de786b86", "text": "暂未开启投放", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:12:04.893866+00:00"}], "杨国福": [{"id": "7f1d0a18-6c89-488a-add0-5891b083f259", "text": "全场 8.5 折货盘，算法推量严重不足，根源是货盘过于单薄。全品牌仅1张券1个活动，算法无差异化素材，高频应曝尽曝率仅12%，远低于行业标杆老乡鸡 47%，日均曝光仅2.21w，以24.67w笔/天的体量换算存活率只有0.06%，缺口巨大。曝光领取率11.86%、到店核销率27%都属正常。\n下一步计划：本周推动杨国福将券品扩充至3张以上，给算法提供更多匹配素材；同时推动内部重新评估价格。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:13:08.350818+00:00"}, {"id": "cc8d6f31-4a61-4cb2-920d-555845ae8bb1", "text": "按照二选一曝光核销率为1.2%，当前品牌整体获得曝光较少。", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T04:08:25.684696+00:00"}], "海底捞": [{"id": "92194bce-8b10-4f0e-9665-6e0764d7cb28", "text": "核心问题：货盘夜宵菜品 79 折；工作日全时段 85 折，活动本周期仅上线2天，属于正常冷启动阶段，参考春节前最高日一店5核，广深核销占比50%。目前3月和4月货盘已配置。\n下一步计划：维持现有投放配置，让算法自然学习一周；商户目标希望可以做到一店4-5核销。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:14:10.65555+00:00"}, {"id": "755f6325-406c-4cc9-bf1b-857c522d5c1b", "text": "商户二选一曝光13万，货盘刚上线一周，预计本周算法学习曝光增加后，有机会进一步提升。", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T04:04:19.971912+00:00"}], "霸王茶姬": [{"id": "f8ba57ab-fe87-4abf-8d9e-74861c0e645c", "text": "3.16重新上线（企迈API通投），3.20库存不足停止曝光，已通知3.23早晨新增库存。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:15:53.971095+00:00"}], "麦当劳": [{"id": "90a56e8f-0840-493d-973c-d4fb9524d570", "text": "上一批货盘投放时间较长（横跨春节），已沟通更换新货盘，预计本周内上线。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:16:11.281185+00:00"}, {"id": "7a27c8ee-e85d-4433-8116-21a7d9d1cc41", "text": "新货盘已通过比价，但品牌配券流程长，新货盘争取本周内上线（平均2天催一次）。", "owner": "老板", "time": "2026-03-29", "rawTime": "2026-03-29T05:54:31.024517+00:00"}], "呷哺呷哺": [{"id": "4e8ec3cd-6139-47b7-8661-ad980afec895", "text": "活动刚上线，处于算法冷启动阶段。本周核销仅23笔，高频应曝尽曝率21.6%已高于行业均值。\n下一步计划：保持现有投放不变，让算法持续积累领取核销数据；结合小程序占比60%的优势，让品牌加强小程序侧核销引导。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:16:56.509827+00:00"}], "大米先生": [{"id": "74958304-970b-4def-b18c-0533f991d31d", "text": "核心问题：品牌参与活动较谨慎，实际参与投放门店仅25家，商业支付曝光仅0.16w。根本原因是投放区域覆盖面窄——真实门店虽有989家。付费会员券也是按门店独立运营，较难给出统一优惠。\n下一步计划：确认当前投放城市/门店范围，推动扩大至全部989家门店；排查到店核销率低的原因。 目标节点：下周期开启全国投放。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:17:19.974854+00:00"}, {"id": "f784271c-fd61-42aa-9a22-0303be39327f", "text": "商户上周五摇优惠下线： 1、摇优惠发券发送到了非参与活动门店的客户，引起客诉，门店一单客诉罚100元钱。  2、支付有礼上线后，大米先生门店使用微信支付购买付费卡后，系统自动赠送25-5摇优惠的券，门店有困扰。当前大米先生50%的领券用户来自支付有礼。", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T04:11:33.280073+00:00"}], "沪上阿姨": [{"id": "2a38db5e-e947-4479-9b6f-17656b73141c", "text": "1、曝光激增，但新客占比90%，拉低了整体转化率；2、投放策略变化：企迈统一改为API投放，分层投放→通投，牺牲更优货盘。3、货盘类型变化：企迈为提升返佣金额、避免流量挤占，5月前下架旧版次卡（商品券2.0次卡企迈开发中，5月上线），仅保留单张券。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:19:23.582345+00:00"}, {"id": "f4f53cd0-0692-46f5-af48-2f3d4584dcf3", "text": "上周已沟通更换货盘，预计4月初上线。", "owner": "老板", "time": "2026-03-29", "rawTime": "2026-03-29T05:53:57.851199+00:00"}], "享哆味": [{"id": "ef3a42c6-e455-4467-8e91-dcc802d6dbe5", "text": "节前新上线品牌，近3年更换过商户号，导致老客圈选不准；持续优化策略中（本周计划：①新增美团用户包；②调整货盘）", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:21:21.305514+00:00"}, {"id": "ba0495f3-6248-4bbc-8095-b14ee77a2dfc", "text": "已提供更换货盘建议，品牌内部决策中。", "owner": "老板", "time": "2026-03-29", "rawTime": "2026-03-29T05:54:49.863926+00:00"}], "达美乐": [{"id": "9b3a3e34-9679-4bd0-8ae5-bc551e7d9706", "text": "DTC团队调整，上周已沟通更换货盘，预计2周内上线（外企决策、配券、审核流程长）。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:22:26.289882+00:00"}, {"id": "e331f700-f664-4119-bac8-b2823fbe5190", "text": "新货盘本周已提供，修改券信息中，预计本周内上线。", "owner": "老板", "time": "2026-03-29", "rawTime": "2026-03-29T05:56:03.110506+00:00"}], "德克士": [{"id": "351ea6fc-afe1-4e4d-902c-ed6a2225764e", "text": "品牌切换服务商（冥晨），重新接入商品券中，预计7月重新上线。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:23:04.505415+00:00"}, {"id": "f4fb8bf2-3ffb-4839-bde0-b5a799d1323c", "text": "品牌切换服务商（冥晨），重新接入商品券中，预计7月重新上线。", "owner": "老板", "time": "2026-03-29", "rawTime": "2026-03-29T05:57:17.151658+00:00"}], "汉堡王": [{"id": "10225ee7-432c-40f6-abce-ba6ad2eae55b", "text": "品牌流程过慢；持续催促下，最新货盘预计本周内上线。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:24:59.933059+00:00"}, {"id": "054aa095-d2e7-4279-bfa8-1c9ee78109f1", "text": "3.24已重新上线，日均核销~1k张；全场折上折立减券沟通中，预计4月上线。", "owner": "老板", "time": "2026-03-29", "rawTime": "2026-03-29T05:56:45.759787+00:00"}], "喜家德": [{"id": "8bee03b7-eeeb-4b3f-95f6-a7e55c880ac5", "text": "品牌运营团队整体换人，暂时没有精力处理摇优惠渠道管理造成活动断档，后续内部人事稳定后恢复投放", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:29:29.337181+00:00"}, {"id": "882b9ebb-ad54-4083-87a0-68037424d86b", "text": "尚未恢复投放，本周将和品牌侧再沟通看其内部情况和投放意愿", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T03:01:44.946234+00:00"}], "乡村基": [{"id": "143f99ff-47de-4de4-aca5-8274b1aecb68", "text": "品牌一直未投放，目前通过企迈后台处理门店问题，入驻流程中", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:29:47.085911+00:00"}, {"id": "502c7566-b648-4c99-bfd6-22183b9edbd1", "text": "品牌切换私域团队对接摇优惠（由无忧会员项目建联，对上摇优惠尚未决策），已沟通本周会议详谈推动上线。", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T03:10:13.718606+00:00"}], "朴大叔": [{"id": "5f53e081-0b16-46a9-942e-c40b21633944", "text": "品牌切换服务商后台投放，门店迁移过程中数据过多大量报错，现已修复完成恢复投放。", "owner": "老板", "time": "2026-03-22", "rawTime": "2026-03-22T14:32:44.089793+00:00"}, {"id": "255c6350-4974-49ff-ac7e-57071eab8674", "text": "上周恢复投放，服务商后台智能通投测试品牌给货盘相对保守，整体曝光领取率较低。本周将对品牌进行数据复盘、优化货盘策略。", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T03:24:42.209396+00:00"}], "CoCo都可": [{"id": "ac5a7d89-9824-4afc-8949-16d4abce18dc", "text": "1、原因定位： 90%活动为通投，活跃用户应曝尽曝率相对中位数较低，当前曝光及核销占比最大的均为单品券，全场券及n选1曝光较少，导致未存活 2、下一步计划： 1）优化投放策略，增加活跃定投活动 2）丰富货盘类型，4月计划新上线兑换券次卡", "owner": "jancie", "time": "2026-03-23", "rawTime": "2026-03-23T03:13:24.171321+00:00"}, {"id": "977b61b7-a1a5-4c67-9f63-ab0af642250d", "text": "1、原因定位：非二选一流量占比》75%，整体流量质量下降导致转化率较低\n2、下一步计划：因切换商品券新货盘需本周再提供上线 ，下线转化率较低活动", "owner": "jancie", "time": "2026-03-29", "rawTime": "2026-03-29T15:48:38.306103+00:00"}], "古茗": [{"id": "753f2fd5-fa3c-43a6-b06d-333d8cefadc5", "text": "1、原因定位：  刚上线一周，数据持续攀升中，待观察 2、下一步计划： 商户在意新客占比，对当前效果不满意，已沟通推进0元券货盘申请中", "owner": "jancie", "time": "2026-03-23", "rawTime": "2026-03-23T03:15:39.173561+00:00"}, {"id": "5d4849a2-0a95-4b83-8716-ded441e7e981", "text": "1、数据攀升中即将存活，到店核销率偏低需持续优化货盘，后续将推动券包货盘上线提升转化。 2、因平台新客策略变动，商户对于后续长期运营恐有一定压力（饮品0元券货盘选择有限）", "owner": "jancie", "time": "2026-03-29", "rawTime": "2026-03-29T15:43:51.013954+00:00"}], "茶百道": [{"id": "87241355-21e0-42b3-9d41-54bcd3db726e", "text": "1、原因定位：  1）节后重新上线（因货盘比价不达标已间隔两个月未投放），预估算法需重新学习，待观察 2）本期上线货盘较多，目前排查活跃应曝尽曝率和到店核销率较低，导致当前未存活  2、下一步计划： 1）已主动沟通品牌更换为全场券，次卡货盘持续运营中 2）根据下期数据优化在线货盘策略，提升转化率", "owner": "jancie", "time": "2026-03-23", "rawTime": "2026-03-23T03:19:52.933254+00:00"}, {"id": "9aabee68-34c3-42b0-8730-b47144452a84", "text": "原因定位：\n1、数据逐步爬升中，但次卡效果不明显待进一步分析排查\n2、非二选一曝光占比60%+，低频应曝尽曝率较低，对整体转化率有影响\n\n下一步计划：\n1、品牌by月度规划货盘，待更新4月货盘（重新加强低频活动）", "owner": "jancie", "time": "2026-03-29", "rawTime": "2026-03-29T15:51:27.090552+00:00"}], "蜜雪冰城": [{"id": "abf381e2-451c-4fbf-a354-25f3d31b4859", "text": "1、原因定位：  1）基于商户预算等历史背景，运营人工控制策略，确保商户长期运营； 2）本期大部分曝光给了通投新品券，整体核销量有限；  2、下一步计划： 1）次卡：线上投放及线下物料结合 a、已完成一期次卡分析，商户初步反馈满意（领取次卡用户周期交易频次0.4>1.24），计划扩大次卡投放人群 b、为提升商户小程序渗透，计划联动门店测试次卡物料，计划与摇优惠采用同个活动  2）券包： 待产品ready后沟通货盘，可将新品+全场券打包货盘，提升转化率", "owner": "jancie", "time": "2026-03-23", "rawTime": "2026-03-23T03:27:28.81476+00:00"}, {"id": "7221fb27-a8b6-4796-9959-bb752e739530", "text": "1、次卡已扩展到通投人群，周末数据已提升明显，后续视效果考虑人工控量，保证商户营销预算合理分配 2、对方门店api4月上线，会进一步扩大曝光范围 3、支付有礼数据有问题，但与公线核实", "owner": "jancie", "time": "2026-03-29", "rawTime": "2026-03-29T15:45:48.543033+00:00"}], "绝味": [{"id": "4dc6c9c0-6734-462e-805d-00ed3bc7617c", "text": "核心问题：渠道结构失衡拉低整体曝光核销率。总曝光67w中周边渠道占82%（55.17w），而周边属于信息流非二选一渠道，转化效率天然低；剔除周边后，二选一渠道曝光仅8.09w，核销568笔，折算二选一曝光核销率约0.7%，竞争力实际尚可。真正问题是二选一渠道的高频应曝尽曝率仅17%，老客触达效率不足。 下一步计划：目标将高频应曝尽曝率提升至50%，将二选一曝光量提升至正常水平。", "owner": "老板", "time": "2026-03-23", "rawTime": "2026-03-23T04:12:46.31017+00:00"}, {"id": "b8303923-e255-40aa-835f-309199afe51f", "text": "86.2%曝光来周边，实际二选一曝光量仅13万。", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T04:02:39.186741+00:00"}], "喜姐炸串": [{"id": "0a58cd62-2bb4-4b77-ae14-7e71bbacf555", "text": "从商家券切换商品券适用门店有bug,上周四已经修复，补充了0.01元的脆皮年糕货盘。本周活动数从7个砍到3个、券从2张减到1张，直接导致领取核销率从33.88%腰斩到17.70%。用户领了券但可选方案太少。", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T03:53:37.128231+00:00"}], "张亮麻辣烫": [{"id": "0595407a-2ff4-4b29-8dc6-3b7bbd9159cc", "text": "有效的二选一曝光极少仅3.2万，被周边大量无效曝光稀释。二选一曝光核销率0.7%", "owner": "老板", "time": "2026-03-30", "rawTime": "2026-03-30T04:06:23.697239+00:00"}]};
-</script>
 <script>
 // ============================================================
 // Supabase 配置 — 部署前替换为你自己的值
@@ -586,10 +586,11 @@ function checkAlive(val) {
   return false;
 }
 
-/** 优先用 brandChannelData.isAlive，否则用品牌行 isAlive */
+/** 优先用 brandChannelData.isAlive，否则用品牌行 isAlive；均需 survivalRate >= 1% */
 function channelAliveForBrand(b) {
   const cd = (CHANNEL_DATA.brandChannelData || {})[b.name] || {};
-  if(cd.isAlive !== undefined && cd.isAlive !== null) return checkAlive(cd.isAlive);
+  const sr = cd.survivalRate || b.survivalRate || 0;
+  if(cd.isAlive !== undefined && cd.isAlive !== null) return checkAlive(cd.isAlive) && sr >= 0.01;
   return isBrandAlive(b);
 }
 
@@ -777,8 +778,7 @@ async function loadDataForDate(dateStr) {
 }
 
 async function mergeFeedbacksFromSupabase() {
-  feedbacks = window.__EMBEDDED_FEEDBACKS__ || {};
-  if(DATA) DATA.feedbacks = feedbacks;
+  // 不再重置为嵌入数据，直接从 Supabase 拉取最新，避免异步间隙丢失本地新增反馈
   if(!sbClient) return;
   try {
     const { data: fbRows } = await sbClient.from("ka_feedbacks").select("*").order("created_at", { ascending: true });
@@ -795,6 +795,40 @@ async function mergeFeedbacksFromSupabase() {
 }
 
 async function loadData() {
+  // ====== 离线模式：使用内嵌数据 ======
+  if(window.__OFFLINE_DATA__) {
+    const od = window.__OFFLINE_DATA__;
+    // channel data
+    const normalized = normalizeChannelDataFromSnapshot(od.channelData || od.channel_data);
+    CHANNEL_DATA = { globalData: normalized.globalData, brandChannelData: normalized.brandChannelData };
+    // assignments
+    var assignArr = (od.assignments || []).map(mapAssignmentRow).filter(Boolean);
+    // 设置 DATA
+    snapshotDateLabel = od.dataDateLabel || "";
+    currentReportDate = od.reportDate || "2026-04-12";
+    DATA = {
+      brands: od.brands || [],
+      activities: od.activities || [],
+      assignments: assignArr,
+      overall: od.overall || {},
+      surpriseGoods: od.surpriseGoods || od.surprise_goods || [],
+      dataDate: od.overall && od.overall.data_date ? od.overall.data_date : od.reportDate
+    };
+    // 填充日期选择器
+    fillReportDateSelect([currentReportDate]);
+    var sel = document.getElementById("reportDateSelect");
+    if(sel) sel.value = currentReportDate;
+    rebuildOwnersFromAssignments();
+    rebuildNavTabsDOM();
+    rebuildKA_Brands();
+    // feedbacks（离线模式无 Supabase，用空或内嵌）
+    feedbacks = window.__EMBEDDED_FEEDBACKS__ || {};
+    if(DATA) DATA.feedbacks = feedbacks;
+    console.log("✅ 离线模式：数据已从内嵌 JSON 加载");
+    console.log("brands:", DATA.brands.length, "assignments:", DATA.assignments.length);
+    return true;
+  }
+  // ====== 原始在线模式 ======
   try {
     const dates = await loadAvailableDates();
     if(!dates.length) {
@@ -989,7 +1023,9 @@ function buildViewPanel(viewId, ownerFilter, title) {
   });
   const survivedCount = brands.filter(b => {
     const cd = bcd[b.name];
-    return cd && cd.isAlive !== undefined && cd.isAlive !== null ? checkAlive(cd.isAlive) : isBrandAlive(b);
+    const _af = cd && cd.isAlive !== undefined && cd.isAlive !== null ? checkAlive(cd.isAlive) : checkAlive(b.isAlive);
+    const _sr = (cd ? cd.survivalRate : (b.survivalRate||0)) || 0;
+    return _af && _sr >= 0.01;
   }).length;
   const totalExposure7d = brands.reduce((s,b)=>{
     const cd = bcd[b.name];
@@ -1006,8 +1042,8 @@ function buildViewPanel(viewId, ownerFilter, title) {
   // 惊喜货盘达成率：在线惊喜货盘 / 惊喜货盘目标
   const allSG = DATA.surpriseGoods || [];
   const sgRows = ownerFilter ? allSG.filter(r => r.owner === ownerFilter) : allSG;
-  const sgTarget = sgRows.reduce((s,r)=>s+(r.target||0), 0);
-  const sgOnline = sgRows.reduce((s,r)=>s+(r.online||0), 0);
+  const sgTarget = sgRows.reduce((s,r)=>s+(r.target||r.surpriseTarget||0), 0);
+  const sgOnline = sgRows.reduce((s,r)=>s+(r.online||r.surpriseOnline||0), 0);
   const sgAchieveRate = sgTarget>0 ? sgOnline/sgTarget : 0;
 
   // 计算该视图的环比数据
@@ -1026,7 +1062,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       if(bd) {
         oTotWrt += bd.totWrt||0; oPtotWrt += bd.ptotWrt||0;
         oTotExp += bd.totExp||0; oPtotExp += bd.ptotExp||0;
-        if(bd && checkAlive(bd.isAlive)) oAlive++;
+        if(bd && checkAlive(bd.isAlive) && (bd.survivalRate||0) >= 0.01) oAlive++;
         // 上期存活用 aliveStatus 近似判断
       }
     });
@@ -1107,7 +1143,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
         <option value="all">全部行业</option>${viewCategories.map(c=>'<option value="'+c+'">'+c+'</option>').join('')}
       </select>
       <select id="filter-${viewId}" onchange="refreshTable('${viewId}','${ownerFilter||''}')">
-        <option value="all">全部品牌</option><option value="alive">已存活</option><option value="dead">未存活</option>
+        <option value="all">全部品牌</option><option value="alive">存活</option><option value="dead">未存活</option>
       </select>
       
     </div>
@@ -1132,8 +1168,8 @@ function buildViewPanel(viewId, ownerFilter, title) {
     <div class="chart-legend">
       <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#34a853;"></div>健康品牌（存活 + 核销率≥1%）</div>
       <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#f9ab00;"></div>存活但核销率低（存活 + 核销率＜1%）</div>
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4285f4;"></div>不存活但核销率高（不存活 + 核销率≥1%）</div>
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#ea4335;"></div>不存活核销率也低（不存活 + 核销率＜1%）</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4285f4;"></div>未存活但核销率高（未存活 + 核销率≥1%）</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#ea4335;"></div>未存活核销率也低（未存活 + 核销率＜1%）</div>
       
       <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#e65100;border:2px dashed #e65100;"></div>异常数据已排除</div>
     </div>
@@ -1158,8 +1194,8 @@ function buildViewPanel(viewId, ownerFilter, title) {
       const alive = channelAliveForBrand(b);
       const erOk = brandExposureRedeemRateForBrand(b) >= 0.01;
       let cat;
-      if(!alive && !erOk) cat='不存活核销率也低';
-      else if(!alive && erOk) cat='不存活但核销率高';
+      if(!alive && !erOk) cat='未存活核销率也低';
+      else if(!alive && erOk) cat='未存活但核销率高';
       else if(alive && !erOk) cat='存活但核销率低';
       else cat='其他';
       if(!badCats[cat]) badCats[cat]=0;
@@ -1184,8 +1220,8 @@ function buildViewPanel(viewId, ownerFilter, title) {
       </div>` : ''}
       <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="badFilter-${viewId}">
         <span class="tag tag-blue" style="cursor:pointer;padding:4px 12px;" data-badfilter="all" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">全部(${badBrands.length})</span>
-        ${badCats['不存活核销率也低']?`<span class="tag tag-red" style="cursor:pointer;padding:4px 12px;" data-badfilter="不存活核销率也低" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">不存活核销率也低(${badCats['不存活核销率也低']})</span>`:''}
-        ${badCats['不存活但核销率高']?`<span class="tag tag-orange" style="cursor:pointer;padding:4px 12px;" data-badfilter="不存活但核销率高" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">不存活但核销率高(${badCats['不存活但核销率高']})</span>`:''}
+        ${badCats['未存活核销率也低']?`<span class="tag tag-red" style="cursor:pointer;padding:4px 12px;" data-badfilter="未存活核销率也低" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">未存活核销率也低(${badCats['未存活核销率也低']})</span>`:''}
+        ${badCats['未存活但核销率高']?`<span class="tag tag-orange" style="cursor:pointer;padding:4px 12px;" data-badfilter="未存活但核销率高" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">未存活但核销率高(${badCats['未存活但核销率高']})</span>`:''}
         ${badCats['存活但核销率低']?`<span class="tag tag-yellow" style="cursor:pointer;padding:4px 12px;" data-badfilter="存活但核销率低" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">存活但核销率低(${badCats['存活但核销率低']})</span>`:''}
       </div>
       <div class="case-tabs" id="bad-tabs-${viewId}">`;
@@ -1196,8 +1232,8 @@ function buildViewPanel(viewId, ownerFilter, title) {
       const grTab = lastWkRedeem>0 ? ((b.dailyRedeem||0)-lastWkRedeem)/lastWkRedeem : (b.isNew ? 'new' : 0);
       const hasGrowth = typeof grTab==='number' && grTab > 0.1;
       let statusTag, statusCls, badCat;
-      if(!alive && !erOk) { statusTag='不存活核销率也低'; statusCls='tag-red'; badCat='不存活核销率也低'; }
-      else if(!alive && erOk) { statusTag='不存活但核销率高'; statusCls='tag-orange'; badCat='不存活但核销率高'; }
+      if(!alive && !erOk) { statusTag='未存活核销率也低'; statusCls='tag-red'; badCat='未存活核销率也低'; }
+      else if(!alive && erOk) { statusTag='未存活但核销率高'; statusCls='tag-orange'; badCat='未存活但核销率高'; }
       else if(alive && !erOk) { statusTag='存活但核销率低'; statusCls='tag-yellow'; badCat='存活但核销率低'; }
       else { statusTag='其他'; statusCls='tag-gray'; badCat='其他'; }
       const bOwner = (findAssignmentForBrand(b)||{}).owner||'';
@@ -1213,8 +1249,8 @@ function buildViewPanel(viewId, ownerFilter, title) {
       const alive2 = channelAliveForBrand(b);
       const erOk2 = brandExposureRedeemRateForBrand(b) >= 0.01;
       let badCat2;
-      if(!alive2 && !erOk2) badCat2='不存活核销率也低';
-      else if(!alive2 && erOk2) badCat2='不存活但核销率高';
+      if(!alive2 && !erOk2) badCat2='未存活核销率也低';
+      else if(!alive2 && erOk2) badCat2='未存活但核销率高';
       else if(alive2 && !erOk2) badCat2='存活但核销率低';
       else badCat2='其他';
       const bOwner2 = a.owner||'';
@@ -1391,16 +1427,22 @@ function toggleDetail(el) {
 }
 
 // === 存活判定（品牌行 brands[]，与 JSON 布尔/数字兼容）===
+// 存活需同时满足：1) isAlive=1  2) survivalRate >= 1%
 function isBrandAlive(b) {
   if(!b) return false;
-  return checkAlive(b.isAlive);
+  var sr = b.survivalRate || 0;
+  return checkAlive(b.isAlive) && sr >= 0.01;
 }
 
 // === 异常数据判定 ===
 function isBrandAbnormal(b) {
   const exposure = b.dailyExposure || 0;
   const expRate = b.exposureRedeemRate || 0;
-  return exposure <= 0.1 && expRate > 1.0;
+  // 原有逻辑：曝光极低但核销率离谱
+  if(exposure <= 0.1 && expRate > 1.0) return true;
+  // 曝光核销率超过 5% 视为异常（cap 按曝光核销率）
+  if(expRate > 0.05) return true;
+  return false;
 }
 
 // === 反馈时间标签 ===
@@ -1483,7 +1525,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   var rT=a.redeemTarget||0,eT=parseFloat(a.estimatedExposure)||0,cT=parseFloat(a.conversionTarget)||0;
   var curRate=curE>0?curR/(curE*10000):(b.exposureRedeemRate||0);
   var rA=rT>0?curR/rT:0,eA=eT>0?curE/eT:0;
-  var alive=cd.isAlive!==undefined&&cd.isAlive!==null?checkAlive(cd.isAlive):isBrandAlive(b),sr=cd.survivalRate||b.survivalRate||0;
+  var _aliveRaw=cd.isAlive!==undefined&&cd.isAlive!==null?checkAlive(cd.isAlive):checkAlive(b.isAlive),sr=cd.survivalRate||b.survivalRate||0;var alive=_aliveRaw&&sr>=0.01;
   function tv(a2,b2){if(!b2||b2===0)return"-";var g=(a2-b2)/b2;return'<span class="'+((g>=0)?"trend-up":"trend-down")+'">'+((g>=0)?"+":"")+(g*100).toFixed(1)+"%</span>";}
   function ck(ok){return ok?'<span style="color:#16a34a;font-weight:700;">\u2713</span>':'<span style="color:#dc2626;font-weight:700;">\u2717</span>';}
   function pb(p,lb){var v=Math.min(p*100,100);var c2=v>=80?"#16a34a":v>=50?"#d97706":"#dc2626";return'<div style="margin-top:4px;"><div style="display:flex;justify-content:space-between;font-size:10px;"><span>'+lb+'</span><span>'+(p*100).toFixed(1)+'%</span></div><div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+Math.max(v,1)+'%;border-radius:3px;background:'+c2+';"></div></div></div>';}
@@ -1677,42 +1719,72 @@ function refreshTable(viewId, ownerFilter) {
         <th class="sortable" data-sort="survivalRate" data-view="${viewId}" data-owner="${ownerFilter||''}">存活率</th>
       </tr>`;
     } else {
+      // 基础转化折叠态：前面列总数 = 7(四要素) + 2(到店核销) + 4(老客) + 3(惊喜) + 2(存活) = 18
+      const _bexp = basicConvExpanded[viewId];
+      const basicColspan = _bexp ? 12 : 1;
+      const basicRows = _bexp ? 3 : 2; // 展开时3行表头(分组行+子分组行+字段行)，折叠时2行
+      const fixedRows = _bexp ? 3 : 2;
       thead.innerHTML = `<tr>
-        <th rowspan="2" class="sticky-col" style="text-align:left;min-width:100px;">品牌</th>
-        ${showOwnerCol?'<th rowspan="2" class="sticky-col" style="text-align:left;min-width:60px;">负责人</th>':''}
-        <th rowspan="2" class="sticky-col sticky-col-last" style="text-align:left;min-width:60px;">品类</th>
-        <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">核销</th>
-        <th colspan="8" class="group-header" style="border-left:2px solid #c2d7f7;">曝光</th>
-        <th colspan="4" class="group-header" style="border-left:2px solid #c2d7f7;">曝光核销率</th>
-        <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">存活</th>
-        <th colspan="2" class="group-header" style="border-left:2px solid #c2d7f7;">价格力</th>
-        <th colspan="3" class="group-header" style="border-left:2px solid #e8b4d0;">🎁 惊喜货盘</th>
-        <th rowspan="2" style="border-left:2px solid var(--border);">反馈</th>
-      </tr><tr class="thead-row2">
-        <th class="sortable" data-sort="dailyRedeem" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均核销</th>
-        <th class="sortable" data-sort="redeemGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">核销环比</th>
-        <th class="sortable" data-sort="redeemTarget" data-view="${viewId}" data-owner="${ownerFilter||''}">核销目标</th>
-        <th class="sortable" data-sort="redeemAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">核销目标<br>达成率</th>
-        <th class="sortable" data-sort="dailyExposure" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">日均曝光(w)</th>
-        <th class="sortable" data-sort="expGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光环比</th>
-        <th class="sortable" data-sort="estExposure" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光目标(w)</th>
-        <th class="sortable" data-sort="exposureAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">曝光目标<br>达成率</th>
-        <th class="sortable" data-sort="eff2x1Exp" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:1px dashed #c2d7f7;">二选一<br>曝光(w)</th>
-        <th class="sortable" data-sort="eff2x1ExpQoq" data-view="${viewId}" data-owner="${ownerFilter||''}" >二选一<br>曝光环比</th>
-        <th class="sortable" data-sort="eff2x1Share" data-view="${viewId}" data-owner="${ownerFilter||''}" >二选一<br>占比</th>
-        <th class="sortable" data-sort="eff2x1ShareQoq" data-view="${viewId}" data-owner="${ownerFilter||''}" >占比<br>环比</th>
-        <th class="sortable" data-sort="exposureRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">整体<br>曝光核销率</th>
-        <th class="sortable" data-sort="rateGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">核销率<br>环比</th>
-        <th class="sortable" data-sort="convTarget" data-view="${viewId}" data-owner="${ownerFilter||''}">转化率目标</th>
-        <th class="sortable" data-sort="rateAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}">转化率目标<br>达成率</th>
-        <th class="sortable" data-sort="alive" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">是否存活</th>
-        <th class="sortable" data-sort="survivalRate" data-view="${viewId}" data-owner="${ownerFilter||''}">存活率</th>
-        <th class="sortable" data-sort="priceStrength" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #c2d7f7;">价格力</th>
-        <th class="sortable" data-sort="priceGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}">价格力<br>环比</th>
-        <th data-sort="sgTarget" style="border-left:2px solid #e8b4d0;">目标</th>
-        <th data-sort="sgOnline">在线数</th>
-        <th>货盘内容</th>
-      </tr>`;
+        <th rowspan="${fixedRows}" class="sticky-col" style="text-align:left;min-width:100px;">品牌</th>
+        ${showOwnerCol?'<th rowspan="'+fixedRows+'" class="sticky-col" style="text-align:left;min-width:60px;">负责人</th>':''}
+        <th rowspan="${fixedRows}" class="sticky-col sticky-col-last" style="text-align:left;min-width:60px;">品类</th>
+        <th colspan="7" rowspan="${_bexp?1:1}" class="group-header" style="border-left:2px solid #7c3aed;background:linear-gradient(135deg,#ede9fe,#f5f3ff);">🔍 四要素检查</th>
+        <th colspan="2" rowspan="${_bexp?1:1}" class="group-header" id="grpStoreRedeem-${viewId}" style="border-left:2px solid #0891b2;background:linear-gradient(135deg,#e0f7fa,#f0fdfa);">🏪 到店核销率</th>
+        <th colspan="4" rowspan="${_bexp?1:1}" class="group-header" id="grpOldCustomer-${viewId}" style="border-left:2px solid #059669;background:linear-gradient(135deg,#d1fae5,#ecfdf5);">👤 老客流量</th>
+        <th colspan="3" rowspan="${_bexp?1:1}" class="group-header" style="border-left:2px solid #e8b4d0;background:linear-gradient(135deg,#fce7f3,#fdf2f8);">🎁 惊喜货盘</th>
+        <th colspan="2" rowspan="${_bexp?1:1}" class="group-header" style="border-left:2px solid #10b981;background:linear-gradient(135deg,#d1fae5,#ecfdf5);">💚 存活</th>
+        ${_bexp
+          ? '<th colspan="12" class="group-header grp-basic-toggle" id="grpBasic-'+viewId+'" style="border-left:2px solid #64748b;background:linear-gradient(135deg,#f1f5f9,#f8fafc);cursor:pointer;" onclick="toggleBasicConversion(\''+viewId+'\')">📊 基础转化 <span id="grpBasicArrow-'+viewId+'" style="font-size:10px;">◀ 收起</span></th>'
+          : '<th colspan="1" rowspan="'+fixedRows+'" class="group-header grp-basic-toggle" id="grpBasic-'+viewId+'" style="border-left:2px solid #64748b;background:linear-gradient(135deg,#f1f5f9,#f8fafc);cursor:pointer;min-width:80px;writing-mode:vertical-rl;text-orientation:mixed;padding:8px 4px;" onclick="toggleBasicConversion(\''+viewId+'\')">📊 基础转化 <span id="grpBasicArrow-'+viewId+'" style="font-size:10px;">▶</span></th>'
+        }
+        <th rowspan="${fixedRows}" style="border-left:2px solid var(--border);">反馈</th>
+      </tr>
+      <tr class="thead-row2">
+        <!-- 四要素检查 7列 -->
+        <th class="sortable" data-sort="miniProgramRatio" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #7c3aed;font-size:11px;"${_bexp?' rowspan="2"':''}>小程序<br>占比</th>
+        <th class="sortable" data-sort="miniProgramRatioQoQ" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:10px;color:#94a3b8;font-weight:400;"${_bexp?' rowspan="2"':''}>占比<br>环比</th>
+        <th class="sortable" data-sort="perStorePayment" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>一店<br>几笔</th>
+        <th class="sortable" data-sort="perStorePaymentQoQ" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:10px;color:#94a3b8;font-weight:400;"${_bexp?' rowspan="2"':''}>笔数<br>环比</th>
+        <th class="sortable" data-sort="pricePower" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>价格力</th>
+        <th class="sortable" data-sort="pricePowerQoQ" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:10px;color:#94a3b8;font-weight:400;"${_bexp?' rowspan="2"':''}>价格力<br>环比</th>
+        <th class="sortable" data-sort="storeUploadCompleteness" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>门店<br>完整度</th>
+        <!-- 到店核销率 2列 -->
+        <th class="sortable" data-sort="storeRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #0891b2;font-size:11px;"${_bexp?' rowspan="2"':''}>到店<br>核销率</th>
+        <th class="sortable" data-sort="storeRedeemRateQoQ" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:10px;color:#94a3b8;font-weight:400;"${_bexp?' rowspan="2"':''}>环比</th>
+        <!-- 老客流量 4列 -->
+        <th class="sortable" data-sort="oldCustomerExpPerPayment" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #059669;font-size:11px;"${_bexp?' rowspan="2"':''}>老客曝光<br>/笔(全)</th>
+        <th class="sortable" data-sort="oldCustomerJinRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>尽曝率<br>(全)</th>
+        <th class="sortable" data-sort="oldCustomerExpPerPayment2x1" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>老客曝光<br>/笔(2x1)</th>
+        <th class="sortable" data-sort="oldCustomerJinRate2x1" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>尽曝率<br>(2x1)</th>
+        <!-- 惊喜货盘 3列 -->
+        <th style="border-left:2px solid #e8b4d0;font-size:11px;"${_bexp?' rowspan="2"':''}>目标</th>
+        <th style="font-size:11px;"${_bexp?' rowspan="2"':''}>在线数</th>
+        <th style="font-size:11px;max-width:150px;"${_bexp?' rowspan="2"':''}>货盘内容</th>
+        <!-- 存活 2列 -->
+        <th class="sortable" data-sort="alive" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #10b981;font-size:11px;"${_bexp?' rowspan="2"':''}>存活</th>
+        <th class="sortable" data-sort="survivalRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>存活率</th>
+        ${_bexp ? `<!-- 基础转化 子分组行 -->
+        <th colspan="4" style="border-left:2px solid #64748b;font-size:10px;background:#f8fafc;color:#475569;text-align:center;padding:2px;">📋 核销</th>
+        <th colspan="4" style="font-size:10px;background:#f8fafc;color:#475569;text-align:center;padding:2px;">📈 曝光</th>
+        <th colspan="4" style="font-size:10px;background:#f8fafc;color:#475569;text-align:center;padding:2px;">🔄 转化率</th>` : ''}
+      </tr>
+      ${_bexp ? `<tr class="thead-row3">
+        <!-- 基础转化-核销 4列 -->
+        <th class="sortable" data-sort="dailyRedeem" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #64748b;font-size:11px;">日均</th>
+        <th class="sortable" data-sort="redeemGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:10px;color:#94a3b8;font-weight:400;">环比</th>
+        <th class="sortable" data-sort="redeemTarget" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;">目标</th>
+        <th class="sortable" data-sort="redeemAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;">达成率</th>
+        <!-- 基础转化-曝光 4列 -->
+        <th class="sortable" data-sort="dailyExposure" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;">日均(w)</th>
+        <th class="sortable" data-sort="expGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:10px;color:#94a3b8;font-weight:400;">环比</th>
+        <th class="sortable" data-sort="estExposure" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;">目标(w)</th>
+        <th class="sortable" data-sort="exposureAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;">达成率</th>
+        <!-- 基础转化-转化率 4列 -->
+        <th class="sortable" data-sort="exposureRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;">转化率</th>
+        <th class="sortable" data-sort="rateGrowth" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:10px;color:#94a3b8;font-weight:400;">环比</th>
+        <th class="sortable" data-sort="convTarget" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;">目标</th>
+        <th class="sortable" data-sort="rateAchieve" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;">达成率</th>
+      </tr>` : ''}`;
     }
     // 恢复列头排序样式
     const cs = colSortState[viewId];
@@ -1720,13 +1792,15 @@ function refreshTable(viewId, ownerFilter) {
       const th2 = thead.querySelector(`th[data-sort="${cs.field}"]`);
       if(th2) th2.classList.add('sort-' + cs.dir);
     }
-    // 动态设置双行表头第二行sticky top
+    // 动态设置多行表头sticky top
     setTimeout(() => {
-      const firstRow = thead.querySelector('tr:first-child');
-      if (firstRow) {
-        const h = firstRow.getBoundingClientRect().height;
-        if (h > 0) {
-          thead.querySelectorAll('tr.thead-row2 th').forEach(th => { th.style.top = h + 'px'; });
+      const rows = thead.querySelectorAll('tr');
+      let accH = 0;
+      for (let i = 0; i < rows.length; i++) {
+        if (i > 0) {
+          const h = rows[i-1].getBoundingClientRect().height;
+          accH += h;
+          rows[i].querySelectorAll('th').forEach(th => { th.style.top = accH + 'px'; });
         }
       }
     }, 50);
@@ -1734,7 +1808,7 @@ function refreshTable(viewId, ownerFilter) {
 
   const merged = assignments.map(a=>{
     const b = findBrandRowForAssignment(a);
-    const sg = (DATA.surpriseGoods||[]).find(r=>r.brand===a.brand) || {};
+    const sg = (DATA.surpriseGoods||[]).find(r=>(r.brand||r.brandName)===a.brand) || {};
     const cd = (CHANNEL_DATA.brandChannelData||{})[b.name] || (CHANNEL_DATA.brandChannelData||{})[a.brand] || {};
     const expEstimated = parseFloat(a.estimatedExposure)||parseFloat(b.estimatedExposure)||parseFloat(b.estimatedExposureTarget)||0;
     const convTarget = parseFloat(a.conversionTarget)||0;
@@ -1753,7 +1827,9 @@ function refreshTable(viewId, ownerFilter) {
     const redeemAchieveRate = redeemTarget>0 ? curRedeem/redeemTarget : 0;
     const exposureAchieveRate = expEstimated>0 ? curExposure7d/expEstimated : 0;
     const rateAchieveRate = convTarget>0 ? curExpRate/convTarget : 0;
-    const alive = cd.isAlive !== undefined && cd.isAlive !== null ? checkAlive(cd.isAlive) : isBrandAlive(b);
+    const _aliveFlag = cd.isAlive !== undefined && cd.isAlive !== null ? checkAlive(cd.isAlive) : checkAlive(b.isAlive);
+    const _sr = cd.survivalRate || b.survivalRate || 0;
+    const alive = _aliveFlag && _sr >= 0.01;
     const abnormal = isBrandAbnormal(b);
     // 老客数据
     const oldExposure = b.oldCustomerDailyExposure||0;
@@ -1761,6 +1837,27 @@ function refreshTable(viewId, ownerFilter) {
     const oldRedeem = oldExposure * 10000 * oldExpRedeemRate;
     const oldExposurePct = curExposure>0 ? oldExposure/curExposure : 0;
     const oldRedeemPct = (b.dailyRedeem||0)>0 ? oldRedeem/(b.dailyRedeem||1) : 0;
+    // 老客四指标实时计算（fallback if backend hasn't calculated）
+    const dp = parseFloat(b.dailyPayment)||0;
+    const hjUV = parseFloat(b.highFreqJinUV)||0, ljUV = parseFloat(b.lowFreqJinUV)||0;
+    const haUV = parseFloat(b.highFreqAppUV)||0, laUV = parseFloat(b.lowFreqAppUV)||0;
+    const hjUV2 = parseFloat(b.highFreqJinUV2x1)||0, ljUV2 = parseFloat(b.lowFreqJinUV2x1)||0;
+    const haUV2 = parseFloat(b.highFreqAppUV2x1)||0, laUV2 = parseFloat(b.lowFreqAppUV2x1)||0;
+    const jinTotal = hjUV + ljUV, appTotal = haUV + laUV;
+    const jinTotal2 = hjUV2 + ljUV2, appTotal2 = haUV2 + laUV2;
+    const _oldExpPP = b.oldCustomerExpPerPayment || (dp > 0 && jinTotal > 0 ? (jinTotal/7)/(dp*10000) : null);
+    const _oldExpPP2 = b.oldCustomerExpPerPayment2x1 || (dp > 0 && jinTotal2 > 0 ? (jinTotal2/7)/(dp*10000) : null);
+    const _oldJinR = b.oldCustomerJinRate || (appTotal > 0 && jinTotal > 0 ? jinTotal/appTotal : null);
+    const _oldJinR2 = b.oldCustomerJinRate2x1 || (appTotal2 > 0 && jinTotal2 > 0 ? jinTotal2/appTotal2 : null);
+    // 四要素环比实时计算（fallback if backend hasn't calculated）
+    const _miniQoQ = b.miniProgramRatioQoQ !== null && b.miniProgramRatioQoQ !== undefined ? b.miniProgramRatioQoQ
+      : (b.miniProgramRatio != null && b.lastWeekMiniProgramRatio != null ? b.miniProgramRatio - b.lastWeekMiniProgramRatio : null);
+    const _pspQoQ = b.perStorePaymentQoQ !== null && b.perStorePaymentQoQ !== undefined ? b.perStorePaymentQoQ
+      : (b.perStorePayment != null && b.lastWeekPerStorePayment != null && b.lastWeekPerStorePayment > 0 ? (b.perStorePayment - b.lastWeekPerStorePayment) / b.lastWeekPerStorePayment : null);
+    const _srrQoQ = b.storeRedeemRateQoQ !== null && b.storeRedeemRateQoQ !== undefined ? b.storeRedeemRateQoQ
+      : (b.storeRedeemRate != null && b.lastWeekStoreRedeemRate != null ? b.storeRedeemRate - b.lastWeekStoreRedeemRate : null);
+    const _sucQoQ = b.storeUploadCompletenessQoQ !== null && b.storeUploadCompletenessQoQ !== undefined ? b.storeUploadCompletenessQoQ : null;
+    const _ppQoQ = b.pricePowerQoQ !== null && b.pricePowerQoQ !== undefined ? b.pricePowerQoQ : null;
 
     return {
       ...b,
@@ -1792,11 +1889,22 @@ function refreshTable(viewId, ownerFilter) {
       oldRedeem: oldRedeem,
       oldExposurePct: oldExposurePct,
       oldRedeemPct: oldRedeemPct,
+      // 老客四指标（实时计算 fallback）
+      oldCustomerExpPerPayment: _oldExpPP,
+      oldCustomerExpPerPayment2x1: _oldExpPP2,
+      oldCustomerJinRate: _oldJinR,
+      oldCustomerJinRate2x1: _oldJinR2,
+      // 四要素环比（实时计算 fallback）
+      miniProgramRatioQoQ: _miniQoQ,
+      perStorePaymentQoQ: _pspQoQ,
+      storeRedeemRateQoQ: _srrQoQ,
+      storeUploadCompletenessQoQ: _sucQoQ,
+      pricePowerQoQ: _ppQoQ,
       lastWeekRedeem: lastWeekRedeem,
       lastWeekExposure: lastWeekExposure,
-      sgTarget: sg.target||0,
-      sgOnline: sg.online||0,
-      sgContent: sg.content||'',
+      sgTarget: sg.target||sg.surpriseTarget||0,
+      sgOnline: sg.online||sg.surpriseOnline||0,
+      sgContent: sg.content||sg.surpriseContent||'',
       priceStrength: cd ? (cd.priceStrength!==null&&cd.priceStrength!==undefined?cd.priceStrength:0) : 0,
       eff2x1Exp: cd ? cd.eff2x1Exp || 0 : 0,
       eff2x1Share: (cd&&cd.totExp>0)?((cd.eff2x1Exp||0)/cd.totExp):0,
@@ -1820,6 +1928,23 @@ function refreshTable(viewId, ownerFilter) {
       // 标记null值的字段（环比类），null始终排最后
       const nullLastFields = ['redeemGrowth','expGrowth','rateGrowth'];
       switch(cs.field) {
+        // 四要素检查
+        case 'miniProgramRatio': va=a.miniProgramRatio||0; vb=b.miniProgramRatio||0; break;
+        case 'miniProgramRatioQoQ': va=typeof a.miniProgramRatioQoQ==='number'?a.miniProgramRatioQoQ:null; vb=typeof b.miniProgramRatioQoQ==='number'?b.miniProgramRatioQoQ:null; break;
+        case 'perStorePayment': va=a.perStorePayment||0; vb=b.perStorePayment||0; break;
+        case 'perStorePaymentQoQ': va=typeof a.perStorePaymentQoQ==='number'?a.perStorePaymentQoQ:null; vb=typeof b.perStorePaymentQoQ==='number'?b.perStorePaymentQoQ:null; break;
+        case 'pricePower': va=a.pricePower||0; vb=b.pricePower||0; break;
+        case 'pricePowerQoQ': va=typeof a.pricePowerQoQ==='number'?a.pricePowerQoQ:null; vb=typeof b.pricePowerQoQ==='number'?b.pricePowerQoQ:null; break;
+        case 'storeRedeemRate': va=a.storeRedeemRate||0; vb=b.storeRedeemRate||0; break;
+        case 'storeRedeemRateQoQ': va=typeof a.storeRedeemRateQoQ==='number'?a.storeRedeemRateQoQ:null; vb=typeof b.storeRedeemRateQoQ==='number'?b.storeRedeemRateQoQ:null; break;
+        case 'storeUploadCompleteness': va=a.storeUploadCompleteness||0; vb=b.storeUploadCompleteness||0; break;
+        case 'storeUploadCompletenessQoQ': va=typeof a.storeUploadCompletenessQoQ==='number'?a.storeUploadCompletenessQoQ:null; vb=typeof b.storeUploadCompletenessQoQ==='number'?b.storeUploadCompletenessQoQ:null; break;
+        // 老客流量
+        case 'oldCustomerExpPerPayment': va=a.oldCustomerExpPerPayment||0; vb=b.oldCustomerExpPerPayment||0; break;
+        case 'oldCustomerJinRate': va=a.oldCustomerJinRate||0; vb=b.oldCustomerJinRate||0; break;
+        case 'oldCustomerExpPerPayment2x1': va=a.oldCustomerExpPerPayment2x1||0; vb=b.oldCustomerExpPerPayment2x1||0; break;
+        case 'oldCustomerJinRate2x1': va=a.oldCustomerJinRate2x1||0; vb=b.oldCustomerJinRate2x1||0; break;
+        // 基础转化
         case 'dailyRedeem': va=a.dailyRedeem||0; vb=b.dailyRedeem||0; break;
         case 'redeemGrowth': va=typeof a.redeemGrowth==='number'?a.redeemGrowth:null; vb=typeof b.redeemGrowth==='number'?b.redeemGrowth:null; break;
         case 'redeemTarget': va=a.redeemTarget||0; vb=b.redeemTarget||0; break;
@@ -1832,6 +1957,7 @@ function refreshTable(viewId, ownerFilter) {
         case 'rateGrowth': va=a.rateGrowth!==null&&a.rateGrowth!==undefined?a.rateGrowth:null; vb=b.rateGrowth!==null&&b.rateGrowth!==undefined?b.rateGrowth:null; break;
         case 'convTarget': va=a.conversionTarget||0; vb=b.conversionTarget||0; break;
         case 'rateAchieve': va=a.rateAchieveRate||0; vb=b.rateAchieveRate||0; break;
+        // 其他
         case 'alive': va=a.alive?1:0; vb=b.alive?1:0; break;
         case 'survivalRate': va=a.survivalRate||0; vb=b.survivalRate||0; break;
         case 'priceStrength': va=a.priceStrength||0; vb=b.priceStrength||0; break;
@@ -1852,8 +1978,8 @@ function refreshTable(viewId, ownerFilter) {
       if(vb===null) return -1;
       return (va - vb) * dir;
     }
-    // 默认按核销达成率降序
-    return b.redeemAchieveRate - a.redeemAchieveRate;
+    // 默认按日均核销降序
+    return (b.dailyRedeem || 0) - (a.dailyRedeem || 0);
   });
 
   const showOwner = !ownerFilter;
@@ -1917,41 +2043,126 @@ function refreshTable(viewId, ownerFilter) {
       summaryEl.style.display = 'none';
     }
 
+    // === 中位数计算（始终基于全行业品牌，不受负责人筛选影响） ===
+    const _allAssignForMedian = getAssignmentsForView(null);
+    const _allMergedForMedian = _allAssignForMedian.map(_a => {
+      const _b = findBrandRowForAssignment(_a);
+      if(!_b || !_b.name) return null;
+      const _cd = (CHANNEL_DATA.brandChannelData||{})[_b.name] || (CHANNEL_DATA.brandChannelData||{})[_a.brand] || {};
+      const _dp = parseFloat(_b.dailyPayment)||0;
+      const _hjUV=parseFloat(_b.highFreqJinUV)||0, _ljUV=parseFloat(_b.lowFreqJinUV)||0;
+      const _haUV=parseFloat(_b.highFreqAppUV)||0, _laUV=parseFloat(_b.lowFreqAppUV)||0;
+      const _hjUV2=parseFloat(_b.highFreqJinUV2x1)||0, _ljUV2=parseFloat(_b.lowFreqJinUV2x1)||0;
+      const _haUV2=parseFloat(_b.highFreqAppUV2x1)||0, _laUV2=parseFloat(_b.lowFreqAppUV2x1)||0;
+      const _jT=_hjUV+_ljUV, _aT=_haUV+_laUV, _jT2=_hjUV2+_ljUV2, _aT2=_haUV2+_laUV2;
+      return {
+        storeRedeemRate: _b.storeRedeemRate,
+        oldCustomerExpPerPayment: _b.oldCustomerExpPerPayment || (_dp>0&&_jT>0?(_jT/7)/(_dp*10000):null),
+        oldCustomerJinRate: _b.oldCustomerJinRate || (_aT>0&&_jT>0?_jT/_aT:null),
+        oldCustomerExpPerPayment2x1: _b.oldCustomerExpPerPayment2x1 || (_dp>0&&_jT2>0?(_jT2/7)/(_dp*10000):null),
+        oldCustomerJinRate2x1: _b.oldCustomerJinRate2x1 || (_aT2>0&&_jT2>0?_jT2/_aT2:null),
+      };
+    }).filter(Boolean);
+    const validStoreRedeemRates = _allMergedForMedian.map(m=>m.storeRedeemRate).filter(v=>typeof v==='number'&&v>0);
+    const validOldCustExpPP = _allMergedForMedian.map(m=>m.oldCustomerExpPerPayment).filter(v=>typeof v==='number'&&v>0);
+    const validOldCustJinR = _allMergedForMedian.map(m=>m.oldCustomerJinRate).filter(v=>typeof v==='number'&&v>0);
+    const validOldCustExpPP2x1 = _allMergedForMedian.map(m=>m.oldCustomerExpPerPayment2x1).filter(v=>typeof v==='number'&&v>0);
+    const validOldCustJinR2x1 = _allMergedForMedian.map(m=>m.oldCustomerJinRate2x1).filter(v=>typeof v==='number'&&v>0);
+    function calcMedian(arr){if(!arr.length)return null;const s=[...arr].sort((a,b)=>a-b);const mid=Math.floor(s.length/2);return s.length%2?s[mid]:(s[mid-1]+s[mid])/2;}
+    const medStoreRedeem = calcMedian(validStoreRedeemRates);
+    const medOldExpPP = calcMedian(validOldCustExpPP);
+    const medOldJinR = calcMedian(validOldCustJinR);
+    const medOldExpPP2x1 = calcMedian(validOldCustExpPP2x1);
+    const medOldJinR2x1 = calcMedian(validOldCustJinR2x1);
+    // 更新分组表头中位数标注
+    const grpSREl = document.getElementById('grpStoreRedeem-'+viewId);
+    if(grpSREl) grpSREl.innerHTML = '🏪 到店核销率' + (medStoreRedeem !== null ? '<br><span style="font-size:10px;font-weight:400;color:#0891b2;">中位数 '+(medStoreRedeem*100).toFixed(1)+'%</span>' : '');
+    const grpOldEl = document.getElementById('grpOldCustomer-'+viewId);
+    if(grpOldEl) {
+      let medHtml = '👤 老客流量';
+      const medParts = [];
+      if(medOldExpPP!==null) medParts.push('曝光/笔(全):'+(medOldExpPP*100).toFixed(1)+'%');
+      if(medOldExpPP2x1!==null) medParts.push('曝光/笔(2x1):'+(medOldExpPP2x1*100).toFixed(1)+'%');
+      if(medOldJinR!==null) medParts.push('尽曝率(全):'+(medOldJinR*100).toFixed(1)+'%');
+      if(medOldJinR2x1!==null) medParts.push('尽曝率(2x1):'+(medOldJinR2x1*100).toFixed(1)+'%');
+      if(medParts.length) medHtml += '<br><span style="font-size:10px;font-weight:400;color:#059669;">中位数 '+medParts.join(' | ')+'</span>';
+      grpOldEl.innerHTML = medHtml;
+    }
+
+    // === 四要素阈值 ===
+    const THRESH = {miniProgramRatio:0.5, perStorePayment:10, pricePower:0/*负值标红*/, storeUploadCompleteness:0.9};
+    function fourElemColor(field,val){
+      if(val===null||val===undefined) return 'color:#bbb;';
+      if(field==='pricePower') return val<0?'color:#dc2626;font-weight:600;':'';
+      if(field==='miniProgramRatio') return val<0.5?'color:#dc2626;font-weight:600;':'';
+      if(field==='perStorePayment') return val<10?'color:#dc2626;font-weight:600;':'';
+      if(field==='storeUploadCompleteness') return val<0.9?'color:#dc2626;font-weight:600;':'';
+      return '';
+    }
+    function qoqSpan(val){if(val===null||val===undefined)return'<span style="color:#bbb;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
+    function trendSpan(val){if(val==='new')return'<span class="tag tag-blue">新上线</span>';if(typeof val!=='number')return'<span style="color:#bbb;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
+    function rateBar(pct,cls){return'<div class="rate-bar"><span class="rate-bar-track"><span class="rate-bar-fill '+cls+'" style="width:'+Math.max(pct,2)+'%"></span></span><span>'+(pct).toFixed(1)+'%</span></div>';}
+    // 老客流量低于中位数标红
+    function oldCustStyle(field,val){
+      if(val===null||val===undefined||val===0) return 'color:#bbb;';
+      if(field==='oldCustomerExpPerPayment' && medOldExpPP!==null && val<medOldExpPP) return 'color:#dc2626;font-weight:600;';
+      if(field==='oldCustomerJinRate' && medOldJinR!==null && val<medOldJinR) return 'color:#dc2626;font-weight:600;';
+      if(field==='oldCustomerExpPerPayment2x1' && medOldExpPP2x1!==null && val<medOldExpPP2x1) return 'color:#dc2626;font-weight:600;';
+      if(field==='oldCustomerJinRate2x1' && medOldJinR2x1!==null && val<medOldJinR2x1) return 'color:#dc2626;font-weight:600;';
+      return '';
+    }
+
+    const _bexpBody = basicConvExpanded[viewId] || false;
+
     tbody.innerHTML = merged.map(m=>{
       const fb = feedbacks[m.brand]; const hasFb = fb && fb.length>0;
       const rp = Math.min(m.redeemAchieveRate*100,100); const rCls = rp>=80?'good':rp>=40?'mid':'low';
       const ep = Math.min(m.exposureAchieveRate*100,100); const eCls = ep>=80?'good':ep>=40?'mid':'low';
       const rrp = Math.min(m.rateAchieveRate*100,100); const rrCls = rrp>=80?'good':rrp>=40?'mid':'low';
-      function trendSpan(val){if(val==='new')return'<span class="tag tag-blue" style="font-size:10px;">新上线</span>';if(typeof val!=='number')return'-';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
-      function rateBar(pct,cls){return'<div class="rate-bar"><span class="rate-bar-track"><span class="rate-bar-fill '+cls+'" style="width:'+Math.max(pct,2)+'%"></span></span><span>'+(pct).toFixed(1)+'%</span></div>';}
       var fbHtml=buildTableFbCell(m.brand, viewId, ownerFilter);
       return '<tr'+(m.abnormal?' style="background:#fff8e1;"':'')+'>'
         +'<td class="sticky-col" style="text-align:left;"><strong>'+m.brand+'</strong>'+(m.abnormal?'<span class="tag tag-orange" style="margin-left:6px;font-size:10px;">异常</span>':'')+'</td>'
         +(showOwner?'<td class="sticky-col" style="text-align:left;">'+m.owner+'</td>':'')
         +'<td class="sticky-col sticky-col-last" style="text-align:left;font-size:11px;color:var(--text-secondary);">'+(m.category||'-')+'</td>'
-        +'<td style="border-left:2px solid #e8f0fe;">'+fmt(m.dailyRedeem||0)+'</td>'
-        +'<td>'+trendSpan(m.redeemGrowth)+'</td>'
-        +'<td>'+fmt(m.redeemTarget||0)+'</td>'
-        +'<td>'+rateBar(rp,rCls)+'</td>'
-        +'<td style="border-left:2px solid #e8f0fe;">'+(m.dailyExposure||0).toFixed(1)+'</td>'
-        +'<td>'+trendSpan(m.expGrowth)+'</td>'
-        +'<td>'+(m.estimatedExposure||0).toFixed(1)+'</td>'
-        +'<td>'+rateBar(ep,eCls)+'</td>'
-        +'<td style="border-left:1px dashed #e8f0fe;">'+(m.eff2x1Exp||0).toFixed(1)+'</td>'
-        +'<td >'+(m.eff2x1ExpQoq!==null&&m.eff2x1ExpQoq!==undefined?('<span class="'+(m.eff2x1ExpQoq>=0?'trend-up':'trend-down')+'">'+(m.eff2x1ExpQoq>=0?'+':'')+(m.eff2x1ExpQoq*100).toFixed(1)+'%</span>'):'-')+'</td>'
-        +'<td >'+((m.eff2x1Share||0)*100).toFixed(1)+'%</td>'
-        +'<td >'+(m.eff2x1ShareQoq!==null&&m.eff2x1ShareQoq!==undefined?('<span class="'+(m.eff2x1ShareQoq>=0?'trend-up':'trend-down')+'">'+(m.eff2x1ShareQoq>=0?'+':'')+(m.eff2x1ShareQoq*100).toFixed(1)+'%</span>'):'-')+'</td>'
-        +'<td style="border-left:2px solid #e8f0fe;">'+pct(m.exposureRedeemRate||0)+'</td>'
-        +'<td>'+trendSpan(m.rateGrowth)+'</td>'
-        +'<td>'+pct(m.convTarget||0)+'</td>'
-        +'<td>'+(m.convTarget>0?rateBar(rrp,rrCls):'-')+'</td>'
-        +'<td style="border-left:2px solid #e8f0fe;">'+(m.alive?'<span class="tag tag-green">存活</span>':'<span class="tag tag-red">未存活</span>')+'</td>'
-        +'<td>'+((m.survivalRate||0)*100).toFixed(2)+'%</td>'
-        +'<td style="border-left:2px solid #c2d7f7;text-align:center;font-weight:600;'+(m.priceStrength!==null&&m.priceStrength!==undefined?((m.priceStrength>=0?'color:#059669':'color:#dc2626')):'color:#bbb')+'">'+(m.priceStrength!==null&&m.priceStrength!==undefined?(m.priceStrength*100).toFixed(1)+'%':'无')+'</td>'
-        +'<td>'+(function(){var cur=m.priceStrength||0;var prev=m.lastWeekPricePower||0;if(!cur||!prev)return'-';var g=(cur-prev)/prev;return'<span class="'+(g>=0?'trend-up':'trend-down')+'">'+(g>=0?'+':'')+(g*100).toFixed(1)+'%</span>';}())+'</td>'
-        +'<td style="border-left:2px solid #e8b4d0;font-size:12px;text-align:center;">'+(m.sgTarget||'-')+'</td>'
-        +'<td style="font-size:12px;text-align:center;">'+(m.sgTarget>0?(m.sgOnline>0?'<span class="tag tag-green">'+m.sgOnline+'</span>':'<span style="color:#bbb;">0</span>'):'-')+'</td>'
-        +'<td style="font-size:11px;color:#555;max-width:180px;white-space:pre-wrap;word-break:break-all;line-height:1.5;">'+(m.sgContent?escHtml(m.sgContent):'<span style="color:#bbb;">无</span>')+'</td>'
+        // === 四要素检查 7列 ===
+        +'<td style="border-left:2px solid #ede9fe;text-align:center;'+fourElemColor('miniProgramRatio',m.miniProgramRatio)+'">'+(m.miniProgramRatio!==null&&m.miniProgramRatio!==undefined?((m.miniProgramRatio*100).toFixed(1)+'%'):'-')+'</td>'
+        +'<td style="text-align:center;">'+qoqSpan(m.miniProgramRatioQoQ)+'</td>'
+        +'<td style="text-align:center;'+fourElemColor('perStorePayment',m.perStorePayment)+'">'+(m.perStorePayment!==null&&m.perStorePayment!==undefined?m.perStorePayment.toFixed(1):'-')+'</td>'
+        +'<td style="text-align:center;">'+qoqSpan(m.perStorePaymentQoQ)+'</td>'
+        +'<td style="text-align:center;'+fourElemColor('pricePower',m.pricePower)+'">'+(m.pricePower!==null&&m.pricePower!==undefined?((m.pricePower*100).toFixed(1)+'%'):'-')+'</td>'
+        +'<td style="text-align:center;">'+qoqSpan(m.pricePowerQoQ)+'</td>'
+        +'<td style="text-align:center;'+fourElemColor('storeUploadCompleteness',m.storeUploadCompleteness)+'">'+(m.storeUploadCompleteness!==null&&m.storeUploadCompleteness!==undefined?((m.storeUploadCompleteness*100).toFixed(1)+'%'):'-')+'</td>'
+        // === 到店核销率 2列 ===
+        +'<td style="border-left:2px solid #e0f7fa;text-align:center;'+(m.storeRedeemRate!==null&&m.storeRedeemRate!==undefined&&medStoreRedeem!==null&&m.storeRedeemRate<medStoreRedeem?'color:#dc2626;':'')+'">'+(m.storeRedeemRate!==null&&m.storeRedeemRate!==undefined?((m.storeRedeemRate*100).toFixed(1)+'%'):'-')+'</td>'
+        +'<td style="text-align:center;">'+qoqSpan(m.storeRedeemRateQoQ)+'</td>'
+        // === 老客流量 4列 ===
+        +'<td style="border-left:2px solid #d1fae5;text-align:center;'+oldCustStyle('oldCustomerExpPerPayment',m.oldCustomerExpPerPayment)+'">'+(m.oldCustomerExpPerPayment!==null&&m.oldCustomerExpPerPayment!==undefined&&m.oldCustomerExpPerPayment>0?((m.oldCustomerExpPerPayment*100).toFixed(1)+'%'):'-')+'</td>'
+        +'<td style="text-align:center;'+oldCustStyle('oldCustomerJinRate',m.oldCustomerJinRate)+'">'+(m.oldCustomerJinRate!==null&&m.oldCustomerJinRate!==undefined&&m.oldCustomerJinRate>0?((m.oldCustomerJinRate*100).toFixed(1)+'%'):'-')+'</td>'
+        +'<td style="text-align:center;'+oldCustStyle('oldCustomerExpPerPayment2x1',m.oldCustomerExpPerPayment2x1)+'">'+(m.oldCustomerExpPerPayment2x1!==null&&m.oldCustomerExpPerPayment2x1!==undefined&&m.oldCustomerExpPerPayment2x1>0?((m.oldCustomerExpPerPayment2x1*100).toFixed(1)+'%'):'-')+'</td>'
+        +'<td style="text-align:center;'+oldCustStyle('oldCustomerJinRate2x1',m.oldCustomerJinRate2x1)+'">'+(m.oldCustomerJinRate2x1!==null&&m.oldCustomerJinRate2x1!==undefined&&m.oldCustomerJinRate2x1>0?((m.oldCustomerJinRate2x1*100).toFixed(1)+'%'):'-')+'</td>'
+        // === 惊喜货盘 3列 ===
+        +'<td style="border-left:2px solid #fce7f3;font-size:12px;text-align:center;">'+(m.surpriseTarget||m.sgTarget||'-')+'</td>'
+        +'<td style="font-size:12px;text-align:center;">'+((m.surpriseTarget||m.sgTarget)>0?((m.surpriseOnline||m.sgOnline)>0?'<span class="tag tag-green">'+(m.surpriseOnline||m.sgOnline)+'</span>':'<span style="color:#bbb;">0</span>'):'-')+'</td>'
+        +'<td style="font-size:11px;color:#555;max-width:150px;white-space:pre-wrap;word-break:break-all;line-height:1.4;">'+((m.surpriseContent||m.sgContent)?escHtml(m.surpriseContent||m.sgContent):'<span style="color:#bbb;">无</span>')+'</td>'
+        // === 存活 2列 ===
+        +'<td style="border-left:2px solid #d1fae5;text-align:center;font-size:12px;">'+(m.alive?'<span class="tag tag-green">存活</span>':'<span class="tag tag-red">未存活</span>')+'</td>'
+        +'<td style="text-align:center;font-size:12px;'+(m.survivalRate!==null&&m.survivalRate!==undefined&&m.survivalRate<0.01?'color:#dc2626;':'')+'">'+(m.survivalRate!==null&&m.survivalRate!==undefined?((m.survivalRate*100).toFixed(1)+'%'):'-')+'</td>'
+        // === 基础转化 ===
+        +(_bexpBody
+          ? '<td style="border-left:2px solid #e2e8f0;">'+fmt(m.dailyRedeem||0)+'</td>'
+            +'<td>'+trendSpan(m.redeemGrowth)+'</td>'
+            +'<td>'+fmt(m.redeemTarget||0)+'</td>'
+            +'<td>'+rateBar(rp,rCls)+'</td>'
+            +'<td>'+(m.dailyExposure||0).toFixed(1)+'</td>'
+            +'<td>'+trendSpan(m.expGrowth)+'</td>'
+            +'<td>'+(m.estimatedExposure||0).toFixed(1)+'</td>'
+            +'<td>'+rateBar(ep,eCls)+'</td>'
+            +'<td style="'+((m.convTarget>0&&m.rateAchieveRate<1)?'color:#dc2626;':'')+'">'+pct(m.exposureRedeemRate||0)+'</td>'
+            +'<td>'+trendSpan(m.rateGrowth)+'</td>'
+            +'<td>'+pct(m.convTarget||0)+'</td>'
+            +'<td>'+(m.convTarget>0?rateBar(rrp,rrCls):'-')+'</td>'
+          : '<td style="border-left:2px solid #e2e8f0;text-align:center;font-size:11px;white-space:nowrap;"><span style="color:#64748b;">转化</span> '+(m.exposureRedeemRate>0?('<span style="color:'+((m.convTarget>0&&m.rateAchieveRate<1)?'#dc2626':'')+';">'+pct(m.exposureRedeemRate)+'</span>'):'<span style="color:#bbb;">-</span>')+'</td>'
+        )
         +'<td class="td-feedback" style="border-left:2px solid var(--border);">'+fbHtml+'</td>'
         +'</tr>';
     }).join('');
@@ -1983,6 +2194,14 @@ function refreshTable(viewId, ownerFilter) {
       });
     });
   });
+}
+
+// === 基础转化折叠/展开 ===
+var basicConvExpanded = {}; // 按viewId记录展开状态
+function toggleBasicConversion(viewId) {
+  basicConvExpanded[viewId] = !basicConvExpanded[viewId];
+  // 重新渲染表格（保留排序等状态）
+  refreshTable(viewId);
 }
 
 // === 表格内反馈提交 ===
@@ -2108,7 +2327,9 @@ function drawQuadrantChart(viewId, ownerFilter) {
     const cd = bcdRef[b.name];
     const sr = Math.min((cd ? cd.survivalRate : (b.survivalRate||0)) * 100, 4);
     const er = cd && cd.totExp > 0 ? cd.totWrt/(cd.totExp*10000) : (b.exposureRedeemRate || 0);
-    const alive = cd && cd.isAlive !== undefined && cd.isAlive !== null ? checkAlive(cd.isAlive) : isBrandAlive(b);
+    const _aflag = cd && cd.isAlive !== undefined && cd.isAlive !== null ? checkAlive(cd.isAlive) : checkAlive(b.isAlive);
+    const _srv = (cd ? cd.survivalRate : (b.survivalRate||0));
+    const alive = _aflag && _srv >= 0.01;
     const hasExposure = cd ? cd.totExp > 0 : (b.dailyExposure||0) > 0;
     let color;
     if(!hasExposure) color = '#9e9e9e';
