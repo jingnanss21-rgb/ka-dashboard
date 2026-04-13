@@ -294,6 +294,17 @@ table thead th.sortable.sort-desc::after { content:'▼'; color:var(--primary); 
 .loading-spinner { width:44px; height:44px; border:4px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
+/* 访问密码门（高于身份弹窗） */
+.auth-gate-overlay { position:fixed; inset:0; z-index:100000; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(145deg,#0f172a 0%,#1e3a5f 45%,#1e40af 100%); padding:24px; box-sizing:border-box; }
+.auth-gate-card { width:100%; max-width:400px; background:var(--card); border-radius:var(--radius); padding:32px 28px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); border:1px solid var(--border); text-align:center; }
+.auth-gate-card h2 { font-size:22px; font-weight:800; color:var(--text); margin-bottom:8px; letter-spacing:0.5px; }
+.auth-gate-card .sub { font-size:13px; color:var(--text-secondary); margin-bottom:22px; }
+.auth-gate-card input[type="password"] { width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px; font-size:15px; margin-bottom:14px; box-sizing:border-box; transition:border-color .2s, box-shadow .2s; }
+.auth-gate-card input[type="password"]:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+.auth-gate-card .auth-gate-btn { width:100%; padding:12px; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; background:linear-gradient(135deg,#1e40af,#3b82f6); color:#fff; box-shadow:0 4px 14px rgba(37,99,235,0.35); transition:transform .15s, box-shadow .15s; }
+.auth-gate-card .auth-gate-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(37,99,235,0.4); }
+.auth-gate-card .auth-gate-err { display:none; color:var(--danger); font-size:13px; margin-top:10px; font-weight:500; }
+
 table.card-ch-table { table-layout:fixed; width:100%; border-collapse:collapse; font-size:12px; }
 table.card-ch-table td { text-align:left !important; vertical-align:top; }
 table.card-ch-table thead td { text-align:left !important; }
@@ -303,6 +314,17 @@ table.card-ch-table thead td { text-align:left !important; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
+
+<!-- 访问密码（未登录时遮挡全页） -->
+<div class="auth-gate-overlay" id="authGateOverlay" aria-hidden="true">
+  <div class="auth-gate-card">
+    <h2>餐饮KA看板</h2>
+    <p class="sub">请输入访问密码</p>
+    <input type="password" id="authGatePassword" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')tryKaLogin()" />
+    <button type="button" class="auth-gate-btn" onclick="tryKaLogin()">登录</button>
+    <div class="auth-gate-err" id="authGateError">密码错误</div>
+  </div>
+</div>
 
 <!-- 加载遮罩 -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -358,6 +380,50 @@ window.__EMBEDDED_FEEDBACKS__ = {"星巴克": [{"id": "3655224f-e40e-430c-8cd6-5
 const SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
 const sbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+// 仅展示该日期及之后的快照（含前端下拉与加载校验）
+const MIN_REPORT_DATE = "2026-04-01";
+const KA_AUTH_STORAGE_KEY = "ka_dashboard_auth";
+const KA_AUTH_PASSWORD = "ka2026";
+const KA_AUTH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function readKaAuthToken() {
+  try {
+    var raw = localStorage.getItem(KA_AUTH_STORAGE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+function isKaAuthValid() {
+  var t = readKaAuthToken();
+  if(!t || t.password !== KA_AUTH_PASSWORD) return false;
+  if(typeof t.expiry !== "number" || Date.now() >= t.expiry) return false;
+  return true;
+}
+function saveKaAuthToken() {
+  localStorage.setItem(KA_AUTH_STORAGE_KEY, JSON.stringify({
+    password: KA_AUTH_PASSWORD,
+    expiry: Date.now() + KA_AUTH_TTL_MS
+  }));
+}
+function tryKaLogin() {
+  var inp = document.getElementById("authGatePassword");
+  var err = document.getElementById("authGateError");
+  var v = inp ? inp.value.trim() : "";
+  if(v !== KA_AUTH_PASSWORD) {
+    if(err) err.style.display = "block";
+    return;
+  }
+  if(err) err.style.display = "none";
+  if(inp) inp.value = "";
+  saveKaAuthToken();
+  var gate = document.getElementById("authGateOverlay");
+  if(gate) {
+    gate.style.display = "none";
+    gate.setAttribute("aria-hidden", "true");
+  }
+  init();
+}
 
 // ============================================================
 // 身份管理
@@ -586,6 +652,7 @@ async function loadAvailableDates() {
   if(!sbClient) throw new Error("Supabase 未初始化");
   const { data, error } = await sbClient.from("ka_daily_snapshot")
     .select("report_date")
+    .gte("report_date", MIN_REPORT_DATE)
     .order("report_date", { ascending: false });
   if(error) throw error;
   return (data || []).map(row => row.report_date);
@@ -643,6 +710,9 @@ function normalizeChannelDataFromSnapshot(raw) {
 }
 
 async function loadDataForDate(dateStr) {
+  if(String(dateStr) < MIN_REPORT_DATE) {
+    throw new Error("该日期已下线，请选择 " + MIN_REPORT_DATE + " 及之后的报表日期");
+  }
   if(!sbClient) throw new Error("Supabase 未初始化");
   const { data: row, error } = await sbClient
     .from("ka_daily_snapshot")
@@ -728,7 +798,7 @@ async function loadData() {
   try {
     const dates = await loadAvailableDates();
     if(!dates.length) {
-      console.error("ka_daily_snapshot 无数据");
+      console.error("ka_daily_snapshot 无数据（" + MIN_REPORT_DATE + " 及之后）");
       return false;
     }
     fillReportDateSelect(dates);
@@ -800,13 +870,28 @@ function trackVisit(page) {}
 
 async function init() {
   bindCardFeedbackDelegation();
-  // 检查 Supabase SDK 是否加载
+  if(!isKaAuthValid()) {
+    var gate = document.getElementById('authGateOverlay');
+    if(gate) {
+      gate.style.display = 'flex';
+      gate.setAttribute('aria-hidden', 'false');
+    }
+    document.getElementById('loadingOverlay').style.display = 'none';
+    return;
+  }
+  var gateOk = document.getElementById('authGateOverlay');
+  if(gateOk) {
+    gateOk.style.display = 'none';
+    gateOk.setAttribute('aria-hidden', 'true');
+  }
+  await runDashboardInit();
+}
+
+async function runDashboardInit() {
   if(!window.supabase) { console.warn('Supabase offline'); }
 
-  // 访问埋点
   trackVisit('摇优惠看板');
 
-  // 显示加载中
   document.getElementById('loadingOverlay').style.display = 'flex';
 
   let ok = false;
@@ -819,21 +904,18 @@ async function init() {
   }
 
   if(!ok) {
-    document.getElementById('loadingOverlay').innerHTML = '<div style="text-align:center;color:#fff;max-width:420px;padding:20px"><h2>❌ 无法加载数据</h2><p style="margin:12px 0;opacity:.9">请检查：网络、Supabase 配置、匿名密钥与 RLS（ka_daily_snapshot 需允许 anon 读取）。</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;border-radius:6px;border:none;cursor:pointer">刷新重试</button></div>';
+    document.getElementById('loadingOverlay').innerHTML = '<div style="text-align:center;color:#fff;max-width:420px;padding:20px"><h2>❌ 无法加载数据</h2><p style="margin:12px 0;opacity:.9">请检查：网络、Supabase 配置、匿名密钥与 RLS（ka_daily_snapshot 需允许 anon 读取）。若仅存在 ' + MIN_REPORT_DATE + ' 之前的快照，下拉将为空。</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 20px;border-radius:6px;border:none;cursor:pointer">刷新重试</button></div>';
     return;
   }
   document.getElementById('loadingOverlay').style.display = 'none';
 
-  // 设置日期
   const channelDate = (CHANNEL_DATA.globalData && CHANNEL_DATA.globalData.dataDate) || '';
   const overallDate = DATA.dataDate || '';
   const displayDate = snapshotDateLabel || channelDate || overallDate || '2026.04.01 — 04.07';
   document.getElementById('dataDate').textContent = '数据周期: ' + displayDate;
 
-  // 判断是否需要选择身份
   if(!currentIdentity) {
     document.getElementById('identityOverlay').style.display = 'flex';
-    // 等待用户选择
     await new Promise(resolve => {
       const observer = new MutationObserver(() => {
         if(document.getElementById('identityOverlay').style.display === 'none') {
@@ -859,7 +941,6 @@ async function init() {
     });
   }, 100);
 
-  // 启动实时订阅
   subscribeRealtime();
 }
 
