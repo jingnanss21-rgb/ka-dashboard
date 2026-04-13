@@ -2108,8 +2108,8 @@ function refreshTable(viewId, ownerFilter) {
       if(field==='storeUploadCompleteness') return val<0.9?'color:#dc2626;font-weight:600;':'';
       return '';
     }
-    function qoqSpan(val){if(val===null||val===undefined)return'<span style="color:#bbb;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
-    function trendSpan(val){if(val==='new')return'<span class="tag tag-blue">新上线</span>';if(typeof val!=='number')return'<span style="color:#bbb;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
+    function qoqSpan(val){if(val===null||val===undefined)return'<span style="color:#ccc;font-size:10px;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'" style="font-size:11px;opacity:0.65;">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
+    function trendSpan(val){if(val==='new')return'<span class="tag tag-blue">新上线</span>';if(typeof val!=='number')return'<span style="color:#ccc;font-size:10px;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'" style="font-size:11px;opacity:0.65;">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
     function rateBar(pct,cls){return'<div class="rate-bar"><span class="rate-bar-track"><span class="rate-bar-fill '+cls+'" style="width:'+Math.max(pct,2)+'%"></span></span><span>'+(pct).toFixed(1)+'%</span></div>';}
     // 老客流量低于中位数标红
     function oldCustStyle(field,val){
@@ -2136,15 +2136,15 @@ function refreshTable(viewId, ownerFilter) {
         +'<td class="sticky-col sticky-col-last" style="text-align:left;font-size:11px;color:var(--text-secondary);">'+(m.category||'-')+'</td>'
         // === 四要素检查 7列 ===
         +'<td style="border-left:2px solid #ede9fe;text-align:center;'+fourElemColor('miniProgramRatio',m.miniProgramRatio)+'">'+(m.miniProgramRatio!==null&&m.miniProgramRatio!==undefined?((m.miniProgramRatio*100).toFixed(1)+'%'):'-')+'</td>'
-        +'<td style="text-align:center;">'+qoqSpan(m.miniProgramRatioQoQ)+'</td>'
+        +'<td style="text-align:center;font-size:11px;">'+qoqSpan(m.miniProgramRatioQoQ)+'</td>'
         +'<td style="text-align:center;'+fourElemColor('perStorePayment',m.perStorePayment)+'">'+(m.perStorePayment!==null&&m.perStorePayment!==undefined?m.perStorePayment.toFixed(1):'-')+'</td>'
-        +'<td style="text-align:center;">'+qoqSpan(m.perStorePaymentQoQ)+'</td>'
+        +'<td style="text-align:center;font-size:11px;">'+qoqSpan(m.perStorePaymentQoQ)+'</td>'
         +'<td style="text-align:center;'+fourElemColor('pricePower',m.pricePower)+'">'+(m.pricePower!==null&&m.pricePower!==undefined?((m.pricePower*100).toFixed(1)+'%'):'-')+'</td>'
-        +'<td style="text-align:center;">'+qoqSpan(m.pricePowerQoQ)+'</td>'
+        +'<td style="text-align:center;font-size:11px;">'+qoqSpan(m.pricePowerQoQ)+'</td>'
         +'<td style="text-align:center;'+fourElemColor('storeUploadCompleteness',m.storeUploadCompleteness)+'">'+(m.storeUploadCompleteness!==null&&m.storeUploadCompleteness!==undefined?((m.storeUploadCompleteness*100).toFixed(1)+'%'):'-')+'</td>'
         // === 到店核销率 2列 ===
         +'<td style="border-left:2px solid #e0f7fa;text-align:center;'+(m.storeRedeemRate!==null&&m.storeRedeemRate!==undefined&&medStoreRedeem!==null&&m.storeRedeemRate<medStoreRedeem?'color:#dc2626;':'')+'">'+(m.storeRedeemRate!==null&&m.storeRedeemRate!==undefined?((m.storeRedeemRate*100).toFixed(1)+'%'):'-')+'</td>'
-        +'<td style="text-align:center;">'+qoqSpan(m.storeRedeemRateQoQ)+'</td>'
+        +'<td style="text-align:center;font-size:11px;">'+qoqSpan(m.storeRedeemRateQoQ)+'</td>'
         // === 老客流量 4列 ===
         +'<td style="border-left:2px solid #d1fae5;text-align:center;'+oldCustStyle('oldCustomerExpPerPayment',m.oldCustomerExpPerPayment)+'">'+(m.oldCustomerExpPerPayment!==null&&m.oldCustomerExpPerPayment!==undefined&&m.oldCustomerExpPerPayment>0?((m.oldCustomerExpPerPayment*100).toFixed(1)+'%'):'-')+'</td>'
         +'<td style="text-align:center;'+oldCustStyle('oldCustomerJinRate',m.oldCustomerJinRate)+'">'+(m.oldCustomerJinRate!==null&&m.oldCustomerJinRate!==undefined&&m.oldCustomerJinRate>0?((m.oldCustomerJinRate*100).toFixed(1)+'%'):'-')+'</td>'
