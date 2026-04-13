@@ -2108,8 +2108,8 @@ function refreshTable(viewId, ownerFilter) {
       if(field==='storeUploadCompleteness') return val<0.9?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;';
       return 'color:#1e293b;font-weight:500;';
     }
-    function qoqSpan(val){if(val===null||val===undefined)return'<span style="color:#ccc;font-size:10px;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'" style="font-size:11px;opacity:0.65;">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
-    function trendSpan(val){if(val==='new')return'<span class="tag tag-blue">新上线</span>';if(typeof val!=='number')return'<span style="color:#ccc;font-size:10px;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'" style="font-size:11px;opacity:0.65;">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
+    function qoqSpan(val){if(val===null||val===undefined)return'<span style="color:#ccc;font-size:10px;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'" style="font-size:10px;">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
+    function trendSpan(val){if(val==='new')return'<span class="tag tag-blue">新上线</span>';if(typeof val!=='number')return'<span style="color:#ccc;font-size:10px;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'" style="font-size:10px;">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
     function rateBar(pct,cls){return'<div class="rate-bar"><span class="rate-bar-track"><span class="rate-bar-fill '+cls+'" style="width:'+Math.max(pct,2)+'%"></span></span><span>'+(pct).toFixed(1)+'%</span></div>';}
     // 老客流量低于中位数标红
     function oldCustStyle(field,val){
@@ -2162,19 +2162,19 @@ function refreshTable(viewId, ownerFilter) {
         )
         // === 基础转化 ===
         +(_bexpBody
-          ? '<td style="border-left:2px solid #e2e8f0;">'+fmt(m.dailyRedeem||0)+'</td>'
+          ? '<td style="border-left:2px solid #e2e8f0;color:#1e293b;font-weight:500;">'+fmt(m.dailyRedeem||0)+'</td>'
             +'<td>'+trendSpan(m.redeemGrowth)+'</td>'
-            +'<td>'+fmt(m.redeemTarget||0)+'</td>'
+            +'<td style="color:#1e293b;font-weight:500;">'+fmt(m.redeemTarget||0)+'</td>'
             +'<td>'+rateBar(rp,rCls)+'</td>'
-            +'<td>'+(m.dailyExposure||0).toFixed(1)+'</td>'
+            +'<td style="color:#1e293b;font-weight:500;">'+(m.dailyExposure||0).toFixed(1)+'</td>'
             +'<td>'+trendSpan(m.expGrowth)+'</td>'
-            +'<td>'+(m.estimatedExposure||0).toFixed(1)+'</td>'
+            +'<td style="color:#1e293b;font-weight:500;">'+(m.estimatedExposure||0).toFixed(1)+'</td>'
             +'<td>'+rateBar(ep,eCls)+'</td>'
-            +'<td style="'+((m.convTarget>0&&m.rateAchieveRate<1)?'color:#dc2626;':'')+'">'+pct(m.exposureRedeemRate||0)+'</td>'
+            +'<td style="'+((m.convTarget>0&&m.rateAchieveRate<1)?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;')+'">'+pct(m.exposureRedeemRate||0)+'</td>'
             +'<td>'+trendSpan(m.rateGrowth)+'</td>'
-            +'<td>'+pct(m.convTarget||0)+'</td>'
+            +'<td style="color:#1e293b;font-weight:500;">'+pct(m.convTarget||0)+'</td>'
             +'<td>'+(m.convTarget>0?rateBar(rrp,rrCls):'-')+'</td>'
-          : '<td style="border-left:2px solid #e2e8f0;text-align:center;font-size:11px;white-space:nowrap;"><span style="color:#64748b;">转化</span> '+(m.exposureRedeemRate>0?('<span style="color:'+((m.convTarget>0&&m.rateAchieveRate<1)?'#dc2626':'')+';">'+pct(m.exposureRedeemRate)+'</span>'):'<span style="color:#bbb;">-</span>')+'</td>'
+          : '<td style="border-left:2px solid #e2e8f0;text-align:center;font-size:11px;white-space:nowrap;"><span style="color:#64748b;">转化</span> '+(m.exposureRedeemRate>0?('<span style="color:'+((m.convTarget>0&&m.rateAchieveRate<1)?'#dc2626':'#1e293b')+';font-weight:500;">'+pct(m.exposureRedeemRate)+'</span>'):'<span style="color:#bbb;">-</span>')+'</td>'
         )
         +'<td class="td-feedback" style="border-left:2px solid var(--border);">'+fbHtml+'</td>'
         +'</tr>';
