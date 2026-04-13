@@ -477,6 +477,8 @@ const MIN_KA_SNAPSHOT_DATE = '2026-04-01';
 
 let latestKaSnapshot = { report_date: null, data_date_label: null };
 let gOverviewShakeSubtitle = '摇优惠周报';
+/** 摇优惠在线/存活：来自快照时为 { online, alive }，否则 renderOverview 回退 KA_DATA */
+let gShakeBrandCounts = null;
 
 const ALERT_SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
 const ALERT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
@@ -539,10 +541,67 @@ function updatePeriodBadge(project) {
   const el = document.getElementById('periodBadge');
   if (el) el.textContent = '数据周期: ' + (PERIOD_MAP[project] || '');
 }
+
+function parseSnapshotBrandsArray(raw) {
+  let arr = raw;
+  if (arr == null) return [];
+  if (typeof arr === 'string') {
+    try { arr = JSON.parse(arr); } catch (e) { return []; }
+  }
+  return Array.isArray(arr) ? arr : [];
+}
+
+/**
+ * 在线：日均曝光 dailyExposure > 0；若快照中均无曝光字段则退化为品牌总数。
+ * 存活：survivalRate > 0；若无存活率字段则退化为 isAlive 为真的品牌数。
+ */
+function computeShakeBrandCountsFromSnapshotBrands(rawBrands) {
+  const brands = parseSnapshotBrandsArray(rawBrands);
+  if (!brands.length) return null;
+
+  const expDefined = brands.some(function(b) {
+    return b && b.dailyExposure != null && b.dailyExposure !== '';
+  });
+  let online = brands.filter(function(b) {
+    return (Number(b && b.dailyExposure) || 0) > 0;
+  }).length;
+  if (!expDefined) online = brands.length;
+
+  const srDefined = brands.some(function(b) {
+    return b && b.survivalRate != null && b.survivalRate !== '';
+  });
+  let alive = brands.filter(function(b) {
+    return (Number(b && b.survivalRate) || 0) > 0;
+  }).length;
+  if (!srDefined) {
+    alive = brands.filter(function(b) {
+      if (!b) return false;
+      var v = b.isAlive;
+      return v === true || v === 1 || v === 1.0 || v === '1' || v === '是' || v === 'True' || v === 'true';
+    }).length;
+  }
+
+  return { online: online, alive: alive };
+}
+
+function getEmbeddedShakeBrandCounts() {
+  var b = KA_DATA.brands;
+  return {
+    online: b.filter(function(x) { return x['摇优惠'] === '存活' || x['摇优惠'] === '未存活'; }).length,
+    alive: b.filter(function(x) { return x['摇优惠'] === '存活'; }).length
+  };
+}
+
+function getShakeBrandCountsForOverview() {
+  if (gShakeBrandCounts && typeof gShakeBrandCounts.online === 'number') return gShakeBrandCounts;
+  return getEmbeddedShakeBrandCounts();
+}
+
 async function refreshKaSnapshotPeriod() {
+  gShakeBrandCounts = null;
   try {
     const { data, error } = await alertSb.from('ka_daily_snapshot')
-      .select('report_date, data_date_label')
+      .select('report_date, data_date_label, brands')
       .gte('report_date', MIN_KA_SNAPSHOT_DATE)
       .order('report_date', { ascending: false })
       .limit(1)
@@ -551,10 +610,13 @@ async function refreshKaSnapshotPeriod() {
     if (data) {
       latestKaSnapshot.report_date = data.report_date;
       latestKaSnapshot.data_date_label = data.data_date_label || data.report_date;
+      var computed = computeShakeBrandCountsFromSnapshotBrands(data.brands);
+      if (computed) gShakeBrandCounts = computed;
     }
   } catch (e) {
     console.warn('refreshKaSnapshotPeriod:', e.message || e);
   }
+  if (!gShakeBrandCounts) gShakeBrandCounts = getEmbeddedShakeBrandCounts();
   rebuildPeriodMapFromSnapshot();
   const active = document.querySelector('.project-tab.active');
   if (active) updatePeriodBadge(active.dataset.project);
@@ -657,8 +719,9 @@ function renderOverview() {
   const cikaInterest = b.filter(x => x['次卡'] === '有意向').length;
   const wuyouInterest = b.filter(x => x['无忧会员'] === '有意向' || x['无忧会员'] === '待沟通').length;
   const hasTradeData = b.filter(x => x.has_data !== false && x.m03_bs_all).length;
-  const shakeAlive = b.filter(x => x['摇优惠'] === '存活').length;
-  const shakeOnline = b.filter(x => x['摇优惠'] === '存活' || x['摇优惠'] === '未存活').length;
+  var _shake = getShakeBrandCountsForOverview();
+  const shakeOnline = _shake.online;
+  const shakeAlive = _shake.alive;
   
   // 总体渗透率变化
   const bsRateHb = (o.m03.bs_rate - o.m02.bs_rate).toFixed(2);
