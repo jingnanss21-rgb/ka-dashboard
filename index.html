@@ -2102,11 +2102,11 @@ function refreshTable(viewId, ownerFilter) {
     const THRESH = {miniProgramRatio:0.5, perStorePayment:10, pricePower:0/*负值标红*/, storeUploadCompleteness:0.9};
     function fourElemColor(field,val){
       if(val===null||val===undefined) return 'color:#bbb;';
-      if(field==='pricePower') return val<0?'color:#dc2626;font-weight:600;':'';
-      if(field==='miniProgramRatio') return val<0.5?'color:#dc2626;font-weight:600;':'';
-      if(field==='perStorePayment') return val<10?'color:#dc2626;font-weight:600;':'';
-      if(field==='storeUploadCompleteness') return val<0.9?'color:#dc2626;font-weight:600;':'';
-      return '';
+      if(field==='pricePower') return val<0?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;';
+      if(field==='miniProgramRatio') return val<0.5?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;';
+      if(field==='perStorePayment') return val<10?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;';
+      if(field==='storeUploadCompleteness') return val<0.9?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;';
+      return 'color:#1e293b;font-weight:500;';
     }
     function qoqSpan(val){if(val===null||val===undefined)return'<span style="color:#ccc;font-size:10px;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'" style="font-size:11px;opacity:0.65;">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
     function trendSpan(val){if(val==='new')return'<span class="tag tag-blue">新上线</span>';if(typeof val!=='number')return'<span style="color:#ccc;font-size:10px;">-</span>';var cls=val>=0?'trend-up':'trend-down';return'<span class="'+cls+'" style="font-size:11px;opacity:0.65;">'+(val>=0?'+':'')+(val*100).toFixed(1)+'%</span>';}
@@ -2118,7 +2118,7 @@ function refreshTable(viewId, ownerFilter) {
       if(field==='oldCustomerJinRate' && medOldJinR!==null && val<medOldJinR) return 'color:#dc2626;font-weight:600;';
       if(field==='oldCustomerExpPerPayment2x1' && medOldExpPP2x1!==null && val<medOldExpPP2x1) return 'color:#dc2626;font-weight:600;';
       if(field==='oldCustomerJinRate2x1' && medOldJinR2x1!==null && val<medOldJinR2x1) return 'color:#dc2626;font-weight:600;';
-      return '';
+      return 'color:#1e293b;font-weight:500;';
     }
 
     const _bexpBody = basicConvExpanded[viewId] || false;
@@ -2143,7 +2143,7 @@ function refreshTable(viewId, ownerFilter) {
         +'<td style="text-align:center;font-size:11px;">'+qoqSpan(m.pricePowerQoQ)+'</td>'
         +'<td style="text-align:center;'+fourElemColor('storeUploadCompleteness',m.storeUploadCompleteness)+'">'+(m.storeUploadCompleteness!==null&&m.storeUploadCompleteness!==undefined?((m.storeUploadCompleteness*100).toFixed(1)+'%'):'-')+'</td>'
         // === 到店核销率 2列 ===
-        +'<td style="border-left:2px solid #e0f7fa;text-align:center;'+(m.storeRedeemRate!==null&&m.storeRedeemRate!==undefined&&medStoreRedeem!==null&&m.storeRedeemRate<medStoreRedeem?'color:#dc2626;font-weight:600;':'')+'">'+(m.storeRedeemRate!==null&&m.storeRedeemRate!==undefined?((m.storeRedeemRate*100).toFixed(1)+'%'):'-')+'</td>'
+        +'<td style="border-left:2px solid #e0f7fa;text-align:center;'+(m.storeRedeemRate!==null&&m.storeRedeemRate!==undefined&&medStoreRedeem!==null&&m.storeRedeemRate<medStoreRedeem?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;')+'">'+(m.storeRedeemRate!==null&&m.storeRedeemRate!==undefined?((m.storeRedeemRate*100).toFixed(1)+'%'):'-')+'</td>'
         +'<td style="text-align:center;font-size:11px;">'+qoqSpan(m.storeRedeemRateQoQ)+'</td>'
         // === 老客流量 4列 ===
         +'<td style="border-left:2px solid #d1fae5;text-align:center;'+oldCustStyle('oldCustomerExpPerPayment',m.oldCustomerExpPerPayment)+'">'+(m.oldCustomerExpPerPayment!==null&&m.oldCustomerExpPerPayment!==undefined&&m.oldCustomerExpPerPayment>0?((m.oldCustomerExpPerPayment*100).toFixed(1)+'%'):'-')+'</td>'
@@ -2152,7 +2152,7 @@ function refreshTable(viewId, ownerFilter) {
         +'<td style="text-align:center;'+oldCustStyle('oldCustomerJinRate2x1',m.oldCustomerJinRate2x1)+'">'+(m.oldCustomerJinRate2x1!==null&&m.oldCustomerJinRate2x1!==undefined&&m.oldCustomerJinRate2x1>0?((m.oldCustomerJinRate2x1*100).toFixed(1)+'%'):'-')+'</td>'
         // === 存活 2列 ===
         +'<td style="border-left:2px solid #ccfbf1;text-align:center;font-size:12px;">'+(m.alive?'<span class="tag tag-green">存活</span>':'<span class="tag tag-red">未存活</span>')+'</td>'
-        +'<td style="text-align:center;font-size:12px;'+(m.survivalRate!==null&&m.survivalRate!==undefined&&m.survivalRate<0.01?'color:#dc2626;font-weight:600;':'')+'">'+(m.survivalRate!==null&&m.survivalRate!==undefined?((m.survivalRate*100).toFixed(1)+'%'):'-')+'</td>'
+        +'<td style="text-align:center;font-size:12px;'+(m.survivalRate!==null&&m.survivalRate!==undefined&&m.survivalRate<0.01?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;')+'">'+(m.survivalRate!==null&&m.survivalRate!==undefined?((m.survivalRate*100).toFixed(1)+'%'):'-')+'</td>'
         // === 惊喜货盘（可折叠） ===
         +(_sexpBody
           ? '<td style="border-left:2px solid #fce7f3;font-size:12px;text-align:center;">'+(m.surpriseTarget||m.sgTarget||'-')+'</td>'
