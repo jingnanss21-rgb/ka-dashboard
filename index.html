@@ -1042,8 +1042,15 @@ function buildViewPanel(viewId, ownerFilter, title) {
   const survivalAchieveRate = activeBrands.length>0 ? survivedCount/activeBrands.length : 0;
 
   // 惊喜货盘达成率：在线惊喜货盘 / 惊喜货盘目标
+  // surprise_goods 数据没有 owner 字段，需要通过品牌名关联 assignments 获取 owner
   const allSG = DATA.surpriseGoods || [];
-  const sgRows = ownerFilter ? allSG.filter(r => r.owner === ownerFilter) : allSG;
+  const sgRows = ownerFilter ? allSG.filter(r => {
+    if (r.owner === ownerFilter) return true;
+    // 通过品牌名从 assignments 查找 owner
+    const bn = r.brand || r.brandName;
+    const matchedAssign = assignments.find(a => a.brand === bn || a.brand === BRAND_ALIAS[bn] || bn === BRAND_ALIAS[a.brand]);
+    return matchedAssign && matchedAssign.owner === ownerFilter;
+  }) : allSG;
   const sgTarget = sgRows.reduce((s,r)=>s+(r.target||r.surpriseTarget||0), 0);
   const sgOnline = sgRows.reduce((s,r)=>s+(r.online||r.surpriseOnline||0), 0);
   const sgAchieveRate = sgTarget>0 ? sgOnline/sgTarget : 0;
