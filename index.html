@@ -2158,7 +2158,7 @@ function refreshTable(viewId, ownerFilter) {
           ? '<td style="border-left:2px solid #fce7f3;font-size:12px;text-align:center;">'+(m.surpriseTarget||m.sgTarget||'-')+'</td>'
             +'<td style="font-size:12px;text-align:center;">'+((m.surpriseTarget||m.sgTarget)>0?((m.surpriseOnline||m.sgOnline)>0?'<span class="tag tag-green">'+(m.surpriseOnline||m.sgOnline)+'</span>':'<span style="color:#bbb;">0</span>'):'-')+'</td>'
             +'<td style="font-size:11px;color:#555;max-width:150px;white-space:pre-wrap;word-break:break-all;line-height:1.4;">'+((m.surpriseContent||m.sgContent)?escHtml(m.surpriseContent||m.sgContent):'<span style="color:#bbb;">无</span>')+'</td>'
-          : '<td style="border-left:2px solid #fce7f3;text-align:center;font-size:11px;white-space:nowrap;"><span style="color:#a855f7;">🎁</span> '+((m.surpriseTarget||m.sgTarget)>0?((m.surpriseOnline||m.sgOnline)>0?'<span class="tag tag-green" style="font-size:10px;">'+(m.surpriseOnline||m.sgOnline)+'/'+(m.surpriseTarget||m.sgTarget)+'</span>':'<span style="color:#bbb;font-size:10px;">0/'+(m.surpriseTarget||m.sgTarget)+'</span>'):'<span style="color:#bbb;">-</span>')+'</td>'
+          : '<td style="border-left:2px solid #fce7f3;text-align:center;font-size:11px;white-space:nowrap;">'+((m.surpriseTarget||m.sgTarget)>0?((m.surpriseOnline||m.sgOnline)>0?'<span class="tag tag-green" style="font-size:10px;">'+(m.surpriseOnline||m.sgOnline)+'/'+(m.surpriseTarget||m.sgTarget)+'</span>':'<span style="color:#bbb;font-size:10px;">0/'+(m.surpriseTarget||m.sgTarget)+'</span>'):'<span style="color:#bbb;">-</span>')+'</td>'
         )
         // === 基础转化 ===
         +(_bexpBody
