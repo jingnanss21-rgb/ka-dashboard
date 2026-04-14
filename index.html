@@ -1492,8 +1492,18 @@ function isBrandAbnormal(b) {
   const expRate = b.exposureRedeemRate || 0;
   // 原有逻辑：曝光极低但核销率离谱
   if(exposure <= 0.1 && expRate > 1.0) return true;
-  // 曝光核销率超过 5% 视为异常（cap 按曝光核销率）
+  // 曝光核销率超过 5% 视为异常（如张亮麻辣烫）
   if(expRate > 0.05) return true;
+  // 核销目标达成率超过 1000%（10倍目标）视为异常（如茶话弄）
+  const bcdRef = (typeof CHANNEL_DATA !== 'undefined' && CHANNEL_DATA.brandChannelData) || {};
+  const cd = bcdRef[b.name];
+  const curR = cd ? cd.totWrt : (b.dailyRedeem||0);
+  const dp = parseFloat(b.dailyPayment)||0;
+  const rr = dp > 0 ? curR / (dp * 10000) : 0;
+  const _a = (typeof DATA !== 'undefined' && DATA.assignments || []).find(a => a.brand === b.name || BRAND_ALIAS[a.brand] === b.name || a.brand === BRAND_ALIAS[b.name]);
+  const ct = _a ? parseFloat(_a.conversionTarget)||0 : 0;
+  const redeemAchRate = ct > 0 ? rr / ct * 100 : 0;
+  if(redeemAchRate > 1000) return true;
   return false;
 }
 
@@ -2331,7 +2341,7 @@ function drawQuadrantChart(viewId, ownerFilter) {
     const _rr5 = _dp5 > 0 ? curR / (_dp5 * 10000) : 0;
     const _a5 = DATA.assignments.find(a => a.brand === b.name || BRAND_ALIAS[a.brand] === b.name || a.brand === BRAND_ALIAS[b.name]);
     const _ct5 = _a5 ? parseFloat(_a5.conversionTarget)||0 : 0;
-    return _ct5 > 0 ? Math.min(_rr5 / _ct5 * 100, 1000) : 0;  // 百分比形式（100=达标），cap 1000%
+    return _ct5 > 0 ? _rr5 / _ct5 * 100 : 0;  // 百分比形式（100=达标），异常品牌已在isBrandAbnormal中剔除
   });
   const expRates = brands.map(b => { const cd = bcdRef[b.name]; return cd && cd.totExp > 0 ? cd.totWrt/(cd.totExp*10000) : (b.exposureRedeemRate || 0); });
   const maxSurv = Math.max(150, ...survRates) * 1.15;  // 百分比形式
@@ -2410,7 +2420,7 @@ function drawQuadrantChart(viewId, ownerFilter) {
     const _rr6 = _dp6 > 0 ? curR6 / (_dp6 * 10000) : 0;
     const _a6 = DATA.assignments.find(a => a.brand === b.name || BRAND_ALIAS[a.brand] === b.name || a.brand === BRAND_ALIAS[b.name]);
     const _ct6 = _a6 ? parseFloat(_a6.conversionTarget)||0 : 0;
-    const sr = _ct6 > 0 ? Math.min(_rr6 / _ct6 * 100, 1000) : 0;  // cap 1000%
+    const sr = _ct6 > 0 ? _rr6 / _ct6 * 100 : 0;  // 异常品牌已在isBrandAbnormal中剔除
     const er = cd && cd.totExp > 0 ? cd.totWrt/(cd.totExp*10000) : (b.exposureRedeemRate || 0);
     const redeemAch = sr >= 100;
     const hasExposure = cd ? cd.totExp > 0 : (b.dailyExposure||0) > 0;
