@@ -1248,16 +1248,16 @@ function buildViewPanel(viewId, ownerFilter, title) {
   html += `<div class="section">
     <div class="section-title"><div class="icon" style="background:#673ab7;"></div><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#673ab7;color:#fff;font-size:11px;font-weight:700;margin-right:4px;">4</span>品牌诊断 — 象限图<span class="badge">曝光充分度 × 曝光核销率</span></div>
     <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
-      X轴：曝光充分度 = 日均曝光PV ÷ 日均交易笔数（中位数为分界线） &nbsp;|&nbsp; Y轴：曝光核销率 = 日均核销PV ÷ 曝光PV（中位数为分界线） &nbsp;|&nbsp; 气泡大小：日均核销量
+      X轴：曝光充分度 = 日均曝光PV ÷ 日均交易笔数（中位数为分界线） &nbsp;|&nbsp; Y轴：曝光核销率 = 日均核销PV ÷ 曝光PV（1%为分界线） &nbsp;|&nbsp; 气泡大小：日均核销量
     </p>
     <div class="quadrant-chart-container">
       <canvas id="chart-${viewId}" width="900" height="600"></canvas>
     </div>
     <div class="chart-legend">
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#34a853;"></div>明星品牌（曝光充分 + 核销率≥中位数）</div>
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#f9ab00;"></div>曝光充分但转化低（曝光充分 + 核销率＜中位数）</div>
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4285f4;"></div>转化好但曝光不足（曝光不足 + 核销率≥中位数）</div>
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#ea4335;"></div>双低品牌（曝光不足 + 核销率＜中位数）</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#34a853;"></div>明星品牌（曝光充分 + 核销率≥1%）</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#f9ab00;"></div>曝光充分但转化低（曝光充分 + 核销率＜1%）</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4285f4;"></div>转化好但曝光不足（曝光不足 + 核销率≥1%）</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#ea4335;"></div>双低品牌（曝光不足 + 核销率＜1%）</div>
 
       <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#e65100;border:2px dashed #e65100;"></div>异常数据已排除</div>
     </div>
@@ -1287,11 +1287,11 @@ function buildViewPanel(viewId, ownerFilter, title) {
       const _payCount = _dp2 * 10000;
       const _expAdq = _payCount > 0 ? _expPV / _payCount : 0;
       const _expRR = _expPV > 0 ? _wrt / _expPV : 0;
-      const _rrMedian = _getExpRedeemRateMedian();
+      const _rrThreshold = 0.01;
       let cat;
-      if(_expAdq < _median && _expRR < _rrMedian) cat='双低品牌';
-      else if(_expAdq >= _median && _expRR < _rrMedian) cat='曝光充分但转化低';
-      else if(_expAdq < _median && _expRR >= _rrMedian) cat='转化好但曝光不足';
+      if(_expAdq < _median && _expRR < _rrThreshold) cat='双低品牌';
+      else if(_expAdq >= _median && _expRR < _rrThreshold) cat='曝光充分但转化低';
+      else if(_expAdq < _median && _expRR >= _rrThreshold) cat='转化好但曝光不足';
       else cat='其他';
       if(!badCats[cat]) badCats[cat]=0;
       badCats[cat]++;
@@ -1333,10 +1333,10 @@ function buildViewPanel(viewId, ownerFilter, title) {
       const grTab = lastWkRedeem>0 ? ((b.dailyRedeem||0)-lastWkRedeem)/lastWkRedeem : (b.isNew ? 'new' : 0);
       const hasGrowth = typeof grTab==='number' && grTab > 0.1;
       let statusTag, statusCls, badCat;
-      const _rrMed3 = _getExpRedeemRateMedian();
-      if(_expAdq3 < _median && _expRR3 < _rrMed3) { statusTag='双低品牌'; statusCls='tag-red'; badCat='双低品牌'; }
-      else if(_expAdq3 >= _median && _expRR3 < _rrMed3) { statusTag='曝光充分但转化低'; statusCls='tag-orange'; badCat='曝光充分但转化低'; }
-      else if(_expAdq3 < _median && _expRR3 >= _rrMed3) { statusTag='转化好但曝光不足'; statusCls='tag-yellow'; badCat='转化好但曝光不足'; }
+      const _rrThreshold3 = 0.01;
+      if(_expAdq3 < _median && _expRR3 < _rrThreshold3) { statusTag='双低品牌'; statusCls='tag-red'; badCat='双低品牌'; }
+      else if(_expAdq3 >= _median && _expRR3 < _rrThreshold3) { statusTag='曝光充分但转化低'; statusCls='tag-orange'; badCat='曝光充分但转化低'; }
+      else if(_expAdq3 < _median && _expRR3 >= _rrThreshold3) { statusTag='转化好但曝光不足'; statusCls='tag-yellow'; badCat='转化好但曝光不足'; }
       else { statusTag='其他'; statusCls='tag-gray'; badCat='其他'; }
       const bOwner = (findAssignmentForBrand(b)||{}).owner||'';
       const bCat = b.category||'';
