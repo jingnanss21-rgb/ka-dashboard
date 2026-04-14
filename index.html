@@ -1652,7 +1652,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   h+=sec("\ud83d\udcca \u4e0a\u7ebf\u540e\u6d41\u91cf\u5206\u6790");
   var chs=cd.chData||{},totE2=cd.totExp||0,totW2=cd.totWrt||0,e2x1=cd.eff2x1Exp||0;
   var zbCh=chs["\u5468\u8fb9"]||{},prCh=chs["\u652f\u4ed8\u6709\u793c"]||{};
-  var chRows=[{n:"\u4e8c\u9009\u4e00",e:e2x1,w:((chs["\u5546\u4e1a\u652f\u4ed8"]||{}).wrt||0)+((chs["\u9762\u5bf9\u9762"]||{}).wrt||0)+((chs["\u56fa\u5b9a\u5165\u53e3"]||{}).wrt||0),pe:cd.peff2x1Exp||0,pw:cd.peff2x1Wrt||0},{n:"\u652f\u4ed8\u6709\u793c",e:prCh.exp||0,w:prCh.wrt||0,pe:prCh.pExp||0,pw:prCh.pWrt||0},{n:"\u5468\u8fb9",e:zbCh.exp||0,w:zbCh.wrt||0,pe:zbCh.pExp||0,pw:zbCh.pWrt||0}];
+  var chRows=[{n:"\u4e8c\u9009\u4e00",e:e2x1,w:((chs["\u5546\u4e1a\u652f\u4ed8"]||{}).wrt||0)+((chs["\u9762\u5bf9\u9762"]||{}).wrt||0)+((chs["\u56fa\u5b9a\u5165\u53e3"]||{}).wrt||0),pe:cd.peff2x1Exp||0,pw:cd.peff2x1Wrt||((chs["\u5546\u4e1a\u652f\u4ed8"]||{}).pWrt||0)+((chs["\u9762\u5bf9\u9762"]||{}).pWrt||0)+((chs["\u56fa\u5b9a\u5165\u53e3"]||{}).pWrt||0)},{n:"\u652f\u4ed8\u6709\u793c",e:prCh.exp||0,w:prCh.wrt||0,pe:prCh.pExp||0,pw:prCh.pWrt||0},{n:"\u5468\u8fb9",e:zbCh.exp||0,w:zbCh.wrt||0,pe:zbCh.pExp||0,pw:zbCh.pWrt||0}];
   h+='<div style="font-weight:600;font-size:13px;margin-bottom:12px;color:#334155;">\u5206\u6e20\u9053\u5bf9\u6bd4</div>';
   var chColors=['#3b82f6','#f97316','#a855f7'];
   h+='<table class="card-ch-table"><colgroup><col style="width:8%;"><col style="width:26%;"><col style="width:14%;"><col style="width:18%;"><col style="width:16%;"><col style="width:18%;"></colgroup>';
