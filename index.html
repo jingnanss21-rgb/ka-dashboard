@@ -322,6 +322,8 @@ table.card-ch-table thead td { text-align:left !important; }
   border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:6px solid #1e293b;
 }
 .formula-tip:hover .formula-tip-box { display:block; }
+/* 提升 hover 时父 th 的 z-index，使 tooltip 不被下层 sticky 表头遮挡 */
+table thead th:has(.formula-tip:hover) { z-index:6 !important; }
 
 </style>
 
@@ -1116,7 +1118,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
     <div class="info-card" style="background:linear-gradient(135deg,#fff 0%,#f0fdf4 100%);border-left:4px solid var(--success);">
       <div class="ic-label">📡 有曝光品牌</div>
       <div class="ic-value" style="color:var(--success);">${activeBrands.length}</div>
-      <div class="ic-sub">达标 <strong style="color:var(--success);">${redeemRatioAchievedCount}</strong> / 未达标 <strong style="color:var(--danger);">${activeBrands.length - redeemRatioAchievedCount}</strong></div>
+      <div class="ic-sub"><span class="formula-tip" style="cursor:help;position:relative;border-bottom:1px dashed var(--success);">达标<span class="formula-tip-box" style="white-space:normal;width:220px;text-align:left;">达标定义：日均核销÷日均交易笔数 ≥ 曝光核销率目标</span></span> <strong style="color:var(--success);">${redeemRatioAchievedCount}</strong> / 未达标 <strong style="color:var(--danger);">${activeBrands.length - redeemRatioAchievedCount}</strong></div>
     </div>
   </div>
   <div class="achieve-bars-section">
@@ -2329,7 +2331,7 @@ function drawQuadrantChart(viewId, ownerFilter) {
     const _rr5 = _dp5 > 0 ? curR / (_dp5 * 10000) : 0;
     const _a5 = DATA.assignments.find(a => a.brand === b.name || BRAND_ALIAS[a.brand] === b.name || a.brand === BRAND_ALIAS[b.name]);
     const _ct5 = _a5 ? parseFloat(_a5.conversionTarget)||0 : 0;
-    return _ct5 > 0 ? _rr5 / _ct5 * 100 : 0;  // 百分比形式（100=达标）
+    return _ct5 > 0 ? Math.min(_rr5 / _ct5 * 100, 1000) : 0;  // 百分比形式（100=达标），cap 1000%
   });
   const expRates = brands.map(b => { const cd = bcdRef[b.name]; return cd && cd.totExp > 0 ? cd.totWrt/(cd.totExp*10000) : (b.exposureRedeemRate || 0); });
   const maxSurv = Math.max(150, ...survRates) * 1.15;  // 百分比形式
@@ -2408,7 +2410,7 @@ function drawQuadrantChart(viewId, ownerFilter) {
     const _rr6 = _dp6 > 0 ? curR6 / (_dp6 * 10000) : 0;
     const _a6 = DATA.assignments.find(a => a.brand === b.name || BRAND_ALIAS[a.brand] === b.name || a.brand === BRAND_ALIAS[b.name]);
     const _ct6 = _a6 ? parseFloat(_a6.conversionTarget)||0 : 0;
-    const sr = _ct6 > 0 ? _rr6 / _ct6 * 100 : 0;
+    const sr = _ct6 > 0 ? Math.min(_rr6 / _ct6 * 100, 1000) : 0;  // cap 1000%
     const er = cd && cd.totExp > 0 ? cd.totWrt/(cd.totExp*10000) : (b.exposureRedeemRate || 0);
     const redeemAch = sr >= 100;
     const hasExposure = cd ? cd.totExp > 0 : (b.dailyExposure||0) > 0;
