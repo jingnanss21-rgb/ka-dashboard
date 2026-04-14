@@ -1739,7 +1739,7 @@ function refreshTable(viewId, ownerFilter) {
         <th rowspan="${fixedRows}" class="sticky-col sticky-col-last" style="text-align:left;min-width:60px;">品类</th>
         <th colspan="7" rowspan="${_bexp?1:1}" class="group-header" style="border-left:2px solid #7c3aed;background:linear-gradient(135deg,#ede9fe,#f5f3ff);">🔍 四要素检查</th>
         <th colspan="2" rowspan="${_bexp?1:1}" class="group-header" id="grpStoreRedeem-${viewId}" style="border-left:2px solid #0891b2;background:linear-gradient(135deg,#e0f7fa,#f0fdfa);">🏪 到店核销率</th>
-        <th colspan="4" rowspan="${_bexp?1:1}" class="group-header" id="grpOldCustomer-${viewId}" style="border-left:2px solid #059669;background:linear-gradient(135deg,#d1fae5,#ecfdf5);">👤 老客流量</th>
+        <th colspan="4" rowspan="${_bexp?1:1}" class="group-header" id="grpOldCustomer-${viewId}" style="border-left:2px solid #059669;background:linear-gradient(135deg,#d1fae5,#ecfdf5);" title="老客曝光比例 =（日均高频尽曝UV+日均低频尽曝UV）/ 日均微信支付笔数&#10;尽曝率 =（7日高频尽曝UV+7日低频尽曝UV）/（7日高频应曝UV+7日低频应曝UV）">👤 老客流量 <span style="font-size:9px;color:#059669;cursor:help;">ⓘ 公式</span></th>
         <th colspan="3" rowspan="${_bexp?1:1}" class="group-header" style="border-left:2px solid #e8b4d0;background:linear-gradient(135deg,#fce7f3,#fdf2f8);">🎁 惊喜货盘</th>
         <th colspan="2" rowspan="${_bexp?1:1}" class="group-header" style="border-left:2px solid #10b981;background:linear-gradient(135deg,#d1fae5,#ecfdf5);">💚 存活</th>
         ${_bexp
@@ -1761,10 +1761,10 @@ function refreshTable(viewId, ownerFilter) {
         <th class="sortable" data-sort="storeRedeemRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #0891b2;font-size:11px;"${_bexp?' rowspan="2"':''}>到店<br>核销率</th>
         <th class="sortable" data-sort="storeRedeemRateQoQ" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:10px;color:#94a3b8;font-weight:400;"${_bexp?' rowspan="2"':''}>环比</th>
         <!-- 老客流量 4列 -->
-        <th class="sortable" data-sort="oldCustomerExpPerPayment" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #059669;font-size:11px;"${_bexp?' rowspan="2"':''}>老客曝光<br>/笔(全)</th>
-        <th class="sortable" data-sort="oldCustomerJinRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>尽曝率<br>(全)</th>
-        <th class="sortable" data-sort="oldCustomerExpPerPayment2x1" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>老客曝光<br>/笔(2x1)</th>
-        <th class="sortable" data-sort="oldCustomerJinRate2x1" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>尽曝率<br>(2x1)</th>
+        <th class="sortable" data-sort="oldCustomerExpPerPayment" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #059669;font-size:11px;"${_bexp?' rowspan="2"':''}>老客曝光比例<br>（全渠道）</th>
+        <th class="sortable" data-sort="oldCustomerJinRate" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>老客尽曝率<br>（全渠道）</th>
+        <th class="sortable" data-sort="oldCustomerExpPerPayment2x1" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>老客曝光比例<br>（二选一）</th>
+        <th class="sortable" data-sort="oldCustomerJinRate2x1" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>老客尽曝率<br>（二选一）</th>
         <!-- 惊喜货盘 3列 -->
         <th style="border-left:2px solid #e8b4d0;font-size:11px;"${_bexp?' rowspan="2"':''}>目标</th>
         <th style="font-size:11px;"${_bexp?' rowspan="2"':''}>在线数</th>
@@ -2088,10 +2088,11 @@ function refreshTable(viewId, ownerFilter) {
     if(grpSREl) grpSREl.innerHTML = '🏪 到店核销率' + (medStoreRedeem !== null ? '<br><span style="font-size:10px;font-weight:400;color:#0891b2;">中位数 '+(medStoreRedeem*100).toFixed(1)+'%</span>' : '');
     const grpOldEl = document.getElementById('grpOldCustomer-'+viewId);
     if(grpOldEl) {
-      let medHtml = '👤 老客流量';
+      let medHtml = '👤 老客流量 <span style="font-size:9px;color:#059669;cursor:help;">ⓘ 公式</span>';
+      grpOldEl.title = '老客曝光比例 =（日均高频尽曝UV+日均低频尽曝UV）/ 日均微信支付笔数\n尽曝率 =（7日高频尽曝UV+7日低频尽曝UV）/（7日高频应曝UV+7日低频应曝UV）';
       const medParts = [];
-      if(medOldExpPP!==null) medParts.push('曝光/笔(全):'+(medOldExpPP*100).toFixed(1)+'%');
-      if(medOldExpPP2x1!==null) medParts.push('曝光/笔(2x1):'+(medOldExpPP2x1*100).toFixed(1)+'%');
+      if(medOldExpPP!==null) medParts.push('曝光比例(全):'+(medOldExpPP*100).toFixed(1)+'%');
+      if(medOldExpPP2x1!==null) medParts.push('曝光比例(2x1):'+(medOldExpPP2x1*100).toFixed(1)+'%');
       if(medOldJinR!==null) medParts.push('尽曝率(全):'+(medOldJinR*100).toFixed(1)+'%');
       if(medOldJinR2x1!==null) medParts.push('尽曝率(2x1):'+(medOldJinR2x1*100).toFixed(1)+'%');
       if(medParts.length) medHtml += '<br><span style="font-size:10px;font-weight:400;color:#059669;">中位数 '+medParts.join(' | ')+'</span>';
