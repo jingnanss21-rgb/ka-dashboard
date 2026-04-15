@@ -1516,22 +1516,11 @@ function isBrandAlive(b) {
 
 // === 异常数据判定 ===
 function isBrandAbnormal(b) {
-  // 到店核销率超过 50% 视为异常数据
-  const storeRR = b.storeRedeemRate || 0;
-  if(storeRR > 0.5) return true;
-  // 老客曝光比例超过 10 视为异常数据
-  const oldExpRate = b.oldCustomerExpPerPayment || 0;
-  if(oldExpRate > 10) return true;
-  // 核销目标达成率超过 1000%（10倍目标）视为异常
+  // 曝光核销率 > 10% 视为异常数据（曝光核销率 = 核销PV / 曝光PV）
   const bcdRef = (typeof CHANNEL_DATA !== 'undefined' && CHANNEL_DATA.brandChannelData) || {};
   const cd = bcdRef[b.name];
-  const curR = cd ? cd.totWrt : (b.dailyRedeem||0);
-  const dp = parseFloat(b.dailyPayment)||0;
-  const rr = dp > 0 ? curR / (dp * 10000) : 0;
-  const _a = (typeof DATA !== 'undefined' && DATA.assignments || []).find(a => a.brand === b.name || BRAND_ALIAS[a.brand] === b.name || a.brand === BRAND_ALIAS[b.name]);
-  const ct = _a ? parseFloat(_a.conversionTarget)||0 : 0;
-  const redeemAchRate = ct > 0 ? rr / ct * 100 : 0;
-  if(redeemAchRate > 1000) return true;
+  const expRate = cd && cd.totExp > 0 ? cd.totWrt / (cd.totExp * 10000) : (b.exposureRedeemRate || 0);
+  if(expRate > 0.1) return true;
   return false;
 }
 
