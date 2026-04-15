@@ -612,68 +612,57 @@ function channelAliveForBrand(b) {
   return isBrandAlive(b);
 }
 
-/** 曝光核销率（小数 0~1），与象限图一致 */
-function brandExposureRedeemRateForBrand(b) {
-  const cd = (CHANNEL_DATA.brandChannelData || {})[b.name] || {};
-  if(cd.totExp > 0) return cd.totWrt / (cd.totExp * 10000);
-  return b.exposureRedeemRate || 0;
+/** 到店核销率（小数 0~1），与象限图Y轴一致 */
+function brandStoreRedeemRateForBrand(b) {
+  return b.storeRedeemRate || 0;
 }
+/** 兼容旧调用名 */
+function brandExposureRedeemRateForBrand(b) { return brandStoreRedeemRateForBrand(b); }
 
-/** 技术文档：健康品牌 = 存活 + 曝光核销率≥1% */
+/** 健康品牌 = 老客曝光比例≥中位数 且 到店核销率≥中位数 */
 function isHealthyBrand(b) {
-  // 新四象限：明星品牌 = 曝光充分度≥中位数 且 曝光核销率≥1%
-  const cd = (CHANNEL_DATA.brandChannelData || {})[b.name] || {};
-  const expPV = cd.totExp ? cd.totExp * 10000 : (b.dailyExposure||0);
-  const wrt = cd.totWrt || (b.dailyRedeem||0);
-  const dp = parseFloat(b.dailyPayment)||0;
-  const payCount = dp * 10000;
-  const expAdequacy = payCount > 0 ? expPV / payCount : 0;  // 曝光充分度
-  const expRedeemRate = expPV > 0 ? wrt / expPV : 0;        // 曝光核销率
-  // 中位数用全局中位数（动态计算）
-  const median = _getExpAdequacyMedian();
-  return expAdequacy >= median && expRedeemRate >= 0.01;
+  const oldExpRate = b.oldCustomerExpPerPayment || 0;
+  const storeRR = b.storeRedeemRate || 0;
+  return oldExpRate >= _getOldExpPerPaymentMedian() && storeRR >= _getStoreRedeemRateMedian();
 }
 
-// 缓存全局曝光充分度中位数
-var _expAdequacyMedianCache = null;
-function _getExpAdequacyMedian() {
-  if(_expAdequacyMedianCache !== null) return _expAdequacyMedianCache;
-  const bcdRef = (typeof CHANNEL_DATA !== 'undefined' && CHANNEL_DATA.brandChannelData) || {};
+// 缓存全局老客曝光比例（全渠道）中位数 — X轴
+var _oldExpPerPaymentMedianCache = null;
+function _getOldExpPerPaymentMedian() {
+  if(_oldExpPerPaymentMedianCache !== null) return _oldExpPerPaymentMedianCache;
   const allBrands = (typeof DATA !== 'undefined' && DATA.brands) || [];
   const vals = [];
   allBrands.forEach(b => {
     if(isBrandAbnormal(b)) return;
-    const cd = bcdRef[b.name];
-    const expPV = cd ? cd.totExp * 10000 : (b.dailyExposure||0);
-    const dp = parseFloat(b.dailyPayment)||0;
-    const payCount = dp * 10000;
-    if(payCount > 0 && expPV > 0) vals.push(expPV / payCount);
+    const v = b.oldCustomerExpPerPayment || 0;
+    if(v > 0) vals.push(v);
   });
   vals.sort((a,b) => a-b);
-  _expAdequacyMedianCache = vals.length > 0 ? (vals.length % 2 === 0 ? (vals[vals.length/2-1]+vals[vals.length/2])/2 : vals[Math.floor(vals.length/2)]) : 1;
-  return _expAdequacyMedianCache;
+  _oldExpPerPaymentMedianCache = vals.length > 0 ? (vals.length % 2 === 0 ? (vals[vals.length/2-1]+vals[vals.length/2])/2 : vals[Math.floor(vals.length/2)]) : 0;
+  return _oldExpPerPaymentMedianCache;
 }
 // 数据刷新时清除中位数缓存
-function clearExpAdequacyMedianCache() { _expAdequacyMedianCache = null; _expRedeemRateMedianCache = null; }
+function clearExpAdequacyMedianCache() { _oldExpPerPaymentMedianCache = null; _storeRedeemRateMedianCache = null; }
+// 兼容旧名
+function _getExpAdequacyMedian() { return _getOldExpPerPaymentMedian(); }
 
-// 缓存全局曝光核销率中位数（Y轴阈值）
-var _expRedeemRateMedianCache = null;
-function _getExpRedeemRateMedian() {
-  if(_expRedeemRateMedianCache !== null) return _expRedeemRateMedianCache;
-  const bcdRef = (typeof CHANNEL_DATA !== 'undefined' && CHANNEL_DATA.brandChannelData) || {};
+// 缓存全局到店核销率中位数 — Y轴
+var _storeRedeemRateMedianCache = null;
+function _getStoreRedeemRateMedian() {
+  if(_storeRedeemRateMedianCache !== null) return _storeRedeemRateMedianCache;
   const allBrands = (typeof DATA !== 'undefined' && DATA.brands) || [];
   const vals = [];
   allBrands.forEach(b => {
     if(isBrandAbnormal(b)) return;
-    const cd = bcdRef[b.name];
-    const expPV = cd ? cd.totExp * 10000 : (b.dailyExposure||0);
-    const wrt = cd ? cd.totWrt : (b.dailyRedeem||0);
-    if(expPV > 0 && wrt > 0) vals.push(wrt / expPV);
+    const v = b.storeRedeemRate || 0;
+    if(v > 0) vals.push(v);
   });
   vals.sort((a,b) => a-b);
-  _expRedeemRateMedianCache = vals.length > 0 ? (vals.length % 2 === 0 ? (vals[vals.length/2-1]+vals[vals.length/2])/2 : vals[Math.floor(vals.length/2)]) : 0.01;
-  return _expRedeemRateMedianCache;
+  _storeRedeemRateMedianCache = vals.length > 0 ? (vals.length % 2 === 0 ? (vals[vals.length/2-1]+vals[vals.length/2])/2 : vals[Math.floor(vals.length/2)]) : 0;
+  return _storeRedeemRateMedianCache;
 }
+// 兼容旧名
+function _getExpRedeemRateMedian() { return _getStoreRedeemRateMedian(); }
 
 function parseSnapshotJsonArray(val) {
   if(val == null) return [];
@@ -1246,18 +1235,18 @@ function buildViewPanel(viewId, ownerFilter, title) {
 
   // === 3. 品牌诊断象限图 ===
   html += `<div class="section">
-    <div class="section-title"><div class="icon" style="background:#673ab7;"></div><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#673ab7;color:#fff;font-size:11px;font-weight:700;margin-right:4px;">4</span>品牌诊断 — 象限图<span class="badge">曝光充分度 × 曝光核销率</span></div>
+    <div class="section-title"><div class="icon" style="background:#673ab7;"></div><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#673ab7;color:#fff;font-size:11px;font-weight:700;margin-right:4px;">4</span>品牌诊断 — 象限图<span class="badge">老客曝光比例 × 到店核销率</span></div>
     <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
-      X轴：曝光充分度 = 日均曝光PV ÷ 日均交易笔数（中位数为分界线） &nbsp;|&nbsp; Y轴：曝光核销率 = 日均核销PV ÷ 曝光PV（1%为分界线） &nbsp;|&nbsp; 气泡大小：日均核销量
+      X轴：老客曝光比例（全渠道）（动态中位数为分界线） &nbsp;|&nbsp; Y轴：到店核销率（动态中位数为分界线） &nbsp;|&nbsp; 气泡大小：日均核销量
     </p>
     <div class="quadrant-chart-container">
       <canvas id="chart-${viewId}" width="900" height="600"></canvas>
     </div>
     <div class="chart-legend">
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#34a853;"></div>明星品牌（曝光充分 + 核销率≥1%）</div>
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#f9ab00;"></div>曝光充分但转化低（曝光充分 + 核销率＜1%）</div>
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4285f4;"></div>转化好但曝光不足（曝光不足 + 核销率≥1%）</div>
-      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#ea4335;"></div>双低品牌（曝光不足 + 核销率＜1%）</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#34a853;"></div>明星品牌（老客曝光高 + 核销率高）</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#f9ab00;"></div>老客曝光高但核销低</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4285f4;"></div>核销好但老客曝光不足</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#ea4335;"></div>双低品牌</div>
 
       <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#e65100;border:2px dashed #e65100;"></div>异常数据已排除</div>
     </div>
@@ -1276,22 +1265,17 @@ function buildViewPanel(viewId, ownerFilter, title) {
   });
 
   if(badBrands.length>0) {
-    // 统计各分类数量（基于曝光充分度 × 曝光核销率象限）
-    const _median = _getExpAdequacyMedian();
+    // 统计各分类数量（基于老客曝光比例 × 到店核销率象限）
+    const _xMedian = _getOldExpPerPaymentMedian();
+    const _yMedian = _getStoreRedeemRateMedian();
     const badCats = {};
     badBrands.forEach(b => {
-      const _cd = (CHANNEL_DATA.brandChannelData || {})[b.name] || {};
-      const _expPV = _cd.totExp ? _cd.totExp * 10000 : (b.dailyExposure||0);
-      const _wrt = _cd.totWrt || (b.dailyRedeem||0);
-      const _dp2 = parseFloat(b.dailyPayment)||0;
-      const _payCount = _dp2 * 10000;
-      const _expAdq = _payCount > 0 ? _expPV / _payCount : 0;
-      const _expRR = _expPV > 0 ? _wrt / _expPV : 0;
-      const _rrThreshold = 0.01;
+      const _oldExpRate = b.oldCustomerExpPerPayment || 0;
+      const _storeRR = b.storeRedeemRate || 0;
       let cat;
-      if(_expAdq < _median && _expRR < _rrThreshold) cat='双低品牌';
-      else if(_expAdq >= _median && _expRR < _rrThreshold) cat='曝光充分但转化低';
-      else if(_expAdq < _median && _expRR >= _rrThreshold) cat='转化好但曝光不足';
+      if(_oldExpRate < _xMedian && _storeRR < _yMedian) cat='双低品牌';
+      else if(_oldExpRate >= _xMedian && _storeRR < _yMedian) cat='老客曝光高但核销低';
+      else if(_oldExpRate < _xMedian && _storeRR >= _yMedian) cat='核销好但老客曝光不足';
       else cat='其他';
       if(!badCats[cat]) badCats[cat]=0;
       badCats[cat]++;
@@ -1316,27 +1300,21 @@ function buildViewPanel(viewId, ownerFilter, title) {
       <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="badFilter-${viewId}">
         <span class="tag tag-blue" style="cursor:pointer;padding:4px 12px;" data-badfilter="all" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">全部(${badBrands.length})</span>
         ${badCats['双低品牌']?`<span class="tag tag-red" style="cursor:pointer;padding:4px 12px;" data-badfilter="双低品牌" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">双低品牌(${badCats['双低品牌']})</span>`:''}
-        ${badCats['曝光充分但转化低']?`<span class="tag tag-orange" style="cursor:pointer;padding:4px 12px;" data-badfilter="曝光充分但转化低" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">曝光充分但转化低(${badCats['曝光充分但转化低']})</span>`:''}
-        ${badCats['转化好但曝光不足']?`<span class="tag tag-yellow" style="cursor:pointer;padding:4px 12px;" data-badfilter="转化好但曝光不足" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">转化好但曝光不足(${badCats['转化好但曝光不足']})</span>`:''}
+        ${badCats['老客曝光高但核销低']?`<span class="tag tag-orange" style="cursor:pointer;padding:4px 12px;" data-badfilter="老客曝光高但核销低" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">老客曝光高但核销低(${badCats['老客曝光高但核销低']})</span>`:''}
+        ${badCats['核销好但老客曝光不足']?`<span class="tag tag-yellow" style="cursor:pointer;padding:4px 12px;" data-badfilter="核销好但老客曝光不足" data-view="${viewId}" onclick="filterBadCaseAll('${viewId}',this)">核销好但老客曝光不足(${badCats['核销好但老客曝光不足']})</span>`:''}
       </div>
       <div class="case-tabs" id="bad-tabs-${viewId}">`;
     badBrands.forEach((b,idx) => {
       const _a3 = findAssignmentForBrand(b);
-      const _cd3 = (CHANNEL_DATA.brandChannelData || {})[b.name] || {};
-      const _expPV3 = _cd3.totExp ? _cd3.totExp * 10000 : (b.dailyExposure||0);
-      const _wrt3 = _cd3.totWrt || (b.dailyRedeem||0);
-      const _dp3 = parseFloat(b.dailyPayment)||0;
-      const _payCount3 = _dp3 * 10000;
-      const _expAdq3 = _payCount3 > 0 ? _expPV3 / _payCount3 : 0;
-      const _expRR3 = _expPV3 > 0 ? _wrt3 / _expPV3 : 0;
+      const _oldExpRate3 = b.oldCustomerExpPerPayment || 0;
+      const _storeRR3 = b.storeRedeemRate || 0;
       const lastWkRedeem = b.lastWeekDailyRedeem||0;
       const grTab = lastWkRedeem>0 ? ((b.dailyRedeem||0)-lastWkRedeem)/lastWkRedeem : (b.isNew ? 'new' : 0);
       const hasGrowth = typeof grTab==='number' && grTab > 0.1;
       let statusTag, statusCls, badCat;
-      const _rrThreshold3 = 0.01;
-      if(_expAdq3 < _median && _expRR3 < _rrThreshold3) { statusTag='双低品牌'; statusCls='tag-red'; badCat='双低品牌'; }
-      else if(_expAdq3 >= _median && _expRR3 < _rrThreshold3) { statusTag='曝光充分但转化低'; statusCls='tag-orange'; badCat='曝光充分但转化低'; }
-      else if(_expAdq3 < _median && _expRR3 >= _rrThreshold3) { statusTag='转化好但曝光不足'; statusCls='tag-yellow'; badCat='转化好但曝光不足'; }
+      if(_oldExpRate3 < _xMedian && _storeRR3 < _yMedian) { statusTag='双低品牌'; statusCls='tag-red'; badCat='双低品牌'; }
+      else if(_oldExpRate3 >= _xMedian && _storeRR3 < _yMedian) { statusTag='老客曝光高但核销低'; statusCls='tag-orange'; badCat='老客曝光高但核销低'; }
+      else if(_oldExpRate3 < _xMedian && _storeRR3 >= _yMedian) { statusTag='核销好但老客曝光不足'; statusCls='tag-yellow'; badCat='核销好但老客曝光不足'; }
       else { statusTag='其他'; statusCls='tag-gray'; badCat='其他'; }
       const bOwner = (findAssignmentForBrand(b)||{}).owner||'';
       const bCat = b.category||'';
@@ -1348,18 +1326,12 @@ function buildViewPanel(viewId, ownerFilter, title) {
       const brandActs = DATA.activities.filter(x=>x.brandName===b.name);
       const issues = diagnoseBrand(b, brandActs, globalMed);
       const fb = feedbacks[b.name]||[];
-      const _cd4 = (CHANNEL_DATA.brandChannelData || {})[b.name] || {};
-      const _expPV4 = _cd4.totExp ? _cd4.totExp * 10000 : (b.dailyExposure||0);
-      const _wrt4 = _cd4.totWrt || (b.dailyRedeem||0);
-      const _dp4 = parseFloat(b.dailyPayment)||0;
-      const _payCount4 = _dp4 * 10000;
-      const _expAdq4 = _payCount4 > 0 ? _expPV4 / _payCount4 : 0;
-      const _expRR4 = _expPV4 > 0 ? _wrt4 / _expPV4 : 0;
-      const _rrMed4 = _getExpRedeemRateMedian();
+      const _oldExpRate4 = b.oldCustomerExpPerPayment || 0;
+      const _storeRR4 = b.storeRedeemRate || 0;
       let badCat2;
-      if(_expAdq4 < _median && _expRR4 < _rrMed4) badCat2='双低品牌';
-      else if(_expAdq4 >= _median && _expRR4 < _rrMed4) badCat2='曝光充分但转化低';
-      else if(_expAdq4 < _median && _expRR4 >= _rrMed4) badCat2='转化好但曝光不足';
+      if(_oldExpRate4 < _xMedian && _storeRR4 < _yMedian) badCat2='双低品牌';
+      else if(_oldExpRate4 >= _xMedian && _storeRR4 < _yMedian) badCat2='老客曝光高但核销低';
+      else if(_oldExpRate4 < _xMedian && _storeRR4 >= _yMedian) badCat2='核销好但老客曝光不足';
       else badCat2='其他';
       const bOwner2 = a.owner||'';
       const bCat2 = b.category||'';
@@ -1378,9 +1350,9 @@ function buildViewPanel(viewId, ownerFilter, title) {
     const curRedeem = cd.totWrt || b.dailyRedeem || 0;
     const lastRedeem = cd.ptotWrt || b.lastWeekDailyRedeem || 0;
     const grVal = lastRedeem > 0 ? (curRedeem - lastRedeem) / lastRedeem : 0;
-    const curRate = brandExposureRedeemRateForBrand(b);
+    const curRate = brandStoreRedeemRateForBrand(b);
     const aliveCh = channelAliveForBrand(b);
-    return (grVal > 0.1) || (curRate > _getExpRedeemRateMedian() && aliveCh);
+    return (grVal > 0.1) || (curRate > _getStoreRedeemRateMedian() && aliveCh);
   }).sort((a,b) => {
     const cdA = (CHANNEL_DATA.brandChannelData||{})[a.name] || {};
     const cdB = (CHANNEL_DATA.brandChannelData||{})[b.name] || {};
@@ -1434,7 +1406,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
   } else {
     html += '<div class="section">';
     html += '<div class="section-title"><div class="icon" style="background:var(--success)"></div><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--success);color:#fff;font-size:11px;font-weight:700;margin-right:4px;">6</span>优秀Case沉淀<span class="badge" id="goodCount-'+viewId+'">0个</span></div>';
-    html += '<p style="font-size:13px;color:var(--text-secondary);line-height:1.7;padding:8px 0 4px 0;">本期暂无同时满足以下条件的品牌：<strong>核销环比显著提升（&gt;10%）</strong>，或 <strong>曝光核销率&gt;1% 且核销达标率≥100%</strong>。若数据已加载但仍为 0，多为本期大盘波动导致；可结合「问题品牌诊断」查看待优化品牌。</p>';
+    html += '<p style="font-size:13px;color:var(--text-secondary);line-height:1.7;padding:8px 0 4px 0;">本期暂无同时满足以下条件的品牌：<strong>核销环比显著提升（&gt;10%）</strong>，或 <strong>到店核销率&gt;中位数 且核销达标率≥100%</strong>。若数据已加载但仍为 0，多为本期大盘波动导致；可结合「问题品牌诊断」查看待优化品牌。</p>';
     html += '</div>';
   }
 
@@ -1544,13 +1516,13 @@ function isBrandAlive(b) {
 
 // === 异常数据判定 ===
 function isBrandAbnormal(b) {
-  const exposure = b.dailyExposure || 0;
-  const expRate = b.exposureRedeemRate || 0;
-  // 原有逻辑：曝光极低但核销率离谱
-  if(exposure <= 0.1 && expRate > 1.0) return true;
-  // 曝光核销率超过 5% 视为异常（如张亮麻辣烫）
-  if(expRate > 0.05) return true;
-  // 核销目标达成率超过 1000%（10倍目标）视为异常（如茶话弄）
+  // 到店核销率超过 50% 视为异常数据
+  const storeRR = b.storeRedeemRate || 0;
+  if(storeRR > 0.5) return true;
+  // 老客曝光比例超过 10 视为异常数据
+  const oldExpRate = b.oldCustomerExpPerPayment || 0;
+  if(oldExpRate > 10) return true;
+  // 核销目标达成率超过 1000%（10倍目标）视为异常
   const bcdRef = (typeof CHANNEL_DATA !== 'undefined' && CHANNEL_DATA.brandChannelData) || {};
   const cd = bcdRef[b.name];
   const curR = cd ? cd.totWrt : (b.dailyRedeem||0);
@@ -2391,39 +2363,29 @@ function drawQuadrantChart(viewId, ownerFilter) {
   const allBrands = getBrandsForView(ownerFilter);
   const bcdRef = CHANNEL_DATA.brandChannelData || {};
   const abnormalBrands = allBrands.filter(b => isBrandAbnormal(b));
-  // 过滤掉无曝光数据且交易笔数为0的品牌
+  // 过滤掉异常品牌和无数据品牌
   const brands = allBrands.filter(b => {
     if(isBrandAbnormal(b)) return false;
-    const cd = bcdRef[b.name];
-    const hasExp = cd ? cd.totExp > 0 : (b.dailyExposure||0) > 0;
-    const hasPay = (parseFloat(b.dailyPayment)||0) > 0;
-    return hasExp && hasPay;
+    const oldExp = b.oldCustomerExpPerPayment || 0;
+    const storeRR = b.storeRedeemRate || 0;
+    return oldExp > 0 || storeRR > 0;
   });
 
   const pad = { left: 80, right: 40, top: 40, bottom: 60 };
   const cw = W - pad.left - pad.right;
   const ch = H - pad.top - pad.bottom;
 
-  // X轴：曝光充分度 = 日均曝光PV / 日均交易笔数（totExp万 * 10000 / dailyPayment万 * 10000）
-  const xValues = brands.map(b => {
-    const cd = bcdRef[b.name];
-    const expPV = cd ? cd.totExp * 10000 : (b.dailyExposure||0);
-    const payCount = (parseFloat(b.dailyPayment)||0) * 10000;
-    return payCount > 0 ? expPV / payCount : 0;
-  });
-  // Y轴：曝光核销率 = 日均核销PV / 曝光PV（小数形式，0.01=1%）
-  const yValues = brands.map(b => {
-    const cd = bcdRef[b.name];
-    const wrt = cd ? cd.totWrt : (b.dailyRedeem||0);
-    const expPV = cd ? cd.totExp * 10000 : (b.dailyExposure||0);
-    return expPV > 0 ? wrt / expPV : 0;
-  });
+  // X轴：老客曝光比例（全渠道）
+  const xValues = brands.map(b => b.oldCustomerExpPerPayment || 0);
+  // Y轴：到店核销率
+  const yValues = brands.map(b => b.storeRedeemRate || 0);
 
-  // X轴分界线：中位数
+  // X轴分界线：动态中位数
   const sortedX = [...xValues].filter(v => v > 0).sort((a,b) => a-b);
-  const xMedian = sortedX.length > 0 ? (sortedX.length % 2 === 0 ? (sortedX[sortedX.length/2-1]+sortedX[sortedX.length/2])/2 : sortedX[Math.floor(sortedX.length/2)]) : 1;
-  // Y轴分界线：中位数
-  const yThreshold = 0.01;
+  const xMedian = sortedX.length > 0 ? (sortedX.length % 2 === 0 ? (sortedX[sortedX.length/2-1]+sortedX[sortedX.length/2])/2 : sortedX[Math.floor(sortedX.length/2)]) : 0;
+  // Y轴分界线：动态中位数
+  const sortedY = [...yValues].filter(v => v > 0).sort((a,b) => a-b);
+  const yThreshold = sortedY.length > 0 ? (sortedY.length % 2 === 0 ? (sortedY[sortedY.length/2-1]+sortedY[sortedY.length/2])/2 : sortedY[Math.floor(sortedY.length/2)]) : 0;
 
   const maxX = Math.max(xMedian * 2.5, ...xValues) * 1.15;
   const maxY = Math.max(0.03, ...yValues) * 1.2;
@@ -2456,9 +2418,9 @@ function drawQuadrantChart(viewId, ownerFilter) {
   ctx.fillStyle = '#ea4335';
   ctx.font = '11px PingFang SC, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('中位数=' + xMedian.toFixed(1), xLine+4, pad.top+14);
+  ctx.fillText('中位数=' + (xMedian*100).toFixed(1) + '%', xLine+4, pad.top+14);
   ctx.textAlign = 'right';
-  ctx.fillText('核销率=1%', pad.left+cw-4, yLine-6);
+  ctx.fillText('中位数=' + (yThreshold*100).toFixed(1) + '%', pad.left+cw-4, yLine-6);
 
   // 象限标注
   ctx.font = 'bold 13px PingFang SC, sans-serif';
@@ -2466,9 +2428,9 @@ function drawQuadrantChart(viewId, ownerFilter) {
   ctx.fillStyle = 'rgba(52,168,83,0.5)';
   ctx.fillText('明星品牌', (xLine+pad.left+cw)/2, pad.top+30);
   ctx.fillStyle = 'rgba(66,133,244,0.5)';
-  ctx.fillText('转化好但曝光不足', (pad.left+xLine)/2, pad.top+30);
+  ctx.fillText('核销好但老客曝光不足', (pad.left+xLine)/2, pad.top+30);
   ctx.fillStyle = 'rgba(249,171,0,0.5)';
-  ctx.fillText('曝光充分但转化低', (xLine+pad.left+cw)/2, pad.top+ch-10);
+  ctx.fillText('老客曝光高但核销低', (xLine+pad.left+cw)/2, pad.top+ch-10);
   ctx.fillStyle = 'rgba(234,67,53,0.5)';
   ctx.fillText('双低品牌', (pad.left+xLine)/2, pad.top+ch-10);
 
@@ -2482,10 +2444,10 @@ function drawQuadrantChart(viewId, ownerFilter) {
     const v = maxX * i / 5;
     const x = toX(v);
     ctx.beginPath(); ctx.moveTo(x, pad.top+ch); ctx.lineTo(x, pad.top+ch+5); ctx.stroke();
-    ctx.fillText(v.toFixed(1), x, pad.top+ch+20);
+    ctx.fillText((v*100).toFixed(0) + '%', x, pad.top+ch+20);
   }
   ctx.fillStyle = '#333'; ctx.font = 'bold 13px PingFang SC, sans-serif';
-  ctx.fillText('曝光充分度（曝光PV / 交易笔数）', pad.left+cw/2, pad.top+ch+45);
+  ctx.fillText('老客曝光比例（全渠道）', pad.left+cw/2, pad.top+ch+45);
 
   // Y轴刻度
   ctx.fillStyle = '#666'; ctx.font = '11px PingFang SC, sans-serif'; ctx.textAlign = 'right';
@@ -2497,7 +2459,7 @@ function drawQuadrantChart(viewId, ownerFilter) {
   }
   ctx.save(); ctx.translate(18, pad.top+ch/2); ctx.rotate(-Math.PI/2);
   ctx.fillStyle = '#333'; ctx.font = 'bold 13px PingFang SC, sans-serif'; ctx.textAlign = 'center';
-  ctx.fillText('曝光核销率（核销PV / 曝光PV）', 0, 0); ctx.restore();
+  ctx.fillText('到店核销率', 0, 0); ctx.restore();
 
   // 绘制气泡
   const maxRedeem = Math.max(1, ...brands.map(b=>{ const cd=bcdRef[b.name]; return cd?cd.totWrt:(b.dailyRedeem||0); }));
@@ -2507,12 +2469,12 @@ function drawQuadrantChart(viewId, ownerFilter) {
     const yVal = yValues[idx];
     const expAdequate = xVal >= xMedian;
     const redeemRateOk = yVal >= yThreshold;
-    const hasExposure = cd ? cd.totExp > 0 : (b.dailyExposure||0) > 0;
+    const hasData = xVal > 0 || yVal > 0;
     let color;
-    if(!hasExposure) color = '#9e9e9e';
+    if(!hasData) color = '#9e9e9e';
     else if(expAdequate && redeemRateOk) color = '#34a853';    // 明星品牌
-    else if(expAdequate && !redeemRateOk) color = '#f9ab00';   // 曝光充分但转化低
-    else if(!expAdequate && redeemRateOk) color = '#4285f4';   // 转化好但曝光不足
+    else if(expAdequate && !redeemRateOk) color = '#f9ab00';   // 老客曝光高但核销低
+    else if(!expAdequate && redeemRateOk) color = '#4285f4';   // 核销好但老客曝光不足
     else color = '#ea4335';                                     // 双低品牌
 
     const x = toX(Math.min(xVal, maxX));
