@@ -219,7 +219,7 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 .toast.show { opacity:1; transform:translateY(0); }
 
 /* Overview summary cards */
-.overview-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:16px; margin-bottom:24px; }
+.overview-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:24px; }
 .overview-card { background:var(--card); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow); border:1px solid var(--border); transition:all .25s; cursor:pointer; }
 .overview-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); }
 .overview-card .oc-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
@@ -831,18 +831,6 @@ function renderOverview() {
   const bsRateTb = (o.m03.bs_rate - o.y03.bs_rate).toFixed(2);
   
   document.getElementById('overviewGrid').innerHTML = `
-    <div class="overview-card">
-      <div class="oc-header">
-        <div class="oc-icon" style="background:#dbeafe;">💳</div>
-        <div><div class="oc-title">基础交易</div><div class="oc-subtitle">${EMBEDDED_TRADE_MONTH_LABEL} · ${hasTradeData}个品牌</div></div>
-      </div>
-      <div class="oc-stats">
-        <div class="oc-stat"><div class="os-value">${fmt(o.m03.bs_all, 0)}万</div><div class="os-label">日均笔数</div></div>
-        <div class="oc-stat"><div class="os-value">${fmt(o.m03.je_all/10000, 2)}亿</div><div class="os-label">日均金额</div></div>
-        <div class="oc-stat"><div class="os-value" style="color:var(--primary)">${o.m03.bs_rate}%</div><div class="os-label">小程序渗透率</div></div>
-        <div class="oc-stat"><div class="os-value" style="font-size:14px;color:${parseFloat(bsRateHb)>=0?'var(--success)':'var(--danger)'}">${bsRateHb>0?'+':''}${bsRateHb}pp</div><div class="os-label">渗透率环比</div></div>
-      </div>
-    </div>
     <div class="overview-card" onclick="switchToTab('shake')">
       <div class="oc-header">
         <div class="oc-icon" style="background:#fef3c7;">🎰</div>
@@ -1762,7 +1750,6 @@ async function renderBox() {
   const interest = brands.filter(b => b['盒子'] === '有意向').length;
   const pending = brands.filter(b => b['盒子'] === '待沟通').length;
   document.getElementById('boxStatusGrid').innerHTML = `
-    <div class="status-card sc-green"><div class="sc-icon">✅</div><div class="sc-value">${online}</div><div class="sc-label">已上线</div></div>
     <div class="status-card sc-yellow"><div class="sc-icon">💬</div><div class="sc-value">${interest}</div><div class="sc-label">有意向</div></div>
     <div class="status-card sc-blue"><div class="sc-icon">📞</div><div class="sc-value">${pending}</div><div class="sc-label">待沟通</div></div>
   `;
