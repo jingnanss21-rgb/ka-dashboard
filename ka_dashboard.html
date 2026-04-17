@@ -362,7 +362,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th rowspan="2" class="sticky-col" style="left:36px;min-width:110px;">品牌</th>
             <th rowspan="2" class="sticky-col" style="left:146px;min-width:60px;">负责人</th>
             <th rowspan="2" class="sticky-col sticky-col-last" style="left:206px;min-width:50px;">品类</th>
-            <th colspan="3" class="group-header">项目状态</th>
+            <th colspan="4" class="group-header">项目状态</th>
             <th colspan="2" class="group-header">日均整体交易(万)</th>
             <th colspan="2" class="group-header">日均小程序交易(万)</th>
             <th colspan="3" class="group-header">小程序笔数渗透率</th>
@@ -371,6 +371,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th class="sortable" data-col="摇优惠">摇优惠</th>
             <th class="sortable" data-col="次卡">次卡</th>
             <th class="sortable" data-col="无忧会员">无忧会员</th>
+            <th class="sortable" data-col="盒子">盒子</th>
             <th class="sortable" data-col="m03_bs_all">笔数</th>
             <th class="sortable" data-col="m03_je_all">金额</th>
             <th class="sortable" data-col="m03_bs_xcx">笔数</th>
@@ -1191,7 +1192,8 @@ function renderOverviewTable() {
   const statusSortMap = {
     '摇优惠': {'存活':0,'未存活':1,'未在线':2},
     '次卡': {'已上线':0,'有意向':1,'暂不考虑':2,'':3},
-    '无忧会员': {'有意向':0,'待沟通':1,'':2}
+    '无忧会员': {'有意向':0,'待沟通':1,'':2},
+    '盒子': {'已上线':0,'有意向':1,'待沟通':2,'暂不考虑':3,'':4}
   };
   if (overviewSortCol) {
     if (statusSortMap[overviewSortCol]) {
@@ -1221,6 +1223,7 @@ function renderOverviewTable() {
     <td>${shakeStatusTag(b['摇优惠'])}</td>
     <td>${statusTag(b['次卡'])}</td>
     <td>${statusTag(b['无忧会员'])}</td>
+    <td>${statusTag(b['盒子'])}</td>
     <td>${b.m03_bs_all ? fmt(b.m03_bs_all,1) : '-'}</td>
     <td>${b.m03_je_all ? fmt(b.m03_je_all,1) : '-'}</td>
     <td>${b.m03_bs_xcx ? fmt(b.m03_bs_xcx,1) : '-'}</td>
