@@ -1150,13 +1150,35 @@ let shakeLoaded = false;
 function loadShakeIframe() {
   if (shakeLoaded) return;
   const iframe = document.getElementById('shakeIframe');
-  iframe.src = SHAKE_DASHBOARD_BASE_URL;
-  iframe.onload = () => {
-    document.getElementById('shakeLoading').style.display = 'none';
-    shakeLoaded = true;
-  };
-  // 超时后也隐藏loading
-  setTimeout(() => { document.getElementById('shakeLoading').style.display = 'none'; }, 8000);
+  const loading = document.getElementById('shakeLoading');
+  // 确保面板可见后再设 src，否则浏览器可能不加载隐藏 iframe
+  requestAnimationFrame(() => {
+    iframe.src = SHAKE_DASHBOARD_BASE_URL;
+    iframe.onload = () => {
+      loading.style.display = 'none';
+      shakeLoaded = true;
+    };
+    iframe.onerror = () => {
+      loading.style.display = 'none';
+    };
+    // 兜底：3秒后轮询 iframe 是否有内容
+    let checks = 0;
+    const poller = setInterval(() => {
+      checks++;
+      try {
+        // 同源可以访问 contentDocument
+        if (iframe.contentDocument && iframe.contentDocument.body && iframe.contentDocument.body.innerHTML.length > 100) {
+          loading.style.display = 'none';
+          shakeLoaded = true;
+          clearInterval(poller);
+        }
+      } catch(e) { /* 跨域则忽略 */ }
+      if (checks >= 20) { // 10秒后强制隐藏loading
+        loading.style.display = 'none';
+        clearInterval(poller);
+      }
+    }, 500);
+  });
 }
 
 function shakeStatusTag(s) {
