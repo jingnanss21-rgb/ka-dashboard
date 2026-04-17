@@ -195,6 +195,12 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 .editable-cell .cell-text.empty { color:#ccc; font-style:italic; }
 .editable-cell input { width:100%; padding:4px 8px; border:1px solid var(--primary); border-radius:4px; font-size:12px; outline:none; }
 
+/* Editable status tag */
+.tag.editable-tag { cursor:pointer; transition:all .15s; }
+.tag.editable-tag:hover { opacity:0.8; box-shadow:0 0 0 2px rgba(37,99,235,0.2); }
+.status-select { padding:4px 8px; border:2px solid var(--primary); border-radius:8px; font-size:12px; font-weight:600; outline:none; background:#fff; cursor:pointer; min-width:80px; }
+.status-select:focus { box-shadow:0 0 0 3px rgba(37,99,235,0.15); }
+
 /* Identity modal */
 .identity-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); }
 .identity-modal { background:#fff; border-radius:20px; padding:36px; min-width:340px; box-shadow:0 20px 60px rgba(0,0,0,0.25); text-align:center; animation:modalIn .3s ease; }
@@ -631,6 +637,13 @@ function statusTag(s) {
   if (!s) return '<span class="tag tag-gray">未沟通</span>';
   const map = { '已上线':'tag-green', '有意向':'tag-yellow', '暂不考虑':'tag-red', '待沟通':'tag-blue' };
   return `<span class="tag ${map[s]||'tag-gray'}">${s}</span>`;
+}
+function statusTagEditable(s, type, brandEsc) {
+  const label = s || '未沟通';
+  const map = { '已上线':'tag-green', '有意向':'tag-yellow', '暂不考虑':'tag-red', '待沟通':'tag-blue' };
+  const cls = map[s] || 'tag-gray';
+  const fn = type === 'cika' ? 'editCikaStatus' : 'editWuyouStatus';
+  return `<span class="tag ${cls} editable-tag" onclick="${fn}(this,'${brandEsc}')" title="点击修改状态">${label}</span>`;
 }
 function ownerTag(o) {
   const c = OWNER_COLORS[o] || '#999';
@@ -1115,17 +1128,21 @@ document.getElementById('overviewTable').addEventListener('click', e => {
 // PANEL: Cika (次卡)
 // ============================================================
 let cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}');
+let cikaStatusOverrides = {};  // { brand_name: status }
 
 async function loadCikaCommentsFromServer() {
   try {
-    // 1. 先读新表
     const { data, error } = await alertSb.from('ka_cika_comments').select('*');
     if (error) throw error;
     cikaComments = {};
-    (data || []).forEach(row => { cikaComments[row.brand_name] = row.comment; });
+    cikaStatusOverrides = {};
+    (data || []).forEach(row => {
+      cikaComments[row.brand_name] = row.comment || '';
+      if (row.status != null && row.status !== '') cikaStatusOverrides[row.brand_name] = row.status;
+    });
 
-    // 2. 如果新表为空，从旧表 ka_feedbacks 迁移 cika:: 前缀的数据
-    if (Object.keys(cikaComments).length === 0) {
+    // 如果新表为空，从旧表 ka_feedbacks 迁移 cika:: 前缀的数据
+    if (Object.keys(cikaComments).length === 0 && Object.keys(cikaStatusOverrides).length === 0) {
       const { data: legacy } = await alertSb.from('ka_feedbacks')
         .select('brand_name, text, owner, created_at')
         .like('brand_name', 'cika::%');
@@ -1133,7 +1150,6 @@ async function loadCikaCommentsFromServer() {
         for (const row of legacy) {
           const brand = row.brand_name.replace('cika::', '');
           cikaComments[brand] = row.text;
-          // 写入新表（迁移）
           try {
             await alertSb.from('ka_cika_comments').upsert({
               brand_name: brand, comment: row.text,
@@ -1144,28 +1160,94 @@ async function loadCikaCommentsFromServer() {
         console.log('✅ 已从旧表迁移', legacy.length, '条次卡备注到新表');
       }
     }
+
+    // 将状态覆盖应用到 KA_DATA
+    applyCikaStatusOverrides();
   } catch(e) {
     console.warn('加载次卡备注失败，使用本地缓存:', e.message);
     try { cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}'); } catch(e2) {}
+    try { cikaStatusOverrides = JSON.parse(localStorage.getItem('ka_cika_status') || '{}'); applyCikaStatusOverrides(); } catch(e2) {}
   }
-  // 同步到 localStorage 作降级
   try { localStorage.setItem('ka_cika_comments', JSON.stringify(cikaComments)); } catch(e) {}
+  try { localStorage.setItem('ka_cika_status', JSON.stringify(cikaStatusOverrides)); } catch(e) {}
+}
+
+function applyCikaStatusOverrides() {
+  KA_DATA.brands.forEach(b => {
+    if (cikaStatusOverrides[b['品牌']] != null) b['次卡'] = cikaStatusOverrides[b['品牌']];
+  });
+}
+
+const CIKA_STATUS_OPTIONS = ['已上线', '有意向', '暂不考虑', ''];
+const CIKA_STATUS_LABELS = {'已上线':'已上线', '有意向':'有意向', '暂不考虑':'暂不考虑', '':'未沟通'};
+
+function editCikaStatus(el, brand) {
+  const brandObj = KA_DATA.brands.find(b => b['品牌'] === brand);
+  const current = brandObj ? brandObj['次卡'] : '';
+  const sel = document.createElement('select');
+  sel.className = 'status-select';
+  CIKA_STATUS_OPTIONS.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt;
+    o.textContent = CIKA_STATUS_LABELS[opt];
+    if (opt === current) o.selected = true;
+    sel.appendChild(o);
+  });
+  el.replaceWith(sel);
+  sel.focus();
+
+  function commit() {
+    const newVal = sel.value;
+    if (brandObj) brandObj['次卡'] = newVal;
+    cikaStatusOverrides[brand] = newVal;
+    try { localStorage.setItem('ka_cika_status', JSON.stringify(cikaStatusOverrides)); } catch(e) {}
+    // 写 Supabase
+    saveCikaStatusToServer(brand, newVal);
+    // 重新渲染
+    renderCikaTable();
+    // 更新总览中次卡统计
+    renderOverview();
+  }
+  sel.addEventListener('change', commit);
+  sel.addEventListener('blur', function() {
+    // 如果没有 change，恢复原始标签
+    setTimeout(() => { if (document.contains(sel)) renderCikaTable(); }, 100);
+  });
+}
+
+function saveCikaStatusToServer(brand, status) {
+  setTimeout(async () => {
+    try {
+      const { error } = await alertSb.from('ka_cika_comments').upsert({
+        brand_name: brand,
+        status: status,
+        comment: cikaComments[brand] || '',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'brand_name' });
+      if (error) throw error;
+      showToast('状态已保存');
+    } catch(e) {
+      console.warn('保存次卡状态失败:', e.message);
+      showToast('状态已本地保存（云端同步失败）');
+    }
+  }, 200);
 }
 let cikaSortDir = null; // null=默认(状态序), 'asc', 'desc'
 
 async function renderCika() {
+  await loadCikaCommentsFromServer();
+
   const brands = KA_DATA.brands;
   const online = brands.filter(b => b['次卡'] === '已上线').length;
   const interest = brands.filter(b => b['次卡'] === '有意向').length;
   const notConsider = brands.filter(b => b['次卡'] === '暂不考虑').length;
   const notTalked = brands.filter(b => !b['次卡']).length;
-  
+
   document.getElementById('cikaStatusGrid').innerHTML = `
     <div class="status-card sc-green"><div class="sc-icon">✅</div><div class="sc-value">${online}</div><div class="sc-label">已上线</div></div>
     <div class="status-card sc-yellow"><div class="sc-icon">💬</div><div class="sc-value">${interest}</div><div class="sc-label">有意向</div></div>
   `;
-  
-  await loadCikaCommentsFromServer();
+
   renderCikaTable();
 }
 
@@ -1197,14 +1279,15 @@ function renderCikaTable() {
   const tbody = document.getElementById('cikaTbody');
   tbody.innerHTML = data.map((b, idx) => {
     const comment = cikaComments[b['品牌']] || '';
+    const brandEsc = b['品牌'].replace(/'/g, "\\'");
     return `<tr>
       <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
       <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
       <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
-      <td>${statusTag(b['次卡'])}</td>
+      <td>${statusTagEditable(b['次卡'], 'cika', brandEsc)}</td>
       <td class="editable-cell">
-        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'cika','${b['品牌']}')">${comment || '点击添加备注...'}</div>
+        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'cika','${brandEsc}')">${comment || '点击添加备注...'}</div>
       </td>
     </tr>`;
   }).join('');
@@ -1226,17 +1309,21 @@ document.getElementById('cikaTable').addEventListener('click', e => {
 // PANEL: Wuyou (无忧会员)
 // ============================================================
 let wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}');
+let wuyouStatusOverrides = {};  // { brand_name: status }
 
 async function loadWuyouCommentsFromServer() {
   try {
-    // 1. 先读新表
     const { data, error } = await alertSb.from('ka_wuyou_comments').select('*');
     if (error) throw error;
     wuyouComments = {};
-    (data || []).forEach(row => { wuyouComments[row.brand_name] = row.comment; });
+    wuyouStatusOverrides = {};
+    (data || []).forEach(row => {
+      wuyouComments[row.brand_name] = row.comment || '';
+      if (row.status != null && row.status !== '') wuyouStatusOverrides[row.brand_name] = row.status;
+    });
 
-    // 2. 如果新表为空，从旧表 ka_feedbacks 迁移 wuyou:: 前缀的数据
-    if (Object.keys(wuyouComments).length === 0) {
+    // 如果新表为空，从旧表 ka_feedbacks 迁移 wuyou:: 前缀的数据
+    if (Object.keys(wuyouComments).length === 0 && Object.keys(wuyouStatusOverrides).length === 0) {
       const { data: legacy } = await alertSb.from('ka_feedbacks')
         .select('brand_name, text, owner, created_at')
         .like('brand_name', 'wuyou::%');
@@ -1244,7 +1331,6 @@ async function loadWuyouCommentsFromServer() {
         for (const row of legacy) {
           const brand = row.brand_name.replace('wuyou::', '');
           wuyouComments[brand] = row.text;
-          // 写入新表（迁移）
           try {
             await alertSb.from('ka_wuyou_comments').upsert({
               brand_name: brand, comment: row.text,
@@ -1255,27 +1341,89 @@ async function loadWuyouCommentsFromServer() {
         console.log('✅ 已从旧表迁移', legacy.length, '条无忧备注到新表');
       }
     }
+
+    // 将状态覆盖应用到 KA_DATA
+    applyWuyouStatusOverrides();
   } catch(e) {
     console.warn('加载无忧备注失败，使用本地缓存:', e.message);
     try { wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}'); } catch(e2) {}
+    try { wuyouStatusOverrides = JSON.parse(localStorage.getItem('ka_wuyou_status') || '{}'); applyWuyouStatusOverrides(); } catch(e2) {}
   }
-  // 同步到 localStorage 作降级
   try { localStorage.setItem('ka_wuyou_comments', JSON.stringify(wuyouComments)); } catch(e) {}
+  try { localStorage.setItem('ka_wuyou_status', JSON.stringify(wuyouStatusOverrides)); } catch(e) {}
+}
+
+function applyWuyouStatusOverrides() {
+  KA_DATA.brands.forEach(b => {
+    if (wuyouStatusOverrides[b['品牌']] != null) b['无忧会员'] = wuyouStatusOverrides[b['品牌']];
+  });
+}
+
+const WUYOU_STATUS_OPTIONS = ['有意向', '待沟通', ''];
+const WUYOU_STATUS_LABELS = {'有意向':'有意向', '待沟通':'待沟通', '':'未沟通'};
+
+function editWuyouStatus(el, brand) {
+  const brandObj = KA_DATA.brands.find(b => b['品牌'] === brand);
+  const current = brandObj ? brandObj['无忧会员'] : '';
+  const sel = document.createElement('select');
+  sel.className = 'status-select';
+  WUYOU_STATUS_OPTIONS.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt;
+    o.textContent = WUYOU_STATUS_LABELS[opt];
+    if (opt === current) o.selected = true;
+    sel.appendChild(o);
+  });
+  el.replaceWith(sel);
+  sel.focus();
+
+  function commit() {
+    const newVal = sel.value;
+    if (brandObj) brandObj['无忧会员'] = newVal;
+    wuyouStatusOverrides[brand] = newVal;
+    try { localStorage.setItem('ka_wuyou_status', JSON.stringify(wuyouStatusOverrides)); } catch(e) {}
+    saveWuyouStatusToServer(brand, newVal);
+    renderWuyouTable();
+    renderOverview();
+  }
+  sel.addEventListener('change', commit);
+  sel.addEventListener('blur', function() {
+    setTimeout(() => { if (document.contains(sel)) renderWuyouTable(); }, 100);
+  });
+}
+
+function saveWuyouStatusToServer(brand, status) {
+  setTimeout(async () => {
+    try {
+      const { error } = await alertSb.from('ka_wuyou_comments').upsert({
+        brand_name: brand,
+        status: status,
+        comment: wuyouComments[brand] || '',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'brand_name' });
+      if (error) throw error;
+      showToast('状态已保存');
+    } catch(e) {
+      console.warn('保存无忧状态失败:', e.message);
+      showToast('状态已本地保存（云端同步失败）');
+    }
+  }, 200);
 }
 let wuyouSortDir = null;
 
 async function renderWuyou() {
+  await loadWuyouCommentsFromServer();
+
   const brands = KA_DATA.brands;
   const interest = brands.filter(b => b['无忧会员'] === '有意向').length;
   const pending = brands.filter(b => b['无忧会员'] === '待沟通').length;
   const notTalked = brands.filter(b => !b['无忧会员']).length;
-  
+
   document.getElementById('wuyouStatusGrid').innerHTML = `
     <div class="status-card sc-yellow"><div class="sc-icon">💬</div><div class="sc-value">${interest}</div><div class="sc-label">有意向</div></div>
     <div class="status-card sc-blue"><div class="sc-icon">📞</div><div class="sc-value">${pending}</div><div class="sc-label">待沟通</div></div>
   `;
-  
-  await loadWuyouCommentsFromServer();
+
   renderWuyouTable();
 }
 
@@ -1306,14 +1454,15 @@ function renderWuyouTable() {
   const tbody = document.getElementById('wuyouTbody');
   tbody.innerHTML = data.map((b, idx) => {
     const comment = wuyouComments[b['品牌']] || '';
+    const brandEsc = b['品牌'].replace(/'/g, "\\'");
     return `<tr>
       <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
       <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
       <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
-      <td>${statusTag(b['无忧会员'])}</td>
+      <td>${statusTagEditable(b['无忧会员'], 'wuyou', brandEsc)}</td>
       <td class="editable-cell">
-        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'wuyou','${b['品牌']}')">${comment || '点击添加备注...'}</div>
+        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'wuyou','${brandEsc}')">${comment || '点击添加备注...'}</div>
       </td>
     </tr>`;
   }).join('');
@@ -1367,14 +1516,24 @@ function saveComment(input, type, brand) {
   _commentSaveTimer = setTimeout(async () => {
     try {
       if (val) {
-        const { error } = await alertSb.from(tableName).upsert({
+        const upsertObj = {
           brand_name: brand,
           comment: val,
           updated_at: new Date().toISOString()
-        }, { onConflict: 'brand_name' });
+        };
+        // 保留已有的 status 字段
+        if (type === 'cika' && cikaStatusOverrides[brand] != null) upsertObj.status = cikaStatusOverrides[brand];
+        if (type === 'wuyou' && wuyouStatusOverrides[brand] != null) upsertObj.status = wuyouStatusOverrides[brand];
+        const { error } = await alertSb.from(tableName).upsert(upsertObj, { onConflict: 'brand_name' });
         if (error) throw error;
       } else {
-        await alertSb.from(tableName).delete().eq('brand_name', brand);
+        // 不删除整行了，只清空 comment 字段（保留 status）
+        const { error } = await alertSb.from(tableName).upsert({
+          brand_name: brand,
+          comment: '',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'brand_name' });
+        if (error) throw error;
       }
       showToast('备注已保存');
     } catch(e) {
