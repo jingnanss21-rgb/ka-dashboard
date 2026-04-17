@@ -422,6 +422,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div class="section-title"><div class="icon" style="background:var(--success)"></div> 次卡项目进展 <span id="cikaPeriodBadge" class="badge" style="background:#dcfce7;color:#15803d;">推进中</span></div>
     <div class="filter-bar">
       <select id="cikaFilterOwner"><option value="">全部负责人</option></select>
+      <select id="cikaFilterCat"><option value="">全部品类</option></select>
     </div>
     <div class="scroll-table-wrapper">
       <table id="cikaTable">
@@ -468,6 +469,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div class="section-title"><div class="icon" style="background:var(--purple)"></div> 无忧会员项目进展 <span id="wuyouPeriodBadge" class="badge" style="background:#ede9fe;color:#7c3aed;">推进中</span></div>
     <div class="filter-bar">
       <select id="wuyouFilterOwner"><option value="">全部负责人</option></select>
+      <select id="wuyouFilterCat"><option value="">全部品类</option></select>
     </div>
     <div class="scroll-table-wrapper">
       <table id="wuyouTable">
@@ -514,6 +516,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div class="section-title"><div class="icon" style="background:#16a34a"></div> 盒子项目进展 <span id="boxPeriodBadge" class="badge" style="background:#dcfce7;color:#15803d;">推进中</span></div>
     <div class="filter-bar">
       <select id="boxFilterOwner"><option value="">全部负责人</option></select>
+      <select id="boxFilterCat"><option value="">全部品类</option></select>
     </div>
     <div class="scroll-table-wrapper">
       <table id="boxTable">
@@ -786,25 +789,25 @@ function populateFilters() {
     const sel = document.getElementById(id);
     if(sel) owners.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; sel.appendChild(opt); });
   });
-  ['overviewFilterCat'].forEach(id => {
+  ['overviewFilterCat','cikaFilterCat','wuyouFilterCat','boxFilterCat'].forEach(id => {
     const sel = document.getElementById(id);
     if(sel) cats.forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; sel.appendChild(opt); });
   });
-  
+
   // Bind filter events
   ['overviewFilterOwner','overviewFilterCat','overviewSearch'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener(el.tagName==='INPUT'?'input':'change', renderOverviewTable);
   });
-  ['cikaFilterOwner'].forEach(id => {
+  ['cikaFilterOwner','cikaFilterCat'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('change', renderCikaTable);
   });
-  ['wuyouFilterOwner'].forEach(id => {
+  ['wuyouFilterOwner','wuyouFilterCat'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('change', renderWuyouTable);
   });
-  ['boxFilterOwner'].forEach(id => {
+  ['boxFilterOwner','boxFilterCat'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('change', renderBoxTable);
   });
@@ -1022,8 +1025,13 @@ function renderAlertContent(type) {
   
   // 绑定反馈输入事件
   document.querySelectorAll('#alertMonitorContent .alert-feedback-input').forEach(input => {
-    input.addEventListener('change', function() {
-      saveAlertFeedback(this.dataset.brand, this.dataset.cmptype, this.value.trim());
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveAlertFeedback(this.dataset.brand, this.dataset.cmptype, this.value.trim());
+        this.blur();
+        showToast('反馈已保存');
+      }
     });
     input.addEventListener('blur', function() {
       saveAlertFeedback(this.dataset.brand, this.dataset.cmptype, this.value.trim());
@@ -1375,9 +1383,11 @@ async function renderCika() {
 
 function renderCikaTable() {
   const owner = document.getElementById('cikaFilterOwner').value;
+  const cat = document.getElementById('cikaFilterCat')?.value || '';
 
   let data = KA_DATA.brands.filter(b => {
     if (owner && b['负责人'] !== owner) return false;
+    if (cat && b['品类'] !== cat) return false;
     return true;
   });
 
@@ -1570,9 +1580,11 @@ async function renderWuyou() {
 
 function renderWuyouTable() {
   const owner = document.getElementById('wuyouFilterOwner').value;
+  const cat = document.getElementById('wuyouFilterCat')?.value || '';
 
   let data = KA_DATA.brands.filter(b => {
     if (owner && b['负责人'] !== owner) return false;
+    if (cat && b['品类'] !== cat) return false;
     return true;
   });
 
@@ -1757,8 +1769,10 @@ async function renderBox() {
 
 function renderBoxTable() {
   const owner = document.getElementById('boxFilterOwner').value;
+  const cat = document.getElementById('boxFilterCat')?.value || '';
   let data = KA_DATA.brands.filter(b => {
     if (owner && b['负责人'] !== owner) return false;
+    if (cat && b['品类'] !== cat) return false;
     return true;
   });
   const statusOrder = {'已上线':0, '有意向':1, '待沟通':2, '暂不考虑':3, '':4};
