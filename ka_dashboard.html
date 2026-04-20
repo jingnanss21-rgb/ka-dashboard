@@ -776,9 +776,10 @@ async function init() {
   populateFilters();
 
   renderOverview();
-  renderCika();
-  renderWuyou();
-  renderBox();
+  await renderCika();
+  await renderWuyou();
+  await renderBox();
+  renderOverview();
 }
 
 function populateFilters() {
