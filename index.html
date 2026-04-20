@@ -1544,7 +1544,7 @@ function getFeedbackWeekTag(f) {
 function buildTableFbCell(brandName, viewId, ownerFilter) {
   var fb = feedbacks[brandName] || [];
   fb.forEach(ensureFeedbackStableId);
-  var cutoff = '2026-04-08';
+  var cutoff = (function(){ if(!currentReportDate) return '2000-01-01'; var d=new Date(currentReportDate); d.setDate(d.getDate()-5); return d.toISOString().substring(0,10); })();
   var newFb = fb.filter(function(f){ return f.rawTime && f.rawTime.substring(0,10) >= cutoff; });
   var oldFb = fb.filter(function(f){ return !f.rawTime || f.rawTime.substring(0,10) < cutoff; });
   var out = '<div style="font-size:11px;">';
@@ -1557,7 +1557,7 @@ function buildTableFbCell(brandName, viewId, ownerFilter) {
   if(oldFb.length > 0) {
     var gid = 'tdfb-hist-' + encId(viewId + '::' + brandName);
     out += '<div style="margin-top:4px;"><span onclick="var el=document.getElementById(\''+gid+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.fba\').textContent=el.style.display===\'none\'?\'\u25b6\':\'\u25bc\'" style="cursor:pointer;font-size:10px;color:#92400e;font-weight:600;user-select:none;"><span class="fba">\u25b6</span> \u5386\u53f2('+oldFb.length+')</span><div id="'+gid+'" style="display:none;margin-top:4px;">';
-    oldFb.forEach(function(f2){ var ts=f2.rawTime?f2.rawTime.substring(11,16):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick=\'editFeedback('+JSON.stringify(brandName)+','+JSON.stringify(f2.id)+')\'>\u270e</span><span class="mini-btn del" onclick=\'deleteFeedback('+JSON.stringify(brandName)+','+JSON.stringify(f2.id)+')\'>\u00d7</span></span></div>'; });
+    oldFb.sort(function(a,b){ return (b.rawTime||'').localeCompare(a.rawTime||''); }); oldFb.forEach(function(f2){ var ts=f2.rawTime?f2.rawTime.substring(0,16).replace('T',' '):''; out += '<div class="fb-mini-item" style="margin:2px 0;padding:3px 6px;font-size:10px;"><span class="fb-mini-text">'+escHtml(f2.text)+'</span><span style="color:#bbb;font-size:9px;margin-left:4px;">'+ts+'</span><span class="mini-actions"><span class="mini-btn" onclick=\'editFeedback('+JSON.stringify(brandName)+','+JSON.stringify(f2.id)+')\'>\u270e</span><span class="mini-btn del" onclick=\'deleteFeedback('+JSON.stringify(brandName)+','+JSON.stringify(f2.id)+')\'>\u00d7</span></span></div>'; });
     out += '</div></div>';
   }
   out += '</div>';
@@ -1706,7 +1706,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   if(fbs.length === 0) {
     h += '<p style="color:#999;font-size:12px;margin:0;">\u6682\u65e0\u53cd\u9988</p>';
   } else {
-    var cutoff = '2026-04-08';
+    var cutoff = (function(){ if(!currentReportDate) return '2000-01-01'; var d=new Date(currentReportDate); d.setDate(d.getDate()-5); return d.toISOString().substring(0,10); })();
     var newFbs = fbs.filter(function(f2){ return f2.rawTime && f2.rawTime.substring(0,10) >= cutoff; });
     var oldFbs = fbs.filter(function(f2){ return !f2.rawTime || f2.rawTime.substring(0,10) < cutoff; });
     // 新增反馈（默认展开）
@@ -1729,6 +1729,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
       var fbGroups = {};
       oldFbs.forEach(function(f2) { var d2 = f2.rawTime ? f2.rawTime.substring(0,10) : (f2.time||''); if(!fbGroups[d2]) fbGroups[d2]=[]; fbGroups[d2].push(f2); });
       Object.keys(fbGroups).sort().reverse().forEach(function(d2) {
+        fbGroups[d2].sort(function(a,b){ return (b.rawTime||'').localeCompare(a.rawTime||''); });
         h += '<div style="font-size:10px;color:#999;margin-top:6px;font-weight:600;">' + d2 + '</div>';
         fbGroups[d2].forEach(function(fb2) {
           var timeStr = fb2.rawTime ? fb2.rawTime.substring(0,16).replace('T',' ') : (fb2.time||'');
