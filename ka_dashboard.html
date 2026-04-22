@@ -763,6 +763,22 @@ function showToast(msg) {
 // Init
 // ============================================================
 async function init() {
+  // 埋点
+  try {
+    var info = {
+      page: 'KA整体看板',
+      identity: currentIdentity || '未知',
+      device: /Mobi|Android/i.test(navigator.userAgent) ? '手机' : '电脑',
+      screen: screen.width + 'x' + screen.height,
+      referrer: document.referrer ? document.referrer.substring(0, 100) : '直接访问',
+      ts: new Date().toISOString()
+    };
+    alertSb.from('ka_feedbacks').insert({
+      brand_name: 'visit::KA整体看板',
+      text: JSON.stringify(info)
+    }).then(function(){}).catch(function(){});
+  } catch(e) {}
+
   await refreshKaSnapshotPeriod();
 
   if (!currentIdentity) {
