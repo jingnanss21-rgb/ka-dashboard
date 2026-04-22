@@ -960,7 +960,23 @@ function subscribeRealtime() {
   } catch(e) {}
 }
 
-function trackVisit(page) {}
+function trackVisit(page) {
+  if(!sbClient) return;
+  try {
+    var info = {
+      page: page,
+      identity: currentIdentity || '未知',
+      device: /Mobi|Android/i.test(navigator.userAgent) ? '手机' : '电脑',
+      screen: screen.width + 'x' + screen.height,
+      referrer: document.referrer ? document.referrer.substring(0, 100) : '直接访问',
+      ts: new Date().toISOString()
+    };
+    sbClient.from('ka_feedbacks').insert({
+      brand_name: 'visit::' + page,
+      text: JSON.stringify(info)
+    }).then(function(){}).catch(function(){});
+  } catch(e) {}
+}
 
 async function init() {
   bindCardFeedbackDelegation();
