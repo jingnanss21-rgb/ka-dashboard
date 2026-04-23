@@ -691,19 +691,52 @@ function getShakeBrandCountsForOverview() {
 }
 
 async function refreshKaSnapshotPeriod() {
+  // ── 数据完整性兜底：关键字段空值率 > 80% 时回退到上一期，最多回退 5 期 ──
+  const KA_CRITICAL_FIELDS = ['isAlive', 'dailyPayment', 'dailyRedeem', 'highFreqAppUV'];
+  const THRESHOLD = 0.8;
+  const MAX_FALLBACK = 5;
+
+  function isBrandsComplete(brands) {
+    if (!brands || !brands.length) return false;
+    for (const f of KA_CRITICAL_FIELDS) {
+      let empty = 0;
+      for (const b of brands) {
+        const v = b[f];
+        if (v === null || v === undefined || v === '' || v === 'NULL') empty++;
+      }
+      if (empty / brands.length > THRESHOLD) return false;
+    }
+    return true;
+  }
+
   gShakeBrandCounts = null;
   try {
-    const { data, error } = await alertSb.from('ka_daily_snapshot')
+    const { data: rows, error } = await alertSb.from('ka_daily_snapshot')
       .select('report_date, data_date_label, brands')
       .gte('report_date', MIN_KA_SNAPSHOT_DATE)
       .order('report_date', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(MAX_FALLBACK);
     if (error) throw error;
-    if (data) {
-      latestKaSnapshot.report_date = data.report_date;
-      latestKaSnapshot.data_date_label = data.data_date_label || data.report_date;
-      var computed = computeShakeBrandCountsFromSnapshotBrands(data.brands);
+    if (rows && rows.length) {
+      let picked = null;
+      for (const r of rows) {
+        if (isBrandsComplete(r.brands)) {
+          picked = r;
+          if (r.report_date !== rows[0].report_date) {
+            console.warn('[FALLBACK][KA] 当日(' + rows[0].report_date + ')数据不全，已回退到 ' + r.report_date);
+          }
+          break;
+        } else {
+          console.warn('[FALLBACK][KA] ' + r.report_date + ' 关键字段空值率过高，尝试下一期');
+        }
+      }
+      if (!picked) {
+        picked = rows[0];
+        console.warn('[FALLBACK][KA][MISS] 最近 ' + rows.length + ' 期均不合格，仍使用最新一期 ' + picked.report_date);
+      }
+      latestKaSnapshot.report_date = picked.report_date;
+      latestKaSnapshot.data_date_label = picked.data_date_label || picked.report_date;
+      var computed = computeShakeBrandCountsFromSnapshotBrands(picked.brands);
       if (computed) gShakeBrandCounts = computed;
     }
   } catch (e) {
@@ -765,12 +798,24 @@ function showToast(msg) {
 async function init() {
   // 埋点
   try {
+    // sessionId：同一标签页刷新保持一致
+    var sid = sessionStorage.getItem('__visit_sid');
+    if(!sid) {
+      sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      sessionStorage.setItem('__visit_sid', sid);
+    }
     var info = {
       page: 'KA整体看板',
       identity: currentIdentity || '未知',
       device: /Mobi|Android/i.test(navigator.userAgent) ? '手机' : '电脑',
       screen: screen.width + 'x' + screen.height,
-      referrer: document.referrer ? document.referrer.substring(0, 100) : '直接访问',
+      orientation: screen.width > screen.height ? 'landscape' : 'portrait',
+      referrer: document.referrer ? document.referrer.substring(0, 150) : '直接访问',
+      path: location.pathname + location.search,
+      ua: navigator.userAgent.substring(0, 200),
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      lang: navigator.language,
+      sessionId: sid,
       ts: new Date().toISOString()
     };
     alertSb.from('ka_feedbacks').insert({
