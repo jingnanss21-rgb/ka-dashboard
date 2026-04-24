@@ -776,9 +776,9 @@ async function loadActivitiesFromDailyTable(reportDate) {
       activityName: m.activityName || '',
       couponName: (m.couponName && m.couponName !== 'None') ? m.couponName : null,
       couponType: m.couponType,
-      pricePower: m.pricePower,
-      dailyExposure: m.exp_sum / 7 / 10000,   // 近 7 日均曝光 PV（万）
-      dailyRedeem: m.use_sum / 7,              // 近 7 日均核销 PV（笔）
+      pricePower: m.pricePower,   // 原始整数，渲染时 / 100 即百分比（544 → 5.44%）
+      dailyExposure: m.exp_sum / 7,   // 近 7 日均曝光 PV（不除万，与核销一致单位）
+      dailyRedeem: m.use_sum / 7,      // 近 7 日均核销 PV
       exposureRedeemRate: m.exp_sum > 0 ? (m.use_sum / m.exp_sum) : null,
     }));
   } catch(e) {
@@ -1790,7 +1790,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
     var tar=sa.reduce(function(s,x){return s+(x.dailyRedeem||0);},0);
     h+=sec("\ud83c\udfab \u6d3b\u52a8\u660e\u7ec6 ("+sa.length+"\u4e2a)");
     h+='<div style="overflow-x:auto;"><table class="act-table" style="table-layout:fixed;width:100%;"><colgroup><col style="width:20%;"><col style="width:16%;"><col style="width:8%;"><col style="width:9%;"><col style="width:9%;"><col style="width:10%;"><col style="width:9%;"><col style="width:9%;"></colgroup><thead><tr><th style="text-align:left;">\u6d3b\u52a8\u540d\u79f0</th><th style="text-align:left;">\u5238\u540d\u79f0</th><th>\u8d27\u76d8\u4ef7\u683c\u529b</th><th>\u65e5\u5747\u66dd\u5149</th><th>\u66dd\u5149\u5360\u6bd4</th><th>\u65e5\u5747\u6838\u9500</th><th>\u6838\u9500\u5360\u6bd4</th><th>\u66dd\u5149\u6838\u9500\u7387</th></tr></thead><tbody>';
-    sa.forEach(function(act){var es=tae>0?((act.dailyExposure||0)/tae*100).toFixed(1)+"%":"-";var rs=tar>0?((act.dailyRedeem||0)/tar*100).toFixed(1)+"%":"-";var ppA=act.pricePower;h+='<tr><td style="text-align:left;max-width:200px;white-space:normal;">'+(act.activityName||"-")+'</td><td style="text-align:left;max-width:150px;white-space:normal;">'+(act.couponName||"-")+'</td><td style="text-align:center;'+(ppA>0?"color:#059669;font-weight:600":"color:#bbb")+'">'+(ppA!==null&&ppA!==undefined?(ppA*100).toFixed(1)+"%":"\u65e0")+'</td><td>'+((act.dailyExposure||0)/10000).toFixed(1)+'w</td><td style="text-align:center;">'+es+'</td><td>'+fmt(act.dailyRedeem||0)+'</td><td style="text-align:center;">'+rs+'</td><td style="text-align:center;">'+(act.exposureRedeemRate?(act.exposureRedeemRate*100).toFixed(2)+"%":"-")+'</td></tr>';});
+    sa.forEach(function(act){var es=tae>0?((act.dailyExposure||0)/tae*100).toFixed(1)+"%":"-";var rs=tar>0?((act.dailyRedeem||0)/tar*100).toFixed(1)+"%":"-";var ppA=act.pricePower;h+='<tr><td style="text-align:left;max-width:200px;white-space:normal;">'+(act.activityName||"-")+'</td><td style="text-align:left;max-width:150px;white-space:normal;">'+(act.couponName||"-")+'</td><td style="text-align:center;'+(ppA>0?"color:#059669;font-weight:600":"color:#bbb")+'">'+(ppA!==null&&ppA!==undefined?(ppA/100).toFixed(2)+"%":"\u65e0")+'</td><td>'+fmt(act.dailyExposure||0)+'</td><td style="text-align:center;">'+es+'</td><td>'+fmt(act.dailyRedeem||0)+'</td><td style="text-align:center;">'+rs+'</td><td style="text-align:center;">'+(act.exposureRedeemRate?(act.exposureRedeemRate*100).toFixed(2)+"%":"-")+'</td></tr>';});
     h+='</tbody></table></div>';
   }
   if(analysis&&analysis.length>0){h+='<div class="diagnosis" style="margin-top:12px;">';analysis.forEach(function(item){h+='<div class="issue">'+(typeof item==="string"?item:(item.text||item.desc||""))+'</div>';});h+='</div>';}
