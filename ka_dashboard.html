@@ -250,6 +250,36 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 .expand-btn { display:block; width:100%; margin-top:16px; padding:12px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:var(--radius); color:var(--text-secondary); font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; text-align:center; }
 .expand-btn:hover { background:#eff6ff; border-color:var(--primary); color:var(--primary); }
 .expand-btn.expanded { background:#eff6ff; border-style:solid; border-color:#93c5fd; color:var(--primary); }
+
+/* 次卡 tab 新增样式 */
+.range-switcher { display:inline-flex; background:#f1f5f9; border-radius:6px; padding:2px; }
+.range-btn { background:transparent; border:none; padding:5px 10px; font-size:12px; color:#64748b; border-radius:4px; cursor:pointer; transition:all .15s; }
+.range-btn:hover { color:#1e293b; }
+.range-btn.active { background:#fff; color:#2563eb; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+.cika-chart-wrap { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-top:12px; }
+.cika-chart-title { font-size:13px; color:var(--text-secondary); margin-bottom:6px; }
+.cika-online-table { width:100%; border-collapse:collapse; font-size:13px; }
+.cika-online-table thead th { background:#f8fafc; color:#475569; font-weight:600; padding:8px 10px; border-bottom:2px solid #e2e8f0; font-size:12px; text-align:left; white-space:nowrap; }
+.cika-online-table tbody td { padding:8px 10px; border-bottom:1px solid #f1f5f9; white-space:nowrap; }
+.cika-online-table tbody tr { cursor:pointer; transition:background .1s; }
+.cika-online-table tbody tr:hover { background:#f0f9ff; }
+.cika-online-table tbody tr.active { background:#dbeafe; }
+.sortable-header { cursor:pointer; user-select:none; }
+.sortable-header:hover { color:#2563eb; }
+.sortable-header.active { color:#2563eb; font-weight:700; }
+.share-bar { display:inline-block; min-width:40px; padding:2px 6px; border-radius:3px; background:#e0f2fe; color:#0369a1; font-weight:600; font-size:11px; }
+/* Drawer */
+.drawer-mask { display:none; position:fixed; inset:0; background:rgba(15,23,42,.4); z-index:1000; }
+.drawer-mask.show { display:block; }
+.drawer { display:none; position:fixed; top:0; right:0; width:720px; max-width:95vw; height:100vh; background:#fff; z-index:1001; box-shadow:-4px 0 20px rgba(0,0,0,.1); flex-direction:column; }
+.drawer.show { display:flex; animation:drawerIn .2s ease-out; }
+@keyframes drawerIn { from {transform:translateX(40px); opacity:0;} to {transform:translateX(0); opacity:1;} }
+.drawer-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.drawer-title { font-size:16px; font-weight:600; color:var(--text); }
+.drawer-close { background:transparent; border:none; font-size:18px; color:var(--text-secondary); cursor:pointer; padding:4px 8px; border-radius:4px; }
+.drawer-close:hover { background:#f1f5f9; }
+.drawer-body { padding:16px 20px; overflow-y:auto; flex:1; }
+.drawer-section-title { font-size:14px; font-weight:600; color:var(--text); }
 </style>
 </head>
 <body>
@@ -416,10 +446,58 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
 <!-- ============ PANEL: 次卡 ============ -->
 <div class="project-panel" id="panel-cika">
-  <div class="status-grid" id="cikaStatusGrid"></div>
-  
+
+  <!-- ───── 区块 1：已上线商户数据 ───── -->
   <div class="section">
-    <div class="section-title"><div class="icon" style="background:var(--success)"></div> 次卡项目进展 <span id="cikaPeriodBadge" class="badge" style="background:#dcfce7;color:#15803d;">推进中</span></div>
+    <div class="section-title" style="display:flex;align-items:center;gap:12px;">
+      <div class="icon" style="background:var(--success)"></div>
+      <span>✅ 已上线商户数据</span>
+      <span id="cikaOnlineCount" class="badge" style="background:#dcfce7;color:#15803d;">0 个品牌 · 0 个活动</span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--text-secondary);">周期：</span>
+        <div id="cikaRangeSwitcher" class="range-switcher">
+          <button data-range="1" class="range-btn">当日</button>
+          <button data-range="3" class="range-btn">近 3 日</button>
+          <button data-range="7" class="range-btn">近 7 日</button>
+          <button data-range="10" class="range-btn active">近 10 日</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 趋势图 -->
+    <div class="cika-chart-wrap">
+      <div class="cika-chart-title" id="cikaChartTitle">📈 全部次卡品牌汇总趋势（点击下方品牌行可切换）</div>
+      <div id="cikaTrendChart" style="width:100%;height:280px;"></div>
+    </div>
+
+    <!-- 已上线商户表格 -->
+    <div class="scroll-table-wrapper" style="margin-top:12px;">
+      <table id="cikaOnlineTable" class="cika-online-table">
+        <thead>
+          <tr>
+            <th style="width:32px;text-align:center;">#</th>
+            <th style="min-width:110px;">品牌</th>
+            <th style="width:56px;text-align:center;">活动数</th>
+            <th class="sortable-header" data-sort="exp_pv" style="text-align:right;">曝光 PV</th>
+            <th class="sortable-header" data-sort="claim_pv" style="text-align:right;">领取 PV</th>
+            <th class="sortable-header active desc" data-sort="use_pv" style="text-align:right;">核销 PV ▼</th>
+            <th style="text-align:right;">曝光→领取</th>
+            <th style="text-align:right;">领取→核销</th>
+            <th style="text-align:right;">曝光→核销</th>
+            <th class="sortable-header" data-sort="exp_share" style="text-align:right;">占大盘曝光</th>
+            <th class="sortable-header" data-sort="use_share" style="text-align:right;">占大盘核销</th>
+            <th style="min-width:200px;">备注（点击编辑）</th>
+          </tr>
+        </thead>
+        <tbody id="cikaOnlineTbody"></tbody>
+      </table>
+    </div>
+    <div id="cikaOnlineEmpty" style="display:none;padding:20px;text-align:center;color:var(--text-secondary);font-size:13px;">暂无次卡已上线商户数据</div>
+  </div>
+
+  <!-- ───── 区块 2：未上线商户沟通进展 ───── -->
+  <div class="section" style="margin-top:16px;">
+    <div class="section-title"><div class="icon" style="background:#f59e0b"></div> 💬 未上线商户沟通进展 <span id="cikaOfflineCount" class="badge" style="background:#fef3c7;color:#b45309;">0 个</span></div>
     <div class="filter-bar">
       <select id="cikaFilterOwner"><option value="">全部负责人</option></select>
       <select id="cikaFilterCat"><option value="">全部品类</option></select>
@@ -458,6 +536,35 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
       </div>
     </div>
     <button id="cikaExpandBtn" class="expand-btn" onclick="toggleCollapsed('cika')">📋 展开全部KA商户名单（含未沟通/暂不考虑）</button>
+  </div>
+</div>
+
+<!-- 品牌活动详情 Drawer -->
+<div id="cikaDrawerMask" class="drawer-mask" onclick="closeCikaDrawer()"></div>
+<div id="cikaDrawer" class="drawer">
+  <div class="drawer-header">
+    <span id="cikaDrawerTitle" class="drawer-title">品牌活动详情</span>
+    <button class="drawer-close" onclick="closeCikaDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section-title" style="margin-bottom:6px;">📊 该品牌 10 日趋势</div>
+    <div id="cikaDrawerChart" style="width:100%;height:240px;"></div>
+    <div class="drawer-section-title" style="margin:16px 0 6px;">📋 次卡活动明细</div>
+    <div class="scroll-table-wrapper">
+      <table class="cika-online-table" style="font-size:12px;">
+        <thead>
+          <tr>
+            <th style="min-width:70px;">活动ID</th>
+            <th style="min-width:140px;">活动名称</th>
+            <th style="text-align:right;">曝光 PV</th>
+            <th style="text-align:right;">领取 PV</th>
+            <th style="text-align:right;">核销 PV</th>
+            <th style="text-align:right;">曝→核</th>
+          </tr>
+        </thead>
+        <tbody id="cikaDrawerTbody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -560,6 +667,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <script>
 // ============================================================
 // DATA
@@ -1393,20 +1501,375 @@ function saveCikaStatusToServer(brand, status) {
 }
 let cikaSortDir = null; // null=默认(状态序), 'asc', 'desc'
 
+// ─────────────────────────────────────────────
+// 次卡已上线商户数据（基于 ka_activity_daily 表）
+// ─────────────────────────────────────────────
+let CIKA_ACTIVITY_ROWS = [];   // 全部次卡活动明细（10 天）
+let CIKA_BRAND_DAILY_PV = {};  // {brand_name: {YYYY-MM-DD: {exp, use}}} —— 品牌大盘 PV（来自 ka_daily_snapshot）
+let CIKA_DATES = [];           // 可用日期排序升序
+let cikaCurrentRange = 10;     // 当前时间窗口 1/3/7/10
+let cikaOnlineSort = { key: 'use_pv', dir: 'desc' };
+let cikaActiveBrand = null;    // 当前趋势图聚焦的品牌（null=全部汇总）
+let cikaTrendChart = null, cikaDrawerChart = null;
+let cikaOnlineAggCache = null; // 缓存当前聚合结果，用于排序重渲染
+
+async function loadCikaActivityFromSupabase() {
+  // 拉近 10 天次卡活动
+  try {
+    const { data, error } = await alertSb
+      .from('ka_activity_daily')
+      .select('date,brand_id,brand_name,category,activity_id,activity_name,coupon_type,exp_pv,claim_pv,use_pv')
+      .eq('coupon_type', '次卡')
+      .order('date', { ascending: true });
+    if (error) throw error;
+    CIKA_ACTIVITY_ROWS = data || [];
+    // 提取日期集合
+    const setD = new Set(CIKA_ACTIVITY_ROWS.map(r => r.date));
+    CIKA_DATES = Array.from(setD).sort();
+  } catch (e) {
+    console.warn('loadCikaActivityFromSupabase:', e.message || e);
+    CIKA_ACTIVITY_ROWS = [];
+    CIKA_DATES = [];
+  }
+}
+
+async function loadCikaBrandDailyPV() {
+  // 从 ka_daily_snapshot 近 10 天拉品牌当日大盘 PV，构造 {brand: {date: {exp, use}}}
+  try {
+    const { data, error } = await alertSb
+      .from('ka_daily_snapshot')
+      .select('report_date, brands')
+      .order('report_date', { ascending: false })
+      .limit(10);
+    if (error) throw error;
+    const map = {};
+    for (const snap of (data || [])) {
+      const rd = snap.report_date;
+      const brands = snap.brands || [];
+      for (const b of brands) {
+        const bn = b.name || b.brandName || b.assignmentBrand;
+        if (!bn) continue;
+        if (!map[bn]) map[bn] = {};
+        // dailyExposure 单位为"万"，dailyRedeem 单位为"笔"
+        const expW = b.dailyExposure;
+        const useNum = b.dailyRedeem;
+        map[bn][rd] = {
+          exp: (expW != null) ? Math.round(expW * 10000) : null,
+          use: (useNum != null) ? Math.round(useNum) : null,
+        };
+      }
+    }
+    CIKA_BRAND_DAILY_PV = map;
+  } catch (e) {
+    console.warn('loadCikaBrandDailyPV:', e.message || e);
+    CIKA_BRAND_DAILY_PV = {};
+  }
+}
+
+function getCikaDateWindow(range) {
+  // 返回当前窗口覆盖的日期数组（升序）
+  if (!CIKA_DATES.length) return [];
+  const n = Math.min(range, CIKA_DATES.length);
+  return CIKA_DATES.slice(CIKA_DATES.length - n);
+}
+
+function aggCikaOnline(range) {
+  // 按品牌聚合 → 数组
+  const dates = getCikaDateWindow(range);
+  const dateSet = new Set(dates);
+  const map = {};  // brand_name → {activities:Set, exp_pv, claim_pv, use_pv, exp_dashboard, use_dashboard, rows:[]}
+  for (const r of CIKA_ACTIVITY_ROWS) {
+    if (!dateSet.has(r.date)) continue;
+    const bn = r.brand_name;
+    if (!bn) continue;
+    if (!map[bn]) {
+      map[bn] = {
+        brand_name: bn, brand_id: r.brand_id, category: r.category,
+        activities: new Set(), exp_pv: 0, claim_pv: 0, use_pv: 0,
+        exp_dashboard: 0, use_dashboard: 0, rows: []
+      };
+    }
+    map[bn].activities.add(r.activity_id);
+    map[bn].exp_pv += (r.exp_pv || 0);
+    map[bn].claim_pv += (r.claim_pv || 0);
+    map[bn].use_pv += (r.use_pv || 0);
+    map[bn].rows.push(r);
+  }
+  // 累计品牌大盘 PV（同窗口内累加）
+  for (const bn of Object.keys(map)) {
+    const pv = CIKA_BRAND_DAILY_PV[bn] || {};
+    for (const d of dates) {
+      const rec = pv[d];
+      if (rec) {
+        map[bn].exp_dashboard += rec.exp || 0;
+        map[bn].use_dashboard += rec.use || 0;
+      }
+    }
+  }
+  const rows = Object.values(map).map(x => ({
+    ...x,
+    activity_count: x.activities.size,
+    exp_claim_rate: x.exp_pv > 0 ? x.claim_pv / x.exp_pv : null,
+    claim_use_rate: x.claim_pv > 0 ? x.use_pv / x.claim_pv : null,
+    exp_use_rate: x.exp_pv > 0 ? x.use_pv / x.exp_pv : null,
+    exp_share: x.exp_dashboard > 0 ? x.exp_pv / x.exp_dashboard : null,
+    use_share: x.use_dashboard > 0 ? x.use_pv / x.use_dashboard : null,
+  }));
+  return rows;
+}
+
+function fmtPV(v) {
+  if (v == null || v === 0) return '0';
+  if (v >= 100000000) return (v / 100000000).toFixed(2) + '亿';
+  if (v >= 10000) return (v / 10000).toFixed(1) + 'w';
+  return Math.round(v).toLocaleString();
+}
+function fmtPct6(v) { return v == null ? '-' : (v * 100).toFixed(2) + '%'; }
+function fmtShare(v) {
+  if (v == null) return '<span style="color:#94a3b8;">-</span>';
+  const pct = (v * 100);
+  const color = pct > 30 ? '#d97706' : pct > 10 ? '#059669' : '#0369a1';
+  return `<span class="share-bar" style="color:${color};background:${color}1a;">${pct.toFixed(2)}%</span>`;
+}
+
+function renderCikaTrendChart() {
+  const el = document.getElementById('cikaTrendChart');
+  if (!el || typeof echarts === 'undefined') return;
+  if (!cikaTrendChart) cikaTrendChart = echarts.init(el);
+  const dates = getCikaDateWindow(cikaCurrentRange);
+  const dateSet = new Set(dates);
+
+  // 按日聚合：如果聚焦品牌，只用该品牌；否则全部次卡
+  const sumByDate = {};
+  for (const d of dates) sumByDate[d] = { exp: 0, use: 0 };
+  for (const r of CIKA_ACTIVITY_ROWS) {
+    if (!dateSet.has(r.date)) continue;
+    if (cikaActiveBrand && r.brand_name !== cikaActiveBrand) continue;
+    sumByDate[r.date].exp += (r.exp_pv || 0);
+    sumByDate[r.date].use += (r.use_pv || 0);
+  }
+  const xDates = dates.map(d => d.slice(5));  // MM-DD
+  const expArr = dates.map(d => sumByDate[d].exp);
+  const useArr = dates.map(d => sumByDate[d].use);
+
+  const title = cikaActiveBrand
+    ? `📈 ${cikaActiveBrand} · 次卡近 ${dates.length} 日趋势（点同一品牌行可取消聚焦）`
+    : `📈 全部次卡品牌汇总趋势 · 近 ${dates.length} 日（点品牌行可切换为单品牌）`;
+  document.getElementById('cikaChartTitle').textContent = title;
+
+  cikaTrendChart.setOption({
+    animation: true,
+    grid: { left: 50, right: 60, top: 40, bottom: 30 },
+    tooltip: { trigger: 'axis', formatter: (params) => {
+      const d = params[0].axisValue;
+      let txt = `<b>${d}</b><br/>`;
+      for (const p of params) txt += `${p.marker}${p.seriesName}: ${fmtPV(p.value)}<br/>`;
+      return txt;
+    } },
+    legend: { data: ['曝光 PV', '核销 PV'], right: 0, top: 5, textStyle: { fontSize: 12 } },
+    xAxis: { type: 'category', data: xDates, axisLabel: { fontSize: 11 } },
+    yAxis: [
+      { type: 'value', name: '曝光', position: 'left', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 11 }, splitLine: { lineStyle: { type: 'dashed' } } },
+      { type: 'value', name: '核销', position: 'right', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 11 }, splitLine: { show: false } },
+    ],
+    series: [
+      { name: '曝光 PV', type: 'line', yAxisIndex: 0, data: expArr, smooth: true, itemStyle: { color: '#3b82f6' }, lineStyle: { width: 2 } },
+      { name: '核销 PV', type: 'line', yAxisIndex: 1, data: useArr, smooth: true, itemStyle: { color: '#ef4444' }, lineStyle: { width: 2 } },
+    ],
+  });
+}
+
+function renderCikaOnlineTable() {
+  const rows = cikaOnlineAggCache || [];
+  // 排序
+  const key = cikaOnlineSort.key;
+  const dir = cikaOnlineSort.dir;
+  rows.sort((a, b) => {
+    const va = a[key], vb = b[key];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    return dir === 'desc' ? vb - va : va - vb;
+  });
+
+  // header active mark
+  document.querySelectorAll('#cikaOnlineTable .sortable-header').forEach(th => {
+    th.classList.remove('active', 'desc', 'asc');
+    const base = th.dataset._label || th.textContent.replace(/[▼▲]/g, '').trim();
+    th.dataset._label = base;
+    th.textContent = base;
+  });
+  const activeTh = document.querySelector(`#cikaOnlineTable .sortable-header[data-sort="${key}"]`);
+  if (activeTh) {
+    activeTh.classList.add('active', dir);
+    activeTh.textContent = activeTh.dataset._label + (dir === 'desc' ? ' ▼' : ' ▲');
+  }
+
+  const tbody = document.getElementById('cikaOnlineTbody');
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    document.getElementById('cikaOnlineEmpty').style.display = 'block';
+    document.getElementById('cikaOnlineTable').style.display = 'none';
+    return;
+  }
+  document.getElementById('cikaOnlineEmpty').style.display = 'none';
+  document.getElementById('cikaOnlineTable').style.display = '';
+
+  const totalAct = rows.reduce((s, r) => s + r.activity_count, 0);
+  document.getElementById('cikaOnlineCount').textContent = `${rows.length} 个品牌 · ${totalAct} 个活动`;
+
+  tbody.innerHTML = rows.map((r, idx) => {
+    const bnEsc = r.brand_name.replace(/'/g, "\\'");
+    const comment = cikaComments[r.brand_name] || '';
+    const active = cikaActiveBrand === r.brand_name ? 'active' : '';
+    return `<tr class="${active}" data-brand="${bnEsc}" onclick="onCikaBrandRowClick('${bnEsc}')">
+      <td style="text-align:center;color:#94a3b8;">${idx + 1}</td>
+      <td><b>${r.brand_name}</b></td>
+      <td style="text-align:center;">${r.activity_count}</td>
+      <td style="text-align:right;">${fmtPV(r.exp_pv)}</td>
+      <td style="text-align:right;">${fmtPV(r.claim_pv)}</td>
+      <td style="text-align:right;font-weight:600;">${fmtPV(r.use_pv)}</td>
+      <td style="text-align:right;color:#64748b;">${fmtPct6(r.exp_claim_rate)}</td>
+      <td style="text-align:right;color:#64748b;">${fmtPct6(r.claim_use_rate)}</td>
+      <td style="text-align:right;color:#64748b;">${fmtPct6(r.exp_use_rate)}</td>
+      <td style="text-align:right;">${fmtShare(r.exp_share)}</td>
+      <td style="text-align:right;">${fmtShare(r.use_share)}</td>
+      <td class="editable-cell" onclick="event.stopPropagation();">
+        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'cika','${bnEsc}')">${comment || '点击添加备注...'}</div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function onCikaBrandRowClick(brand) {
+  // 点击行：1) 切换趋势图聚焦 2) 同步打开 drawer
+  if (cikaActiveBrand === brand) {
+    cikaActiveBrand = null;  // 再点同行取消聚焦
+  } else {
+    cikaActiveBrand = brand;
+  }
+  renderCikaTrendChart();
+  renderCikaOnlineTable();  // 刷新 active 态
+  if (cikaActiveBrand) openCikaDrawer(brand);
+}
+
+function openCikaDrawer(brand) {
+  document.getElementById('cikaDrawerTitle').textContent = `${brand} · 次卡活动详情`;
+  document.getElementById('cikaDrawerMask').classList.add('show');
+  document.getElementById('cikaDrawer').classList.add('show');
+
+  // 明细表格（当前窗口内）
+  const dates = getCikaDateWindow(cikaCurrentRange);
+  const dateSet = new Set(dates);
+  const actMap = {};
+  for (const r of CIKA_ACTIVITY_ROWS) {
+    if (r.brand_name !== brand) continue;
+    if (!dateSet.has(r.date)) continue;
+    const k = r.activity_id;
+    if (!actMap[k]) actMap[k] = { activity_id: k, activity_name: r.activity_name, exp: 0, claim: 0, use: 0 };
+    actMap[k].exp += (r.exp_pv || 0);
+    actMap[k].claim += (r.claim_pv || 0);
+    actMap[k].use += (r.use_pv || 0);
+  }
+  const acts = Object.values(actMap).sort((a, b) => b.use - a.use);
+  const tbody = document.getElementById('cikaDrawerTbody');
+  if (!acts.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">无活动明细</td></tr>';
+  } else {
+    tbody.innerHTML = acts.map(a => `<tr>
+      <td>${a.activity_id}</td>
+      <td>${a.activity_name || '-'}</td>
+      <td style="text-align:right;">${fmtPV(a.exp)}</td>
+      <td style="text-align:right;">${fmtPV(a.claim)}</td>
+      <td style="text-align:right;font-weight:600;">${fmtPV(a.use)}</td>
+      <td style="text-align:right;color:#64748b;">${a.exp > 0 ? fmtPct6(a.use / a.exp) : '-'}</td>
+    </tr>`).join('');
+  }
+
+  // 品牌 10 日趋势图
+  setTimeout(() => {
+    const el = document.getElementById('cikaDrawerChart');
+    if (!cikaDrawerChart) cikaDrawerChart = echarts.init(el);
+    else cikaDrawerChart.resize();
+    const allDates = CIKA_DATES;
+    const sumByDate = {};
+    for (const d of allDates) sumByDate[d] = { exp: 0, use: 0 };
+    for (const r of CIKA_ACTIVITY_ROWS) {
+      if (r.brand_name !== brand) continue;
+      if (!sumByDate[r.date]) continue;
+      sumByDate[r.date].exp += (r.exp_pv || 0);
+      sumByDate[r.date].use += (r.use_pv || 0);
+    }
+    cikaDrawerChart.setOption({
+      animation: false,
+      grid: { left: 50, right: 50, top: 30, bottom: 30 },
+      tooltip: { trigger: 'axis' },
+      legend: { data: ['曝光 PV', '核销 PV'], right: 0, top: 0, textStyle: { fontSize: 11 } },
+      xAxis: { type: 'category', data: allDates.map(d => d.slice(5)), axisLabel: { fontSize: 10 } },
+      yAxis: [
+        { type: 'value', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 10 } },
+        { type: 'value', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 10 }, splitLine: { show: false } },
+      ],
+      series: [
+        { name: '曝光 PV', type: 'line', data: allDates.map(d => sumByDate[d].exp), smooth: true, itemStyle: { color: '#3b82f6' } },
+        { name: '核销 PV', type: 'line', yAxisIndex: 1, data: allDates.map(d => sumByDate[d].use), smooth: true, itemStyle: { color: '#ef4444' } },
+      ],
+    });
+  }, 50);
+}
+
+function closeCikaDrawer() {
+  document.getElementById('cikaDrawerMask').classList.remove('show');
+  document.getElementById('cikaDrawer').classList.remove('show');
+}
+
+function setCikaRange(range) {
+  cikaCurrentRange = range;
+  document.querySelectorAll('#cikaRangeSwitcher .range-btn').forEach(b => {
+    b.classList.toggle('active', +b.dataset.range === range);
+  });
+  cikaOnlineAggCache = aggCikaOnline(cikaCurrentRange);
+  renderCikaOnlineTable();
+  renderCikaTrendChart();
+}
+
 async function renderCika() {
   await loadCikaCommentsFromServer();
+  await loadCikaActivityFromSupabase();
+  await loadCikaBrandDailyPV();
 
-  const brands = KA_DATA.brands;
-  const online = brands.filter(b => b['次卡'] === '已上线').length;
-  const interest = brands.filter(b => b['次卡'] === '有意向').length;
-  const notConsider = brands.filter(b => b['次卡'] === '暂不考虑').length;
-  const notTalked = brands.filter(b => !b['次卡']).length;
+  // 事件：周期切换
+  const switcher = document.getElementById('cikaRangeSwitcher');
+  if (switcher && !switcher.dataset.bound) {
+    switcher.addEventListener('click', (e) => {
+      const btn = e.target.closest('.range-btn');
+      if (!btn) return;
+      setCikaRange(+btn.dataset.range);
+    });
+    switcher.dataset.bound = '1';
+  }
+  // 事件：排序
+  const thHeaders = document.querySelectorAll('#cikaOnlineTable .sortable-header');
+  thHeaders.forEach(th => {
+    if (th.dataset._bound) return;
+    th.dataset._bound = '1';
+    th.addEventListener('click', (e) => {
+      const k = th.dataset.sort;
+      if (cikaOnlineSort.key === k) {
+        cikaOnlineSort.dir = cikaOnlineSort.dir === 'desc' ? 'asc' : 'desc';
+      } else {
+        cikaOnlineSort.key = k; cikaOnlineSort.dir = 'desc';
+      }
+      renderCikaOnlineTable();
+    });
+  });
 
-  document.getElementById('cikaStatusGrid').innerHTML = `
-    <div class="status-card sc-green"><div class="sc-icon">✅</div><div class="sc-value">${online}</div><div class="sc-label">已上线</div></div>
-    <div class="status-card sc-yellow"><div class="sc-icon">💬</div><div class="sc-value">${interest}</div><div class="sc-label">有意向</div></div>
-  `;
+  // 初始化数据视图
+  cikaOnlineAggCache = aggCikaOnline(cikaCurrentRange);
+  renderCikaOnlineTable();
+  renderCikaTrendChart();
 
+  // 未上线品牌表（原逻辑）
   renderCikaTable();
 }
 
@@ -1414,15 +1877,18 @@ function renderCikaTable() {
   const owner = document.getElementById('cikaFilterOwner').value;
   const cat = document.getElementById('cikaFilterCat')?.value || '';
 
+  // 已上线品牌已在上方"已上线商户数据"区块独立展示，此处排除
+  // 区块 2 仅显示未上线品牌（有意向 / 待沟通 / 暂不考虑 / 未沟通）
   let data = KA_DATA.brands.filter(b => {
+    if (b['次卡'] === '已上线') return false;
     if (owner && b['负责人'] !== owner) return false;
     if (cat && b['品类'] !== cat) return false;
     return true;
   });
 
-  // Sort: 已上线 first, then 有意向, then rest
-  const statusOrder = {'已上线':0, '有意向':1, '暂不考虑':2, '':3};
-  const ACTIVE_STATUSES = ['已上线', '有意向', '待沟通'];
+  // Sort: 有意向 first, 待沟通, 暂不考虑, 未沟通(空)
+  const statusOrder = {'有意向':0, '待沟通':1, '暂不考虑':2, '':3};
+  const ACTIVE_STATUSES = ['有意向', '待沟通'];
   if (cikaSortDir) {
     data.sort((a, b) => {
       const va = statusOrder[a['次卡']]??3;
@@ -1471,6 +1937,10 @@ function renderCikaTable() {
   if (btn && !btn.classList.contains('expanded')) {
     btn.textContent = '📋 展开全部KA商户名单（含未沟通/暂不考虑，' + collapsedData.length + '个）';
   }
+
+  // 更新未上线 badge
+  const offBadge = document.getElementById('cikaOfflineCount');
+  if (offBadge) offBadge.textContent = (activeData.length + collapsedData.length) + ' 个';
 }
 
 // Sort handler for cika table
