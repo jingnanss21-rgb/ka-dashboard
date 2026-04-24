@@ -257,7 +257,10 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 .range-btn:hover { color:#1e293b; }
 .range-btn.active { background:#fff; color:#2563eb; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.05); }
 .cika-chart-wrap { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-top:12px; }
-.cika-chart-title { font-size:13px; color:var(--text-secondary); margin-bottom:6px; }
+.cika-chart-title { font-size:13px; color:var(--text-secondary); }
+.cika-chart-title-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:12px; }
+.cika-reset-btn { background:#fef3c7; color:#b45309; border:1px solid #fde68a; padding:4px 10px; font-size:12px; border-radius:6px; cursor:pointer; font-weight:500; transition:all .15s; white-space:nowrap; }
+.cika-reset-btn:hover { background:#fde68a; color:#92400e; }
 .cika-online-table { width:100%; border-collapse:collapse; font-size:13px; }
 .cika-online-table thead th { background:#f8fafc; color:#475569; font-weight:600; padding:8px 10px; border-bottom:2px solid #e2e8f0; font-size:12px; text-align:left; white-space:nowrap; }
 .cika-online-table tbody td { padding:8px 10px; border-bottom:1px solid #f1f5f9; white-space:nowrap; }
@@ -466,7 +469,10 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
     <!-- 趋势图 -->
     <div class="cika-chart-wrap">
-      <div class="cika-chart-title" id="cikaChartTitle">📈 全部次卡品牌汇总趋势（点击下方品牌行可切换）</div>
+      <div class="cika-chart-title-bar">
+        <span id="cikaChartTitle" class="cika-chart-title">📈 全部次卡品牌汇总趋势（点击下方品牌行可切换）</span>
+        <button id="cikaResetBtn" class="cika-reset-btn" style="display:none;" onclick="resetCikaFocus()">🔄 回到全部</button>
+      </div>
       <div id="cikaTrendChart" style="width:100%;height:280px;"></div>
     </div>
 
@@ -1675,10 +1681,13 @@ function renderCikaTrendChart() {
   const useArr = dates.map(d => sumByDate[d].use);
 
   const title = cikaActiveBrand
-    ? `📈 ${cikaActiveBrand} · 次卡近 ${dates.length} 日趋势（点同一品牌行可取消聚焦）`
-    : `📈 全部次卡品牌汇总趋势 · 近 ${dates.length} 日（点品牌行可切换为单品牌）`;
+    ? `📈 当前聚焦：${cikaActiveBrand} · 近 ${dates.length} 日趋势`
+    : `📈 全部次卡品牌汇总趋势 · 近 ${dates.length} 日（点下方品牌行可聚焦单品牌）`;
   const titleEl = document.getElementById('cikaChartTitle');
   if (titleEl) titleEl.textContent = title;
+  // 切换"回到全部"按钮显隐
+  const resetBtn = document.getElementById('cikaResetBtn');
+  if (resetBtn) resetBtn.style.display = cikaActiveBrand ? 'inline-block' : 'none';
 
   cikaTrendChart.setOption({
     animation: true,
@@ -1771,7 +1780,7 @@ function renderCikaOnlineTable() {
     const bnEsc = r.brand_name.replace(/'/g, "\\'");
     const comment = cikaComments[r.brand_name] || '';
     const active = cikaActiveBrand === r.brand_name ? 'active' : '';
-    return `<tr class="${active}" data-brand="${bnEsc}" onclick="onCikaBrandRowClick('${bnEsc}')">
+    return `<tr class="${active}" data-brand="${bnEsc}" title="${active ? '再次点击可回到全部' : '点击聚焦该品牌趋势'}" onclick="onCikaBrandRowClick('${bnEsc}')">
       <td style="text-align:center;color:#94a3b8;">${idx + 1}</td>
       <td><b>${r.brand_name}</b></td>
       <td style="text-align:center;">${r.activity_count}</td>
@@ -1800,6 +1809,12 @@ function onCikaBrandRowClick(brand) {
   renderCikaTrendChart();
   renderCikaOnlineTable();  // 刷新 active 态
   if (cikaActiveBrand) openCikaDrawer(brand);
+}
+
+function resetCikaFocus() {
+  cikaActiveBrand = null;
+  renderCikaTrendChart();
+  renderCikaOnlineTable();
 }
 
 function openCikaDrawer(brand) {
