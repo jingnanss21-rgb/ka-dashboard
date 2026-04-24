@@ -717,56 +717,6 @@ async function loadAvailableDates() {
   return (data || []).map(row => row.report_date);
 }
 
-// ── 数据完整性校验：关键字段空值率 > 80% 判定不合格 ──
-const KA_CRITICAL_FIELDS_IDX = ['isAlive', 'dailyPayment', 'dailyRedeem', 'highFreqAppUV'];
-const KA_THRESHOLD_IDX = 0.8;
-const KA_MAX_FALLBACK_IDX = 5;
-
-function isKaBrandsComplete(brands) {
-  if(!brands || !brands.length) return false;
-  for(const f of KA_CRITICAL_FIELDS_IDX) {
-    let empty = 0;
-    for(const b of brands) {
-      const v = b[f];
-      if(v === null || v === undefined || v === '' || v === 'NULL') empty++;
-    }
-    if(empty / brands.length > KA_THRESHOLD_IDX) return false;
-  }
-  return true;
-}
-
-/**
- * 按候选日期数组依次尝试加载；某期关键字段空值率 > 80% 则自动回退到下一期。
- * 返回实际命中的日期；全不合格时回退到第一个候选（最新）。
- */
-async function loadDataForDateWithFallback(candidateDates) {
-  if(!candidateDates || !candidateDates.length) throw new Error("候选日期为空");
-  const limit = Math.min(candidateDates.length, KA_MAX_FALLBACK_IDX);
-  let lastErr = null;
-  for(let i = 0; i < limit; i++) {
-    const d = candidateDates[i];
-    try {
-      await loadDataForDate(d);
-      if(isKaBrandsComplete(DATA && DATA.brands)) {
-        if(i > 0) console.warn('[FALLBACK][KA-IDX] 当日(' + candidateDates[0] + ')数据不全，已回退到 ' + d);
-        return d;
-      } else {
-        console.warn('[FALLBACK][KA-IDX] ' + d + ' 关键字段空值率过高，尝试下一期');
-      }
-    } catch(e) {
-      lastErr = e;
-      console.warn('[FALLBACK][KA-IDX] ' + d + ' 加载失败: ' + (e.message || e));
-    }
-  }
-  // 全不合格：强行保留最新一期渲染结果（此时 DATA 已为最后一次尝试的快照，或第一期）
-  console.warn('[FALLBACK][KA-IDX][MISS] 最近 ' + limit + ' 期均不合格，使用最新一期 ' + candidateDates[0]);
-  if(!DATA || !DATA.brands || !DATA.brands.length) {
-    // DATA 还没被成功填充 → 强行用第一期再加载一次
-    await loadDataForDate(candidateDates[0]);
-  }
-  return candidateDates[0];
-}
-
 function fillReportDateSelect(dates) {
   const sel = document.getElementById("reportDateSelect");
   if(!sel) return;
@@ -949,9 +899,7 @@ async function loadData() {
     const latest = dates[0];
     const sel = document.getElementById("reportDateSelect");
     if(sel) sel.value = latest;
-    // 初次加载时若当日数据不全，自动回退到最近一期合格的快照
-    const hit = await loadDataForDateWithFallback(dates);
-    if(hit && sel && hit !== latest) sel.value = hit;
+    await loadDataForDate(latest);
     await mergeFeedbacksFromSupabase();
     return true;
   } catch(err) {
