@@ -719,6 +719,13 @@ document.querySelectorAll('.project-tab').forEach(tab => {
     document.querySelectorAll('.project-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + tab.dataset.project).classList.add('active');
     updatePeriodBadge(tab.dataset.project);
+    // 切换到次卡 tab 时，如果 ECharts 尚未 init 或尺寸异常，做一次 resize 渲染
+    if (tab.dataset.project === 'cika' && typeof renderCikaTrendChart === 'function') {
+      setTimeout(() => {
+        if (cikaTrendChart) cikaTrendChart.resize();
+        renderCikaTrendChart();
+      }, 50);
+    }
   });
 });
 
@@ -1635,7 +1642,22 @@ function fmtShare(v) {
 function renderCikaTrendChart() {
   const el = document.getElementById('cikaTrendChart');
   if (!el || typeof echarts === 'undefined') return;
-  if (!cikaTrendChart) cikaTrendChart = echarts.init(el);
+  // 关键：父容器不可见时 echarts 初始化会崩坏布局，跳过渲染
+  // 等 tab 切换事件再触发
+  if (el.offsetWidth === 0 || el.offsetHeight === 0) {
+    return;
+  }
+  if (!cikaTrendChart) {
+    cikaTrendChart = echarts.init(el);
+    // 绑定 ResizeObserver 自动 resize
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => cikaTrendChart && cikaTrendChart.resize()).observe(el);
+    }
+    // 窗口 resize 兜底
+    window.addEventListener('resize', () => cikaTrendChart && cikaTrendChart.resize());
+  } else {
+    cikaTrendChart.resize();
+  }
   const dates = getCikaDateWindow(cikaCurrentRange);
   const dateSet = new Set(dates);
 
@@ -1655,28 +1677,55 @@ function renderCikaTrendChart() {
   const title = cikaActiveBrand
     ? `📈 ${cikaActiveBrand} · 次卡近 ${dates.length} 日趋势（点同一品牌行可取消聚焦）`
     : `📈 全部次卡品牌汇总趋势 · 近 ${dates.length} 日（点品牌行可切换为单品牌）`;
-  document.getElementById('cikaChartTitle').textContent = title;
+  const titleEl = document.getElementById('cikaChartTitle');
+  if (titleEl) titleEl.textContent = title;
 
   cikaTrendChart.setOption({
     animation: true,
-    grid: { left: 50, right: 60, top: 40, bottom: 30 },
+    grid: { left: 60, right: 60, top: 50, bottom: 40, containLabel: true },
     tooltip: { trigger: 'axis', formatter: (params) => {
       const d = params[0].axisValue;
       let txt = `<b>${d}</b><br/>`;
       for (const p of params) txt += `${p.marker}${p.seriesName}: ${fmtPV(p.value)}<br/>`;
       return txt;
     } },
-    legend: { data: ['曝光 PV', '核销 PV'], right: 0, top: 5, textStyle: { fontSize: 12 } },
-    xAxis: { type: 'category', data: xDates, axisLabel: { fontSize: 11 } },
+    legend: {
+      data: ['曝光 PV', '核销 PV'],
+      top: 5,
+      left: 'center',
+      itemGap: 24,
+      textStyle: { fontSize: 12 }
+    },
+    xAxis: {
+      type: 'category',
+      data: xDates,
+      boundaryGap: false,
+      axisLabel: { fontSize: 11, interval: 0 },
+    },
     yAxis: [
-      { type: 'value', name: '曝光', position: 'left', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 11 }, splitLine: { lineStyle: { type: 'dashed' } } },
-      { type: 'value', name: '核销', position: 'right', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 11 }, splitLine: { show: false } },
+      { type: 'value', name: '曝光', nameTextStyle: { fontSize: 11 }, position: 'left',
+        axisLabel: { formatter: (v) => fmtPV(v), fontSize: 11 },
+        splitLine: { lineStyle: { type: 'dashed', color: '#e2e8f0' } }
+      },
+      { type: 'value', name: '核销', nameTextStyle: { fontSize: 11 }, position: 'right',
+        axisLabel: { formatter: (v) => fmtPV(v), fontSize: 11 },
+        splitLine: { show: false }
+      },
     ],
     series: [
-      { name: '曝光 PV', type: 'line', yAxisIndex: 0, data: expArr, smooth: true, itemStyle: { color: '#3b82f6' }, lineStyle: { width: 2 } },
-      { name: '核销 PV', type: 'line', yAxisIndex: 1, data: useArr, smooth: true, itemStyle: { color: '#ef4444' }, lineStyle: { width: 2 } },
+      { name: '曝光 PV', type: 'line', yAxisIndex: 0, data: expArr, smooth: true,
+        showSymbol: true, symbolSize: 6,
+        itemStyle: { color: '#3b82f6' },
+        lineStyle: { width: 2 },
+        areaStyle: { color: 'rgba(59,130,246,0.08)' }
+      },
+      { name: '核销 PV', type: 'line', yAxisIndex: 1, data: useArr, smooth: true,
+        showSymbol: true, symbolSize: 6,
+        itemStyle: { color: '#ef4444' },
+        lineStyle: { width: 2 }
+      },
     ],
-  });
+  }, true);  // true = 不合并，重置 option 避免图例遗留
 }
 
 function renderCikaOnlineTable() {
@@ -1789,8 +1838,16 @@ function openCikaDrawer(brand) {
   // 品牌 10 日趋势图
   setTimeout(() => {
     const el = document.getElementById('cikaDrawerChart');
-    if (!cikaDrawerChart) cikaDrawerChart = echarts.init(el);
-    else cikaDrawerChart.resize();
+    if (!el || typeof echarts === 'undefined') return;
+    if (el.offsetWidth === 0) return;
+    if (!cikaDrawerChart) {
+      cikaDrawerChart = echarts.init(el);
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(() => cikaDrawerChart && cikaDrawerChart.resize()).observe(el);
+      }
+    } else {
+      cikaDrawerChart.resize();
+    }
     const allDates = CIKA_DATES;
     const sumByDate = {};
     for (const d of allDates) sumByDate[d] = { exp: 0, use: 0 };
@@ -1802,20 +1859,25 @@ function openCikaDrawer(brand) {
     }
     cikaDrawerChart.setOption({
       animation: false,
-      grid: { left: 50, right: 50, top: 30, bottom: 30 },
+      grid: { left: 50, right: 50, top: 40, bottom: 30, containLabel: true },
       tooltip: { trigger: 'axis' },
-      legend: { data: ['曝光 PV', '核销 PV'], right: 0, top: 0, textStyle: { fontSize: 11 } },
-      xAxis: { type: 'category', data: allDates.map(d => d.slice(5)), axisLabel: { fontSize: 10 } },
+      legend: { data: ['曝光 PV', '核销 PV'], top: 0, left: 'center', textStyle: { fontSize: 11 } },
+      xAxis: { type: 'category', data: allDates.map(d => d.slice(5)), boundaryGap: false, axisLabel: { fontSize: 10, interval: 0 } },
       yAxis: [
-        { type: 'value', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 10 } },
-        { type: 'value', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 10 }, splitLine: { show: false } },
+        { type: 'value', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 10 },
+          splitLine: { lineStyle: { type: 'dashed', color: '#e2e8f0' } } },
+        { type: 'value', axisLabel: { formatter: (v) => fmtPV(v), fontSize: 10 },
+          splitLine: { show: false } },
       ],
       series: [
-        { name: '曝光 PV', type: 'line', data: allDates.map(d => sumByDate[d].exp), smooth: true, itemStyle: { color: '#3b82f6' } },
-        { name: '核销 PV', type: 'line', yAxisIndex: 1, data: allDates.map(d => sumByDate[d].use), smooth: true, itemStyle: { color: '#ef4444' } },
+        { name: '曝光 PV', type: 'line', data: allDates.map(d => sumByDate[d].exp),
+          smooth: true, itemStyle: { color: '#3b82f6' }, showSymbol: true, symbolSize: 5,
+          areaStyle: { color: 'rgba(59,130,246,0.08)' } },
+        { name: '核销 PV', type: 'line', yAxisIndex: 1, data: allDates.map(d => sumByDate[d].use),
+          smooth: true, itemStyle: { color: '#ef4444' }, showSymbol: true, symbolSize: 5 },
       ],
-    });
-  }, 50);
+    }, true);
+  }, 100);
 }
 
 function closeCikaDrawer() {
