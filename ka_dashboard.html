@@ -1588,6 +1588,9 @@ function getCikaDateWindow(range) {
 
 function aggCikaOnline(range) {
   // 按品牌聚合 → 数组
+  // 仅保留存在于 KA 分工表（ka_daily_snapshot.brands）中的品牌
+  // 非 KA 品牌（如柠季）虽在活动日表中，但不在 KA 看板口径内，直接过滤
+  const kaBrandsSet = new Set(Object.keys(CIKA_BRAND_DAILY_PV));
   const dates = getCikaDateWindow(range);
   const dateSet = new Set(dates);
   const map = {};  // brand_name → {activities:Set, exp_pv, claim_pv, use_pv, exp_dashboard, use_dashboard, rows:[]}
@@ -1595,6 +1598,7 @@ function aggCikaOnline(range) {
     if (!dateSet.has(r.date)) continue;
     const bn = r.brand_name;
     if (!bn) continue;
+    if (!kaBrandsSet.has(bn)) continue;  // 过滤非 KA 品牌
     if (!map[bn]) {
       map[bn] = {
         brand_name: bn, brand_id: r.brand_id, category: r.category,
@@ -1666,13 +1670,15 @@ function renderCikaTrendChart() {
   }
   const dates = getCikaDateWindow(cikaCurrentRange);
   const dateSet = new Set(dates);
+  const kaBrandsSet = new Set(Object.keys(CIKA_BRAND_DAILY_PV));
 
-  // 按日聚合：如果聚焦品牌，只用该品牌；否则全部次卡
+  // 按日聚合：如果聚焦品牌，只用该品牌；否则全部次卡（非 KA 品牌过滤）
   const sumByDate = {};
   for (const d of dates) sumByDate[d] = { exp: 0, use: 0 };
   for (const r of CIKA_ACTIVITY_ROWS) {
     if (!dateSet.has(r.date)) continue;
     if (cikaActiveBrand && r.brand_name !== cikaActiveBrand) continue;
+    if (!cikaActiveBrand && !kaBrandsSet.has(r.brand_name)) continue;  // 全局汇总时过滤非 KA
     sumByDate[r.date].exp += (r.exp_pv || 0);
     sumByDate[r.date].use += (r.use_pv || 0);
   }
