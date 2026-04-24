@@ -456,7 +456,10 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
       <div class="icon" style="background:var(--success)"></div>
       <span>✅ 已上线商户数据</span>
       <span id="cikaOnlineCount" class="badge" style="background:#dcfce7;color:#15803d;">0 个品牌 · 0 个活动</span>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+        <label id="cikaSumToggleWrap" style="display:none;align-items:center;gap:4px;font-size:12px;color:#64748b;cursor:pointer;">
+          <input type="checkbox" id="cikaSumToggle" style="cursor:pointer;margin:0;"> 显示累计值
+        </label>
         <span style="font-size:12px;color:var(--text-secondary);">周期：</span>
         <div id="cikaRangeSwitcher" class="range-switcher">
           <button data-range="1" class="range-btn">当日</button>
@@ -484,9 +487,12 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th style="width:32px;text-align:center;">#</th>
             <th style="min-width:110px;">品牌</th>
             <th style="width:56px;text-align:center;">活动数</th>
-            <th class="sortable-header" data-sort="exp_pv" style="text-align:right;">曝光 PV</th>
-            <th class="sortable-header" data-sort="claim_pv" style="text-align:right;">领取 PV</th>
-            <th class="sortable-header active desc" data-sort="use_pv" style="text-align:right;">核销 PV ▼</th>
+            <th class="sortable-header" data-sort="exp_daily" style="text-align:right;">日均曝光</th>
+            <th class="sortable-header" data-sort="claim_daily" style="text-align:right;">日均领取</th>
+            <th class="sortable-header active desc" data-sort="use_daily" style="text-align:right;">日均核销 ▼</th>
+            <th class="sum-col sortable-header" data-sort="exp_pv" style="text-align:right;display:none;">累计曝光</th>
+            <th class="sum-col sortable-header" data-sort="claim_pv" style="text-align:right;display:none;">累计领取</th>
+            <th class="sum-col sortable-header" data-sort="use_pv" style="text-align:right;display:none;">累计核销</th>
             <th style="text-align:right;">曝光→领取</th>
             <th style="text-align:right;">领取→核销</th>
             <th style="text-align:right;">曝光→核销</th>
@@ -1521,7 +1527,7 @@ let CIKA_ACTIVITY_ROWS = [];   // 全部次卡活动明细（10 天）
 let CIKA_BRAND_DAILY_PV = {};  // {brand_name: {YYYY-MM-DD: {exp, use}}} —— 品牌大盘 PV（来自 ka_daily_snapshot）
 let CIKA_DATES = [];           // 可用日期排序升序
 let cikaCurrentRange = 10;     // 当前时间窗口 1/3/7/10
-let cikaOnlineSort = { key: 'use_pv', dir: 'desc' };
+let cikaOnlineSort = { key: 'use_daily', dir: 'desc' };
 let cikaActiveBrand = null;    // 当前趋势图聚焦的品牌（null=全部汇总）
 let cikaTrendChart = null, cikaDrawerChart = null;
 let cikaOnlineAggCache = null; // 缓存当前聚合结果，用于排序重渲染
@@ -1623,15 +1629,21 @@ function aggCikaOnline(range) {
       }
     }
   }
-  const rows = Object.values(map).map(x => ({
-    ...x,
-    activity_count: x.activities.size,
-    exp_claim_rate: x.exp_pv > 0 ? x.claim_pv / x.exp_pv : null,
-    claim_use_rate: x.claim_pv > 0 ? x.use_pv / x.claim_pv : null,
-    exp_use_rate: x.exp_pv > 0 ? x.use_pv / x.exp_pv : null,
-    exp_share: x.exp_dashboard > 0 ? x.exp_pv / x.exp_dashboard : null,
-    use_share: x.use_dashboard > 0 ? x.use_pv / x.use_dashboard : null,
-  }));
+  const rows = Object.values(map).map(x => {
+    const n = dates.length || 1;
+    return {
+      ...x,
+      activity_count: x.activities.size,
+      exp_daily: x.exp_pv / n,
+      claim_daily: x.claim_pv / n,
+      use_daily: x.use_pv / n,
+      exp_claim_rate: x.exp_pv > 0 ? x.claim_pv / x.exp_pv : null,
+      claim_use_rate: x.claim_pv > 0 ? x.use_pv / x.claim_pv : null,
+      exp_use_rate: x.exp_pv > 0 ? x.use_pv / x.exp_pv : null,
+      exp_share: x.exp_dashboard > 0 ? x.exp_pv / x.exp_dashboard : null,
+      use_share: x.use_dashboard > 0 ? x.use_pv / x.use_dashboard : null,
+    };
+  });
   return rows;
 }
 
@@ -1790,9 +1802,12 @@ function renderCikaOnlineTable() {
       <td style="text-align:center;color:#94a3b8;">${idx + 1}</td>
       <td><b>${r.brand_name}</b></td>
       <td style="text-align:center;">${r.activity_count}</td>
-      <td style="text-align:right;">${fmtPV(r.exp_pv)}</td>
-      <td style="text-align:right;">${fmtPV(r.claim_pv)}</td>
-      <td style="text-align:right;font-weight:600;">${fmtPV(r.use_pv)}</td>
+      <td style="text-align:right;">${fmtPV(r.exp_daily)}</td>
+      <td style="text-align:right;">${fmtPV(r.claim_daily)}</td>
+      <td style="text-align:right;font-weight:600;">${fmtPV(r.use_daily)}</td>
+      <td class="sum-col" style="text-align:right;color:#64748b;display:none;">${fmtPV(r.exp_pv)}</td>
+      <td class="sum-col" style="text-align:right;color:#64748b;display:none;">${fmtPV(r.claim_pv)}</td>
+      <td class="sum-col" style="text-align:right;color:#64748b;display:none;">${fmtPV(r.use_pv)}</td>
       <td style="text-align:right;color:#64748b;">${fmtPct6(r.exp_claim_rate)}</td>
       <td style="text-align:right;color:#64748b;">${fmtPct6(r.claim_use_rate)}</td>
       <td style="text-align:right;color:#64748b;">${fmtPct6(r.exp_use_rate)}</td>
@@ -1803,6 +1818,9 @@ function renderCikaOnlineTable() {
       </td>
     </tr>`;
   }).join('');
+
+  // 更新累计列显隐
+  applyCikaSumColsVisibility();
 }
 
 function onCikaBrandRowClick(brand) {
@@ -1911,9 +1929,23 @@ function setCikaRange(range) {
   document.querySelectorAll('#cikaRangeSwitcher .range-btn').forEach(b => {
     b.classList.toggle('active', +b.dataset.range === range);
   });
+  // 当日口径下，日均=累计，隐藏累计列切换；多日才显示
+  const wrap = document.getElementById('cikaSumToggleWrap');
+  if (wrap) wrap.style.display = range > 1 ? 'inline-flex' : 'none';
   cikaOnlineAggCache = aggCikaOnline(cikaCurrentRange);
   renderCikaOnlineTable();
   renderCikaTrendChart();
+}
+
+function applyCikaSumColsVisibility() {
+  const toggle = document.getElementById('cikaSumToggle');
+  const show = toggle ? toggle.checked : false;
+  // 当日周期下强制隐藏（日均=累计，没有必要）
+  const forceHide = cikaCurrentRange <= 1;
+  const visible = show && !forceHide;
+  document.querySelectorAll('#cikaOnlineTable .sum-col').forEach(el => {
+    el.style.display = visible ? '' : 'none';
+  });
 }
 
 async function renderCika() {
@@ -1947,8 +1979,18 @@ async function renderCika() {
     });
   });
 
+  // 事件：累计列 toggle
+  const sumToggle = document.getElementById('cikaSumToggle');
+  if (sumToggle && !sumToggle.dataset.bound) {
+    sumToggle.dataset.bound = '1';
+    sumToggle.addEventListener('change', applyCikaSumColsVisibility);
+  }
+
   // 初始化数据视图
   cikaOnlineAggCache = aggCikaOnline(cikaCurrentRange);
+  // 默认 10 日周期，显示累计 toggle
+  const wrap = document.getElementById('cikaSumToggleWrap');
+  if (wrap) wrap.style.display = cikaCurrentRange > 1 ? 'inline-flex' : 'none';
   renderCikaOnlineTable();
   renderCikaTrendChart();
 
