@@ -723,6 +723,70 @@ function fillReportDateSelect(dates) {
   sel.innerHTML = dates.map(d => "<option value=\"" + d + "\">" + d + "</option>").join("");
 }
 
+// 新增：从 ka_activity_daily 按「近 7 日」聚合活动明细
+// 与品牌主表"近7日均曝光/近7日均核销"周期对齐
+// dailyExposure 单位：万（PV / 10000）；dailyRedeem 单位：笔
+async function loadActivitiesFromDailyTable(reportDate) {
+  if(!sbClient) return [];
+  try {
+    const end = String(reportDate);
+    const d = new Date(end);
+    d.setDate(d.getDate() - 6);
+    const start = d.toISOString().substring(0, 10);
+
+    const { data, error } = await sbClient
+      .from('ka_activity_daily')
+      .select('date,brand_name,activity_id,activity_name,batch_name,coupon_type,price_power,exp_pv,claim_pv,use_pv')
+      .gte('date', start)
+      .lte('date', end);
+    if(error) throw error;
+    const rows = data || [];
+    if(!rows.length) return [];
+
+    // 按 (brand_name + activity_id) 聚合
+    const map = {};
+    for(const r of rows) {
+      const key = (r.brand_name || '') + '||' + (r.activity_id || '');
+      if(!map[key]) {
+        map[key] = {
+          brandName: r.brand_name, activityId: r.activity_id,
+          activityName: r.activity_name || '',
+          couponName: r.batch_name || null,
+          couponType: r.coupon_type || '',
+          pricePower: r.price_power,
+          exp_sum: 0, claim_sum: 0, use_sum: 0,
+          latestDate: r.date,
+        };
+      }
+      const m = map[key];
+      m.exp_sum += (r.exp_pv || 0);
+      m.claim_sum += (r.claim_pv || 0);
+      m.use_sum += (r.use_pv || 0);
+      if(r.date > m.latestDate) {
+        m.latestDate = r.date;
+        if(r.activity_name) m.activityName = r.activity_name;
+        if(r.batch_name) m.couponName = r.batch_name;
+        if(r.price_power != null) m.pricePower = r.price_power;
+      }
+    }
+
+    return Object.values(map).map(m => ({
+      brandName: m.brandName,
+      activityId: m.activityId,
+      activityName: m.activityName || '',
+      couponName: (m.couponName && m.couponName !== 'None') ? m.couponName : null,
+      couponType: m.couponType,
+      pricePower: m.pricePower,
+      dailyExposure: m.exp_sum / 7 / 10000,   // 近 7 日均曝光 PV（万）
+      dailyRedeem: m.use_sum / 7,              // 近 7 日均核销 PV（笔）
+      exposureRedeemRate: m.exp_sum > 0 ? (m.use_sum / m.exp_sum) : null,
+    }));
+  } catch(e) {
+    console.warn('loadActivitiesFromDailyTable:', e.message || e);
+    return [];
+  }
+}
+
 async function loadWeeklyActivitiesForDate(reportDate) {
   if(!sbClient) return [];
   const ds = String(reportDate);
@@ -803,9 +867,13 @@ async function loadDataForDate(dateStr) {
     assignments = await loadAssignmentsFromSupabase();
   } catch(e) { console.warn("ka_assignments", e); }
 
-  let activities = parseSnapshotJsonArray(row.activities);
+  let activities = await loadActivitiesFromDailyTable(dateStr);
   if(!activities || !activities.length) {
-    activities = await loadWeeklyActivitiesForDate(dateStr);
+    // 兜底：如果 ka_activity_daily 未命中（例如历史日期没有），走老逻辑
+    activities = parseSnapshotJsonArray(row.activities);
+    if(!activities || !activities.length) {
+      activities = await loadWeeklyActivitiesForDate(dateStr);
+    }
   }
 
   snapshotDateLabel = row.data_date_label || "";
