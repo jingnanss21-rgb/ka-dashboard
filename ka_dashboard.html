@@ -1523,43 +1523,68 @@ let cikaSortDir = null; // null=默认(状态序), 'asc', 'desc'
 // ─────────────────────────────────────────────
 // 次卡已上线商户数据（基于 ka_activity_daily 表）
 // ─────────────────────────────────────────────
-let CIKA_ACTIVITY_ROWS = [];   // 全部次卡活动明细（10 天）
-let CIKA_BRAND_DAILY_PV = {};  // {brand_name: {YYYY-MM-DD: {exp, use}}} —— 品牌大盘 PV（来自 ka_daily_snapshot）
-let CIKA_DATES = [];           // 可用日期排序升序
-let cikaCurrentRange = 10;     // 当前时间窗口 1/3/7/10
+let CIKA_ACTIVITY_ROWS = [];       // 次卡活动明细（用于表格/趋势图 分子）
+let CIKA_BRAND_TOTAL_ROWS = [];    // 所有活动明细（用于占比 分母：同品牌全活动 PV 合计）
+let CIKA_BRAND_DAILY_PV = {};      // (保留，未来可能回退用) snapshot 的 dailyRedeem/dailyExposure
+let CIKA_DATES = [];               // 可用日期升序
+let cikaCurrentRange = 10;
 let cikaOnlineSort = { key: 'use_daily', dir: 'desc' };
-let cikaActiveBrand = null;    // 当前趋势图聚焦的品牌（null=全部汇总）
+let cikaActiveBrand = null;
 let cikaTrendChart = null, cikaDrawerChart = null;
-let cikaOnlineAggCache = null; // 缓存当前聚合结果，用于排序重渲染
+let cikaOnlineAggCache = null;
 
 async function loadCikaActivityFromSupabase() {
-  // 拉近 10 天次卡活动
+  // 分两路拉：
+  //   1) 次卡活动（筛选 coupon_type=次卡）→ 用于表格+趋势图
+  //   2) 全量活动（PV 字段）→ 用于占比分母
+  // 活动量级：~9500 行，需分页（Supabase 默认 1000 上限）
   try {
-    const { data, error } = await alertSb
+    // Route 1: 次卡活动
+    const { data: cikaRows, error: e1 } = await alertSb
       .from('ka_activity_daily')
       .select('date,brand_id,brand_name,category,activity_id,activity_name,coupon_type,exp_pv,claim_pv,use_pv')
       .eq('coupon_type', '次卡')
       .order('date', { ascending: true });
-    if (error) throw error;
-    CIKA_ACTIVITY_ROWS = data || [];
-    // 提取日期集合
+    if (e1) throw e1;
+    CIKA_ACTIVITY_ROWS = cikaRows || [];
     const setD = new Set(CIKA_ACTIVITY_ROWS.map(r => r.date));
     CIKA_DATES = Array.from(setD).sort();
+
+    // Route 2: 全量活动（只取分母需要的字段）
+    // 分页拉，每页 1000 条
+    const allRows = [];
+    let offset = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data: pageRows, error: e2 } = await alertSb
+        .from('ka_activity_daily')
+        .select('date,brand_name,exp_pv,use_pv')
+        .order('date', { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (e2) throw e2;
+      if (!pageRows || !pageRows.length) break;
+      allRows.push(...pageRows);
+      if (pageRows.length < pageSize) break;
+      offset += pageSize;
+      if (offset > 50000) break;  // 保险
+    }
+    CIKA_BRAND_TOTAL_ROWS = allRows;
   } catch (e) {
     console.warn('loadCikaActivityFromSupabase:', e.message || e);
     CIKA_ACTIVITY_ROWS = [];
+    CIKA_BRAND_TOTAL_ROWS = [];
     CIKA_DATES = [];
   }
 }
 
 async function loadCikaBrandDailyPV() {
-  // 从 ka_daily_snapshot 近 10 天拉品牌当日大盘 PV，构造 {brand: {date: {exp, use}}}
+  // （保留）从 ka_daily_snapshot 取 brand_name 白名单；占比口径已切到活动表，这里仅供 KA 品牌过滤
   try {
     const { data, error } = await alertSb
       .from('ka_daily_snapshot')
       .select('report_date, brands')
       .order('report_date', { ascending: false })
-      .limit(10);
+      .limit(1);
     if (error) throw error;
     const map = {};
     for (const snap of (data || [])) {
@@ -1569,13 +1594,7 @@ async function loadCikaBrandDailyPV() {
         const bn = b.name || b.brandName || b.assignmentBrand;
         if (!bn) continue;
         if (!map[bn]) map[bn] = {};
-        // dailyExposure 单位为"万"，dailyRedeem 单位为"笔"
-        const expW = b.dailyExposure;
-        const useNum = b.dailyRedeem;
-        map[bn][rd] = {
-          exp: (expW != null) ? Math.round(expW * 10000) : null,
-          use: (useNum != null) ? Math.round(useNum) : null,
-        };
+        map[bn][rd] = { exp: 0, use: 0 };  // 占位，只用于 Set 白名单
       }
     }
     CIKA_BRAND_DAILY_PV = map;
@@ -1599,7 +1618,18 @@ function aggCikaOnline(range) {
   const kaBrandsSet = new Set(Object.keys(CIKA_BRAND_DAILY_PV));
   const dates = getCikaDateWindow(range);
   const dateSet = new Set(dates);
-  const map = {};  // brand_name → {activities:Set, exp_pv, claim_pv, use_pv, exp_dashboard, use_dashboard, rows:[]}
+  // 先算分母：同窗口内每个品牌的"全活动 PV 合计"（活动表同源）
+  const brandTotal = {};  // brand_name → {exp_total, use_total}
+  for (const r of CIKA_BRAND_TOTAL_ROWS) {
+    if (!dateSet.has(r.date)) continue;
+    const bn = r.brand_name;
+    if (!bn) continue;
+    if (!brandTotal[bn]) brandTotal[bn] = { exp_total: 0, use_total: 0 };
+    brandTotal[bn].exp_total += (r.exp_pv || 0);
+    brandTotal[bn].use_total += (r.use_pv || 0);
+  }
+  // 再算分子：次卡聚合
+  const map = {};  // brand_name → {activities:Set, exp_pv, claim_pv, use_pv, ...}
   for (const r of CIKA_ACTIVITY_ROWS) {
     if (!dateSet.has(r.date)) continue;
     const bn = r.brand_name;
@@ -1609,7 +1639,7 @@ function aggCikaOnline(range) {
       map[bn] = {
         brand_name: bn, brand_id: r.brand_id, category: r.category,
         activities: new Set(), exp_pv: 0, claim_pv: 0, use_pv: 0,
-        exp_dashboard: 0, use_dashboard: 0, rows: []
+        rows: []
       };
     }
     map[bn].activities.add(r.activity_id);
@@ -1618,19 +1648,10 @@ function aggCikaOnline(range) {
     map[bn].use_pv += (r.use_pv || 0);
     map[bn].rows.push(r);
   }
-  // 累计品牌大盘 PV（同窗口内累加）
-  for (const bn of Object.keys(map)) {
-    const pv = CIKA_BRAND_DAILY_PV[bn] || {};
-    for (const d of dates) {
-      const rec = pv[d];
-      if (rec) {
-        map[bn].exp_dashboard += rec.exp || 0;
-        map[bn].use_dashboard += rec.use || 0;
-      }
-    }
-  }
+
   const rows = Object.values(map).map(x => {
     const n = dates.length || 1;
+    const bt = brandTotal[x.brand_name] || { exp_total: 0, use_total: 0 };
     return {
       ...x,
       activity_count: x.activities.size,
@@ -1640,8 +1661,8 @@ function aggCikaOnline(range) {
       exp_claim_rate: x.exp_pv > 0 ? x.claim_pv / x.exp_pv : null,
       claim_use_rate: x.claim_pv > 0 ? x.use_pv / x.claim_pv : null,
       exp_use_rate: x.exp_pv > 0 ? x.use_pv / x.exp_pv : null,
-      exp_share: x.exp_dashboard > 0 ? x.exp_pv / x.exp_dashboard : null,
-      use_share: x.use_dashboard > 0 ? x.use_pv / x.use_dashboard : null,
+      exp_share: bt.exp_total > 0 ? x.exp_pv / bt.exp_total : null,
+      use_share: bt.use_total > 0 ? x.use_pv / bt.use_total : null,
     };
   });
   return rows;
