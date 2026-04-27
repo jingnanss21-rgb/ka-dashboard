@@ -629,48 +629,104 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
 <!-- ============ PANEL: 盒子 ============ -->
 <div class="project-panel" id="panel-box">
-  <div class="status-grid" id="boxStatusGrid"></div>
-
-  <div class="section">
-    <div class="section-title"><div class="icon" style="background:#16a34a"></div> 盒子项目进展 <span id="boxPeriodBadge" class="badge" style="background:#dcfce7;color:#15803d;">推进中</span></div>
-    <div class="filter-bar">
-      <select id="boxFilterOwner"><option value="">全部负责人</option></select>
-      <select id="boxFilterCat"><option value="">全部品类</option></select>
+  <!-- 目标概览 -->
+  <div class="section" style="padding:20px 24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:18px;font-weight:700;color:#0f172a;">🎯 全年铺设目标</div>
+        <div style="font-size:13px;color:#64748b;">阶段1（合作模式确认）⏰ 5月完成</div>
+      </div>
+      <button class="btn" id="btnAddBoxBrand" style="background:#16a34a;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">+ 新增品牌</button>
     </div>
-    <div class="scroll-table-wrapper">
-      <table id="boxTable">
-        <thead>
-          <tr>
-            <th class="sticky-col" style="left:0;min-width:36px;text-align:center;">#</th>
-            <th class="sticky-col" style="left:36px;min-width:100px;">品牌</th>
-            <th class="sticky-col sticky-col-last" style="left:136px;min-width:60px;">负责人</th>
-            <th>品类</th>
-            <th class="sortable" data-sort="box-status">盒子状态</th>
-            <th style="min-width:200px;">备注（点击编辑）</th>
-          </tr>
-        </thead>
-        <tbody id="boxTbody"></tbody>
-      </table>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+      <div style="font-size:28px;font-weight:800;color:#16a34a;"><span id="boxDeployed">0</span></div>
+      <div style="font-size:14px;color:#64748b;">/ <span id="boxTarget">20,000</span> 盒</div>
+      <div style="font-size:13px;font-weight:600;color:#16a34a;background:#dcfce7;padding:2px 10px;border-radius:12px;"><span id="boxProgressPct">0.0</span>%</div>
     </div>
-    <div id="boxCollapsedSection" style="display:none;margin-top:16px;">
-      <div class="section-title" style="font-size:14px;color:var(--text-secondary);"><div class="icon" style="background:#94a3b8"></div> 未沟通 / 暂不考虑</div>
-      <div class="scroll-table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th style="min-width:36px;text-align:center;">#</th>
-              <th style="min-width:100px;">品牌</th>
-              <th style="min-width:60px;">负责人</th>
-              <th>品类</th>
-              <th>盒子状态</th>
-              <th style="min-width:200px;">备注（点击编辑）</th>
-            </tr>
-          </thead>
-          <tbody id="boxCollapsedTbody"></tbody>
-        </table>
+    <div style="width:100%;height:10px;background:#f1f5f9;border-radius:5px;overflow:hidden;">
+      <div id="boxProgressBar" style="height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);width:0%;transition:width .6s;"></div>
+    </div>
+    <!-- 阶段漏斗 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;">
+      <div class="stage-card" style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;color:#92400e;font-weight:600;margin-bottom:6px;">阶段一 · 合作模式确认</div>
+        <div style="font-size:26px;font-weight:800;color:#92400e;"><span id="stage1Count">0</span> <span style="font-size:13px;font-weight:500;">品牌</span></div>
+        <div style="font-size:12px;color:#b45309;margin-top:6px;">铺设主体确认 <b id="stage1a">0</b> · 邮件报备 <b id="stage1b">0</b></div>
+      </div>
+      <div class="stage-card" style="background:#dbeafe;border:1px solid #93c5fd;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;color:#1e40af;font-weight:600;margin-bottom:6px;">阶段二 · 合作关系确认</div>
+        <div style="font-size:26px;font-weight:800;color:#1e40af;"><span id="stage2Count">0</span> <span style="font-size:13px;font-weight:500;">品牌</span></div>
+        <div style="font-size:12px;color:#1d4ed8;margin-top:6px;">线上签约 <b id="stage2a">0</b> · 盒子申请 <b id="stage2b">0</b></div>
+      </div>
+      <div class="stage-card" style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:14px;">
+        <div style="font-size:12px;color:#15803d;font-weight:600;margin-bottom:6px;">阶段三 · 落地执行</div>
+        <div style="font-size:26px;font-weight:800;color:#15803d;"><span id="stage3Count">0</span> <span style="font-size:13px;font-weight:500;">品牌</span></div>
+        <div style="font-size:12px;color:#166534;margin-top:6px;">发货阶段 <b id="stage3a">0</b> · 铺货管理 <b id="stage3b">0</b></div>
       </div>
     </div>
-    <button id="boxExpandBtn" class="expand-btn" onclick="toggleCollapsed('box')">📋 展开全部KA商户名单（含未沟通/暂不考虑）</button>
+    <div style="font-size:12px;color:#64748b;margin-top:10px;">⚪ 待评估：<span id="stagePendCount">0</span> 品牌（尚未纳入推进流程）</div>
+  </div>
+
+  <!-- 明细表 -->
+  <div class="section">
+    <div class="section-title"><div class="icon" style="background:#16a34a"></div> 盒子项目进展 <span id="boxLastUpdate" class="badge" style="background:#dcfce7;color:#15803d;">加载中...</span></div>
+    <div class="filter-bar" style="gap:8px;flex-wrap:wrap;">
+      <select id="boxFilterStage"><option value="">全部阶段</option></select>
+      <select id="boxFilterCategory"><option value="">全部行业</option></select>
+      <select id="boxFilterSp"><option value="">全部服务商</option></select>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#64748b;"><input type="checkbox" id="boxFilterRisk"/> 仅看有风险</label>
+      <input type="search" id="boxSearch" placeholder="🔍 搜索品牌..." style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;min-width:180px;" />
+    </div>
+    <div class="scroll-table-wrapper">
+      <table id="boxBrandsTable">
+        <thead>
+          <tr>
+            <th style="min-width:36px;text-align:center;">#</th>
+            <th style="min-width:60px;">行业</th>
+            <th style="min-width:120px;">品牌</th>
+            <th style="min-width:80px;">品牌ID</th>
+            <th style="min-width:100px;">服务商</th>
+            <th style="min-width:80px;text-align:right;">门店数</th>
+            <th style="min-width:90px;text-align:right;">预估铺设</th>
+            <th style="min-width:140px;">当前阶段</th>
+            <th style="min-width:240px;">最新反馈</th>
+            <th style="min-width:180px;">风险点</th>
+            <th style="min-width:100px;">更新时间</th>
+            <th style="min-width:70px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="boxBrandsTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 品牌详情抽屉 -->
+<div id="boxDrawerMask" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.4);z-index:1000;" onclick="closeBoxDrawer()"></div>
+<div id="boxDrawer" style="display:none;position:fixed;top:0;right:0;width:640px;max-width:100%;height:100%;background:#fff;z-index:1001;box-shadow:-4px 0 20px rgba(0,0,0,0.15);overflow-y:auto;">
+  <div style="padding:20px 24px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:2;">
+    <div>
+      <div id="drawerTitle" style="font-size:20px;font-weight:700;color:#0f172a;">—</div>
+      <div id="drawerSubtitle" style="font-size:13px;color:#64748b;margin-top:2px;">—</div>
+    </div>
+    <button onclick="closeBoxDrawer()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#94a3b8;">×</button>
+  </div>
+  <div style="padding:20px 24px;" id="drawerBody">
+    <!-- 动态填充 -->
+  </div>
+</div>
+
+<!-- 新增品牌弹窗 -->
+<div id="boxAddMask" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.5);z-index:1002;" onclick="closeBoxAdd()"></div>
+<div id="boxAddModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:480px;max-width:95%;background:#fff;border-radius:10px;z-index:1003;box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+  <div style="padding:18px 22px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:18px;font-weight:700;">新增盒子品牌</div>
+    <button onclick="closeBoxAdd()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;">×</button>
+  </div>
+  <div style="padding:20px 22px;" id="boxAddBody"></div>
+  <div style="padding:14px 22px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:10px;">
+    <button onclick="closeBoxAdd()" style="background:#f1f5f9;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">取消</button>
+    <button onclick="submitBoxAdd()" style="background:#16a34a;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:600;">保存</button>
   </div>
 </div>
 
@@ -965,7 +1021,7 @@ function populateFilters() {
   });
   ['boxFilterOwner','boxFilterCat'].forEach(id => {
     const el = document.getElementById(id);
-    if(el) el.addEventListener('change', renderBoxTable);
+    if(el) el.addEventListener('change', boxRenderTable);
   });
 }
 
@@ -2312,173 +2368,471 @@ function toggleCollapsed(type) {
     btn.classList.remove('expanded');
     if (type === 'cika') renderCikaTable();
     else if (type === 'wuyou') renderWuyouTable();
-    else if (type === 'box') renderBoxTable();
+    else if (type === 'box') boxRenderTable();
   }
 }
 
 // ============================================================
-// PANEL: Box (盒子)
+// PANEL: Box (盒子) — 项目管理看板 v2 (2026-04-27)
+// 数据源：Supabase ka_box_brands + ka_box_feedback
 // ============================================================
-let boxComments = JSON.parse(localStorage.getItem('ka_box_comments') || '{}');
+// 旧版变量兜底：避免 editComment 等共用函数中的 box 分支报 ReferenceError
+let boxComments = {};
 let boxStatusOverrides = {};
 
-async function loadBoxCommentsFromServer() {
+const BOX_ANNUAL_TARGET = 20000;
+const BOX_STAGES = [
+  '待评估',
+  '阶段一-铺设主体确认','阶段一-邮件报备',
+  '阶段二-线上签约','阶段二-盒子申请',
+  '阶段三-发货阶段','阶段三-铺货管理'
+];
+const BOX_DEPLOYED_STAGES = ['阶段三-发货阶段','阶段三-铺货管理'];
+
+let boxBrands = [];
+let boxFeedback = {}; // { box_brand_id: [ {id, content, created_at, updated_at} ] }
+let boxCurrentDrawerId = null;
+
+async function fetchBoxBrandsFromServer() {
   try {
-    const { data, error } = await alertSb.from('ka_box_comments').select('*');
+    const { data, error } = await alertSb
+      .from('ka_box_brands')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
     if (error) throw error;
-    boxComments = {};
-    boxStatusOverrides = {};
-    (data || []).forEach(row => {
-      boxComments[row.brand_name] = row.comment || '';
-      if (row.status != null && row.status !== '') boxStatusOverrides[row.brand_name] = row.status;
-    });
-    applyBoxStatusOverrides();
+    boxBrands = data || [];
   } catch(e) {
-    console.warn('加载盒子备注失败，使用本地缓存:', e.message);
-    try { boxComments = JSON.parse(localStorage.getItem('ka_box_comments') || '{}'); } catch(e2) {}
-    try { boxStatusOverrides = JSON.parse(localStorage.getItem('ka_box_status') || '{}'); applyBoxStatusOverrides(); } catch(e2) {}
+    console.error('[Box] 加载品牌失败:', e.message);
+    boxBrands = [];
+    showToast('加载盒子品牌失败：' + e.message);
   }
-  try { localStorage.setItem('ka_box_comments', JSON.stringify(boxComments)); } catch(e) {}
-  try { localStorage.setItem('ka_box_status', JSON.stringify(boxStatusOverrides)); } catch(e) {}
 }
 
-function applyBoxStatusOverrides() {
-  KA_DATA.brands.forEach(b => {
-    if (boxStatusOverrides[b['品牌']] != null) b['盒子'] = boxStatusOverrides[b['品牌']];
-  });
-}
-
-const BOX_STATUS_OPTIONS = ['已上线', '有意向', '待沟通', '暂不考虑', ''];
-const BOX_STATUS_LABELS = {'已上线':'已上线', '有意向':'有意向', '待沟通':'待沟通', '暂不考虑':'暂不考虑', '':'未沟通'};
-
-function editBoxStatus(el, brand) {
-  const brandObj = KA_DATA.brands.find(b => b['品牌'] === brand);
-  const current = brandObj ? brandObj['盒子'] : '';
-  const sel = document.createElement('select');
-  sel.className = 'status-select';
-  BOX_STATUS_OPTIONS.forEach(opt => {
-    const o = document.createElement('option');
-    o.value = opt;
-    o.textContent = BOX_STATUS_LABELS[opt];
-    if (opt === current) o.selected = true;
-    sel.appendChild(o);
-  });
-  el.replaceWith(sel);
-  sel.focus();
-  function commit() {
-    const newVal = sel.value;
-    if (brandObj) brandObj['盒子'] = newVal;
-    boxStatusOverrides[brand] = newVal;
-    try { localStorage.setItem('ka_box_status', JSON.stringify(boxStatusOverrides)); } catch(e) {}
-    saveBoxStatusToServer(brand, newVal);
-    renderBoxTable();
-    renderOverview();
+async function fetchBoxFeedbackFromServer() {
+  try {
+    const { data, error } = await alertSb
+      .from('ka_box_feedback')
+      .select('*')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    boxFeedback = {};
+    (data || []).forEach(row => {
+      const k = row.box_brand_id;
+      if (!boxFeedback[k]) boxFeedback[k] = [];
+      boxFeedback[k].push(row);
+    });
+  } catch(e) {
+    console.error('[Box] 加载反馈失败:', e.message);
+    boxFeedback = {};
   }
-  sel.addEventListener('change', commit);
-  sel.addEventListener('blur', function() {
-    setTimeout(() => { if (document.contains(sel)) renderBoxTable(); }, 100);
+}
+
+function boxFmtTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return `${y}-${m}-${dd} ${hh}:${mm}`;
+}
+
+function boxStageTag(stage) {
+  const color = stage && stage.startsWith('阶段一') ? '#92400e'
+             : stage && stage.startsWith('阶段二') ? '#1e40af'
+             : stage && stage.startsWith('阶段三') ? '#15803d'
+             : '#64748b';
+  const bg = stage && stage.startsWith('阶段一') ? '#fef3c7'
+           : stage && stage.startsWith('阶段二') ? '#dbeafe'
+           : stage && stage.startsWith('阶段三') ? '#dcfce7'
+           : '#f1f5f9';
+  return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${bg};color:${color};font-size:11px;font-weight:600;">${stage || '—'}</span>`;
+}
+
+function boxRenderOverview() {
+  const active = boxBrands;
+  const count = s => active.filter(b => b.stage === s).length;
+  const s1a = count('阶段一-铺设主体确认'), s1b = count('阶段一-邮件报备');
+  const s2a = count('阶段二-线上签约'), s2b = count('阶段二-盒子申请');
+  const s3a = count('阶段三-发货阶段'), s3b = count('阶段三-铺货管理');
+  const pend = count('待评估');
+  const deployed = active
+    .filter(b => BOX_DEPLOYED_STAGES.includes(b.stage))
+    .reduce((s, b) => s + (Number(b.est_box_count) || 0), 0);
+  const pct = Math.min(100, deployed / BOX_ANNUAL_TARGET * 100);
+
+  const byId = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  byId('stage1a', s1a); byId('stage1b', s1b); byId('stage1Count', s1a + s1b);
+  byId('stage2a', s2a); byId('stage2b', s2b); byId('stage2Count', s2a + s2b);
+  byId('stage3a', s3a); byId('stage3b', s3b); byId('stage3Count', s3a + s3b);
+  byId('stagePendCount', pend);
+  byId('boxDeployed', deployed.toLocaleString());
+  byId('boxTarget', BOX_ANNUAL_TARGET.toLocaleString());
+  byId('boxProgressPct', pct.toFixed(1));
+  const bar = document.getElementById('boxProgressBar');
+  if (bar) bar.style.width = pct + '%';
+
+  // last update time
+  let latest = null;
+  active.forEach(b => {
+    const t = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+    if (!latest || t > latest) latest = t;
   });
+  const badge = document.getElementById('boxLastUpdate');
+  if (badge) badge.textContent = latest ? ('最近更新 ' + boxFmtTime(new Date(latest).toISOString())) : '无数据';
 }
 
-function saveBoxStatusToServer(brand, status) {
-  setTimeout(async () => {
-    try {
-      const { error } = await alertSb.from('ka_box_comments').upsert({
-        brand_name: brand, status: status,
-        comment: boxComments[brand] || '',
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'brand_name' });
-      if (error) throw error;
-      showToast('状态已保存');
-    } catch(e) {
-      console.warn('保存盒子状态失败:', e.message);
-      showToast('状态已本地保存（云端同步失败）');
-    }
-  }, 200);
+function boxPopulateFilters() {
+  const stSel = document.getElementById('boxFilterStage');
+  const catSel = document.getElementById('boxFilterCategory');
+  const spSel = document.getElementById('boxFilterSp');
+  if (!stSel) return;
+  stSel.innerHTML = '<option value="">全部阶段</option>' + BOX_STAGES.map(s => `<option value="${s}">${s}</option>`).join('');
+  const cats = [...new Set(boxBrands.map(b => b.category).filter(Boolean))];
+  catSel.innerHTML = '<option value="">全部行业</option>' + cats.map(s => `<option value="${s}">${s}</option>`).join('');
+  const sps = [...new Set(boxBrands.map(b => b.sp_name).filter(Boolean))];
+  spSel.innerHTML = '<option value="">全部服务商</option>' + sps.map(s => `<option value="${s}">${s}</option>`).join('');
 }
 
-let boxSortDir = null;
+function boxRenderTable() {
+  const tbody = document.getElementById('boxBrandsTbody');
+  if (!tbody) return;
+  const stage = document.getElementById('boxFilterStage').value;
+  const cat = document.getElementById('boxFilterCategory').value;
+  const sp = document.getElementById('boxFilterSp').value;
+  const onlyRisk = document.getElementById('boxFilterRisk').checked;
+  const q = (document.getElementById('boxSearch').value || '').trim().toLowerCase();
 
-async function renderBox() {
-  await loadBoxCommentsFromServer();
-  const brands = KA_DATA.brands;
-  const online = brands.filter(b => b['盒子'] === '已上线').length;
-  const interest = brands.filter(b => b['盒子'] === '有意向').length;
-  const pending = brands.filter(b => b['盒子'] === '待沟通').length;
-  document.getElementById('boxStatusGrid').innerHTML = `
-    <div class="status-card sc-yellow"><div class="sc-icon">💬</div><div class="sc-value">${interest}</div><div class="sc-label">有意向</div></div>
-    <div class="status-card sc-blue"><div class="sc-icon">📞</div><div class="sc-value">${pending}</div><div class="sc-label">待沟通</div></div>
-  `;
-  renderBoxTable();
-}
+  const stageOrder = {};
+  BOX_STAGES.forEach((s,i) => stageOrder[s] = i);
 
-function renderBoxTable() {
-  const owner = document.getElementById('boxFilterOwner').value;
-  const cat = document.getElementById('boxFilterCat')?.value || '';
-  let data = KA_DATA.brands.filter(b => {
-    if (owner && b['负责人'] !== owner) return false;
-    if (cat && b['品类'] !== cat) return false;
+  const data = boxBrands.filter(b => {
+    if (stage && b.stage !== stage) return false;
+    if (cat && b.category !== cat) return false;
+    if (sp && b.sp_name !== sp) return false;
+    if (onlyRisk && !(b.risk_note || '').trim()) return false;
+    if (q && !(b.brand_name || '').toLowerCase().includes(q) && !String(b.brand_id||'').includes(q)) return false;
     return true;
   });
-  const statusOrder = {'已上线':0, '有意向':1, '待沟通':2, '暂不考虑':3, '':4};
-  const ACTIVE_STATUSES = ['已上线', '有意向', '待沟通'];
-  if (boxSortDir) {
-    data.sort((a, b) => {
-      const va = statusOrder[a['盒子']]??4;
-      const vb = statusOrder[b['盒子']]??4;
-      return boxSortDir === 'asc' ? va - vb : vb - va;
-    });
-  } else {
-    data.sort((a, b) => (statusOrder[a['盒子']]??4) - (statusOrder[b['盒子']]??4));
+
+  data.sort((a,b) => {
+    const sa = stageOrder[a.stage] ?? 99;
+    const sb = stageOrder[b.stage] ?? 99;
+    if (sa !== sb) return sa - sb;
+    return (a.sort_order||0) - (b.sort_order||0);
+  });
+
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;color:#94a3b8;">无匹配品牌</td></tr>`;
+    return;
   }
-  const activeData = data.filter(b => ACTIVE_STATUSES.includes(b['盒子']));
-  const collapsedData = data.filter(b => !ACTIVE_STATUSES.includes(b['盒子']));
 
-  document.getElementById('boxTbody').innerHTML = activeData.map((b, idx) => {
-    const comment = boxComments[b['品牌']] || '';
-    const brandEsc = b['品牌'].replace(/'/g, "\\'");
-    return `<tr>
-      <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
-      <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
-      <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
-      <td>${b['品类']}</td>
-      <td>${statusTagEditable(b['盒子'], 'box', brandEsc)}</td>
-      <td class="editable-cell">
-        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'box','${brandEsc}')">${comment || '点击添加备注...'}</div>
-      </td>
+  tbody.innerHTML = data.map((b, idx) => {
+    const fbs = boxFeedback[b.id] || [];
+    const latestFb = fbs[0];
+    const latestText = latestFb ? latestFb.content : '';
+    const latestTime = latestFb ? boxFmtTime(latestFb.created_at) : '';
+    const risk = (b.risk_note || '').trim();
+    const riskCell = risk
+      ? `<div style="color:#b91c1c;font-size:12px;line-height:1.4;" title="${risk.replace(/"/g,'&quot;')}">⚠️ ${risk.length>60?risk.slice(0,60)+'...':risk}</div>`
+      : `<span style="color:#cbd5e1;">—</span>`;
+    const fbCell = latestText
+      ? `<div style="font-size:12px;line-height:1.4;color:#334155;" title="${latestText.replace(/"/g,'&quot;')}">${latestText.length>70?latestText.slice(0,70)+'...':latestText}<div style="color:#94a3b8;font-size:10px;margin-top:2px;">${latestTime}</div></div>`
+      : `<span style="color:#cbd5e1;font-size:12px;">暂无反馈</span>`;
+    return `<tr style="cursor:pointer;" onclick="openBoxDrawer(${b.id})">
+      <td style="text-align:center;color:#94a3b8;font-size:12px;">${idx+1}</td>
+      <td><span style="display:inline-block;padding:1px 6px;background:#f1f5f9;border-radius:4px;font-size:11px;color:#475569;">${b.category||'—'}</span></td>
+      <td style="font-weight:600;color:#0f172a;">${b.brand_name||'—'}</td>
+      <td style="color:#64748b;font-size:12px;">${b.brand_id != null ? b.brand_id : '<span style="color:#cbd5e1;">留空</span>'}</td>
+      <td style="color:#475569;font-size:12px;">${b.sp_name||'—'}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;">${b.store_count != null ? Number(b.store_count).toLocaleString() : '—'}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:${b.est_box_count?'#16a34a':'#cbd5e1'};">${b.est_box_count != null ? Number(b.est_box_count).toLocaleString() : '—'}</td>
+      <td>${boxStageTag(b.stage)}</td>
+      <td>${fbCell}</td>
+      <td>${riskCell}</td>
+      <td style="color:#94a3b8;font-size:11px;">${boxFmtTime(b.updated_at)}</td>
+      <td><span style="color:#16a34a;font-size:12px;">编辑 →</span></td>
     </tr>`;
   }).join('');
+}
 
-  document.getElementById('boxCollapsedTbody').innerHTML = collapsedData.map((b, idx) => {
-    const comment = boxComments[b['品牌']] || '';
-    const brandEsc = b['品牌'].replace(/'/g, "\\'");
-    return `<tr>
-      <td style="text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
-      <td>${b['品牌']}</td>
-      <td>${ownerTag(b['负责人'])}</td>
-      <td>${b['品类']}</td>
-      <td>${statusTagEditable(b['盒子'], 'box', brandEsc)}</td>
-      <td class="editable-cell">
-        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'box','${brandEsc}')">${comment || '点击添加备注...'}</div>
-      </td>
-    </tr>`;
-  }).join('');
+async function renderBox() {
+  await Promise.all([fetchBoxBrandsFromServer(), fetchBoxFeedbackFromServer()]);
+  boxRenderOverview();
+  boxPopulateFilters();
+  boxRenderTable();
+}
 
-  const btn = document.getElementById('boxExpandBtn');
-  if (btn && !btn.classList.contains('expanded')) {
-    btn.textContent = '📋 展开全部KA商户名单（含未沟通/暂不考虑，' + collapsedData.length + '个）';
+// ── 抽屉：品牌详情 + 反馈时间线 ─────────────────
+function openBoxDrawer(id) {
+  const b = boxBrands.find(x => x.id === id);
+  if (!b) return;
+  boxCurrentDrawerId = id;
+  document.getElementById('drawerTitle').textContent = b.brand_name || '—';
+  document.getElementById('drawerSubtitle').textContent =
+    `${b.category||'—'} · 服务商 ${b.sp_name||'—'} · ${b.store_count!=null?Number(b.store_count).toLocaleString()+' 门店':'门店未填'}`;
+
+  const fbs = boxFeedback[id] || [];
+  const fbsHtml = fbs.length
+    ? fbs.map((f, i) => {
+        const expanded = i === 0;
+        const updTime = f.updated_at && f.updated_at !== f.created_at ? `（编辑于 ${boxFmtTime(f.updated_at)}）` : '';
+        return `<div class="fb-item" data-fid="${f.id}" style="border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;background:${expanded?'#f0fdf4':'#fafafa'};">
+          <div style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleFbExpand(this)">
+            <div style="font-size:12px;color:#64748b;">${i===0?'🔵 ':''}${boxFmtTime(f.created_at)}${updTime}</div>
+            <div>
+              <button onclick="event.stopPropagation();editFeedback(${f.id})" style="background:none;border:none;cursor:pointer;color:#3b82f6;font-size:12px;margin-right:4px;">✏️ 编辑</button>
+              <button onclick="event.stopPropagation();deleteFeedback(${f.id})" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;margin-right:4px;">🗑 删除</button>
+              <span style="color:#94a3b8;font-size:12px;">${expanded?'▼':'▶'}</span>
+            </div>
+          </div>
+          <div class="fb-body" style="padding:${expanded?'0 14px 12px':'0'};max-height:${expanded?'500px':'0'};overflow:hidden;transition:all .25s;color:#334155;font-size:13px;line-height:1.6;white-space:pre-wrap;">${f.content||''}</div>
+        </div>`;
+      }).join('')
+    : '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">暂无沟通记录</div>';
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+      <div>
+        <label style="font-size:11px;color:#64748b;font-weight:600;">行业</label>
+        <input id="fld_category" type="text" value="${b.category||''}" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#64748b;font-weight:600;">品牌ID</label>
+        <input id="fld_brand_id" type="number" value="${b.brand_id??''}" placeholder="留空" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#64748b;font-weight:600;">服务商</label>
+        <input id="fld_sp_name" type="text" value="${b.sp_name||''}" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#64748b;font-weight:600;">当前门店数</label>
+        <input id="fld_store_count" type="number" value="${b.store_count??''}" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#64748b;font-weight:600;">预估铺设台数</label>
+        <input id="fld_est_box_count" type="number" value="${b.est_box_count??''}" placeholder="未知" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#64748b;font-weight:600;">当前阶段</label>
+        <select id="fld_stage" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;">
+          ${BOX_STAGES.map(s => `<option value="${s}" ${s===b.stage?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:11px;color:#64748b;font-weight:600;">⚠️ 风险点（红色高亮）</label>
+      <textarea id="fld_risk_note" rows="2" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;font-family:inherit;">${b.risk_note||''}</textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:24px;">
+      <button onclick="saveBoxBrandEdit()" style="flex:1;background:#16a34a;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:600;">💾 保存品牌信息</button>
+      <button onclick="deleteBoxBrand()" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;padding:8px 14px;border-radius:6px;cursor:pointer;">🗑 删除品牌</button>
+    </div>
+
+    <div style="border-top:1px solid #e2e8f0;padding-top:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:700;color:#0f172a;">💬 沟通历史 <span style="color:#94a3b8;font-weight:400;font-size:12px;">(${fbs.length} 条)</span></div>
+        <button onclick="showAddFeedback()" style="background:#16a34a;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;">+ 新增反馈</button>
+      </div>
+      <div id="addFeedbackBox" style="display:none;margin-bottom:12px;border:1px solid #bfdbfe;border-radius:8px;padding:10px;background:#eff6ff;">
+        <textarea id="newFeedbackContent" rows="3" placeholder="记录本次沟通进展..." style="width:100%;padding:8px;border:1px solid #93c5fd;border-radius:5px;font-family:inherit;"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+          <button onclick="hideAddFeedback()" style="background:#e0e7ff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;">取消</button>
+          <button onclick="submitNewFeedback()" style="background:#3b82f6;color:#fff;border:none;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">保存</button>
+        </div>
+      </div>
+      ${fbsHtml}
+    </div>
+  `;
+  document.getElementById('boxDrawerMask').style.display = 'block';
+  document.getElementById('boxDrawer').style.display = 'block';
+}
+
+function closeBoxDrawer() {
+  document.getElementById('boxDrawerMask').style.display = 'none';
+  document.getElementById('boxDrawer').style.display = 'none';
+  boxCurrentDrawerId = null;
+}
+
+function toggleFbExpand(headerEl) {
+  const item = headerEl.parentElement;
+  const body = item.querySelector('.fb-body');
+  const arrow = headerEl.querySelector('span:last-child');
+  if (body.style.maxHeight && body.style.maxHeight !== '0px') {
+    body.style.maxHeight = '0';
+    body.style.padding = '0';
+    item.style.background = '#fafafa';
+    if (arrow) arrow.textContent = '▶';
+  } else {
+    body.style.maxHeight = '500px';
+    body.style.padding = '0 14px 12px';
+    item.style.background = '#f0fdf4';
+    if (arrow) arrow.textContent = '▼';
   }
 }
 
-document.getElementById('boxTable').addEventListener('click', e => {
-  const th = e.target.closest('th.sortable');
-  if (!th) return;
-  if (boxSortDir === null) boxSortDir = 'desc';
-  else if (boxSortDir === 'desc') boxSortDir = 'asc';
-  else boxSortDir = null;
-  document.querySelectorAll('#boxTable th.sortable').forEach(t => { t.classList.remove('sort-asc','sort-desc'); });
-  if (boxSortDir) th.classList.add('sort-' + boxSortDir);
-  renderBoxTable();
+async function saveBoxBrandEdit() {
+  const id = boxCurrentDrawerId;
+  if (!id) return;
+  const payload = {
+    category: document.getElementById('fld_category').value.trim() || null,
+    brand_id: document.getElementById('fld_brand_id').value ? Number(document.getElementById('fld_brand_id').value) : null,
+    sp_name: document.getElementById('fld_sp_name').value.trim() || null,
+    store_count: document.getElementById('fld_store_count').value ? Number(document.getElementById('fld_store_count').value) : null,
+    est_box_count: document.getElementById('fld_est_box_count').value ? Number(document.getElementById('fld_est_box_count').value) : null,
+    stage: document.getElementById('fld_stage').value,
+    risk_note: document.getElementById('fld_risk_note').value.trim() || null
+  };
+  try {
+    const { error } = await alertSb.from('ka_box_brands').update(payload).eq('id', id);
+    if (error) throw error;
+    showToast('✅ 已保存');
+    await renderBox();
+    openBoxDrawer(id);  // 重新打开以展示最新数据
+  } catch(e) {
+    console.error(e);
+    showToast('保存失败：' + e.message);
+  }
+}
+
+async function deleteBoxBrand() {
+  const id = boxCurrentDrawerId;
+  if (!id) return;
+  const b = boxBrands.find(x => x.id === id);
+  if (!confirm(`确认删除「${b.brand_name}」？\n该品牌的所有沟通记录也会一并隐藏（软删除，数据库不会真的清掉，可联系开发恢复）。`)) return;
+  try {
+    const { error } = await alertSb.from('ka_box_brands').update({ is_active: false }).eq('id', id);
+    if (error) throw error;
+    showToast('已删除');
+    closeBoxDrawer();
+    await renderBox();
+  } catch(e) {
+    showToast('删除失败：' + e.message);
+  }
+}
+
+function showAddFeedback() { document.getElementById('addFeedbackBox').style.display = 'block'; document.getElementById('newFeedbackContent').focus(); }
+function hideAddFeedback() { document.getElementById('addFeedbackBox').style.display = 'none'; document.getElementById('newFeedbackContent').value=''; }
+
+async function submitNewFeedback() {
+  const content = document.getElementById('newFeedbackContent').value.trim();
+  if (!content) { showToast('请输入内容'); return; }
+  try {
+    const { error } = await alertSb.from('ka_box_feedback').insert({ box_brand_id: boxCurrentDrawerId, content });
+    if (error) throw error;
+    showToast('✅ 已添加');
+    await fetchBoxFeedbackFromServer();
+    openBoxDrawer(boxCurrentDrawerId);
+    boxRenderTable();
+  } catch(e) {
+    showToast('添加失败：' + e.message);
+  }
+}
+
+async function editFeedback(fid) {
+  const arr = boxFeedback[boxCurrentDrawerId] || [];
+  const f = arr.find(x => x.id === fid);
+  if (!f) return;
+  const newContent = prompt('编辑反馈内容：', f.content);
+  if (newContent == null) return;
+  const content = newContent.trim();
+  if (!content) { showToast('内容不能为空'); return; }
+  try {
+    const { error } = await alertSb.from('ka_box_feedback').update({ content, updated_at: new Date().toISOString() }).eq('id', fid);
+    if (error) throw error;
+    showToast('✅ 已更新');
+    await fetchBoxFeedbackFromServer();
+    openBoxDrawer(boxCurrentDrawerId);
+    boxRenderTable();
+  } catch(e) {
+    showToast('更新失败：' + e.message);
+  }
+}
+
+async function deleteFeedback(fid) {
+  if (!confirm('确认删除此条反馈？')) return;
+  try {
+    const { error } = await alertSb.from('ka_box_feedback').update({ is_deleted: true }).eq('id', fid);
+    if (error) throw error;
+    showToast('已删除');
+    await fetchBoxFeedbackFromServer();
+    openBoxDrawer(boxCurrentDrawerId);
+    boxRenderTable();
+  } catch(e) {
+    showToast('删除失败：' + e.message);
+  }
+}
+
+// ── 新增品牌弹窗 ─────────────────
+function openBoxAdd() {
+  document.getElementById('boxAddBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><label style="font-size:11px;color:#64748b;font-weight:600;">品牌名称 *</label><input id="add_brand_name" type="text" required style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/></div>
+      <div><label style="font-size:11px;color:#64748b;font-weight:600;">行业 *</label><input id="add_category" type="text" value="餐饮" required style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/></div>
+      <div><label style="font-size:11px;color:#64748b;font-weight:600;">品牌ID（可留空）</label><input id="add_brand_id" type="number" placeholder="如 10820" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/></div>
+      <div><label style="font-size:11px;color:#64748b;font-weight:600;">服务商</label><input id="add_sp_name" type="text" placeholder="如 自研KA / 收钱吧" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/></div>
+      <div><label style="font-size:11px;color:#64748b;font-weight:600;">当前门店数</label><input id="add_store_count" type="number" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/></div>
+      <div><label style="font-size:11px;color:#64748b;font-weight:600;">预估铺设台数</label><input id="add_est_box_count" type="number" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;"/></div>
+      <div style="grid-column:1/-1;"><label style="font-size:11px;color:#64748b;font-weight:600;">初始阶段</label><select id="add_stage" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;">${BOX_STAGES.map(s => `<option value="${s}" ${s==='待评估'?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div style="grid-column:1/-1;"><label style="font-size:11px;color:#64748b;font-weight:600;">风险点（可选）</label><textarea id="add_risk_note" rows="2" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;font-family:inherit;"></textarea></div>
+      <div style="grid-column:1/-1;"><label style="font-size:11px;color:#64748b;font-weight:600;">首条沟通记录（可选）</label><textarea id="add_first_feedback" rows="2" style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:5px;margin-top:3px;font-family:inherit;"></textarea></div>
+    </div>
+  `;
+  document.getElementById('boxAddMask').style.display = 'block';
+  document.getElementById('boxAddModal').style.display = 'block';
+  setTimeout(() => document.getElementById('add_brand_name').focus(), 30);
+}
+function closeBoxAdd() {
+  document.getElementById('boxAddMask').style.display = 'none';
+  document.getElementById('boxAddModal').style.display = 'none';
+}
+async function submitBoxAdd() {
+  const name = document.getElementById('add_brand_name').value.trim();
+  const cat = document.getElementById('add_category').value.trim();
+  if (!name || !cat) { showToast('品牌名称和行业必填'); return; }
+  const payload = {
+    brand_name: name,
+    category: cat,
+    brand_id: document.getElementById('add_brand_id').value ? Number(document.getElementById('add_brand_id').value) : null,
+    sp_name: document.getElementById('add_sp_name').value.trim() || null,
+    store_count: document.getElementById('add_store_count').value ? Number(document.getElementById('add_store_count').value) : null,
+    est_box_count: document.getElementById('add_est_box_count').value ? Number(document.getElementById('add_est_box_count').value) : null,
+    stage: document.getElementById('add_stage').value,
+    risk_note: document.getElementById('add_risk_note').value.trim() || null,
+    sort_order: (boxBrands.length ? Math.max(...boxBrands.map(b => b.sort_order||0)) : 0) + 1
+  };
+  try {
+    const { data, error } = await alertSb.from('ka_box_brands').insert(payload).select().single();
+    if (error) throw error;
+    const firstFb = document.getElementById('add_first_feedback').value.trim();
+    if (firstFb && data && data.id) {
+      await alertSb.from('ka_box_feedback').insert({ box_brand_id: data.id, content: firstFb });
+    }
+    showToast('✅ 品牌已新增');
+    closeBoxAdd();
+    await renderBox();
+  } catch(e) {
+    showToast('新增失败：' + e.message);
+  }
+}
+
+// 兼容旧调用
+function editBoxStatus() { /* deprecated v2 */ }
+
+// 事件绑定
+document.addEventListener('DOMContentLoaded', () => {
+  const addBtn = document.getElementById('btnAddBoxBrand');
+  if (addBtn) addBtn.addEventListener('click', openBoxAdd);
+  ['boxFilterStage','boxFilterCategory','boxFilterSp','boxFilterRisk'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', boxRenderTable);
+  });
+  const search = document.getElementById('boxSearch');
+  if (search) search.addEventListener('input', () => boxRenderTable());
 });
 
 // ============================================================
