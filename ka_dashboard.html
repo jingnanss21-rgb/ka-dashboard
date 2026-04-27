@@ -646,22 +646,39 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div style="width:100%;height:10px;background:#f1f5f9;border-radius:5px;overflow:hidden;">
       <div id="boxProgressBar" style="height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);width:0%;transition:width .6s;"></div>
     </div>
-    <!-- 阶段漏斗 -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;">
-      <div class="stage-card" style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:14px;">
-        <div style="font-size:12px;color:#92400e;font-weight:600;margin-bottom:6px;">阶段一 · 合作模式确认</div>
-        <div style="font-size:26px;font-weight:800;color:#92400e;"><span id="stage1Count">0</span> <span style="font-size:13px;font-weight:500;">品牌</span></div>
-        <div style="font-size:12px;color:#b45309;margin-top:6px;">铺设主体确认 <b id="stage1a">0</b> · 邮件报备 <b id="stage1b">0</b></div>
+    <!-- 阶段漏斗：流程化视觉 -->
+    <div style="display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr;gap:10px;margin-top:18px;align-items:stretch;">
+      <div class="stage-card" style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:1px solid #f59e0b;border-radius:10px;padding:14px;position:relative;">
+        <div style="font-size:11px;color:#92400e;font-weight:700;letter-spacing:.5px;">STAGE 1</div>
+        <div style="font-size:13px;color:#92400e;font-weight:600;margin-top:2px;">合作模式确认</div>
+        <div style="font-size:12px;color:#b45309;margin-top:3px;opacity:.8;">⏰ 5月 deadline</div>
+        <div style="font-size:26px;font-weight:800;color:#92400e;margin-top:10px;line-height:1;"><span id="stage1Count">0</span> <span style="font-size:12px;font-weight:500;">品牌</span></div>
+        <div style="margin-top:10px;font-size:12px;color:#78350f;display:flex;flex-direction:column;gap:4px;">
+          <div id="stage1a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 铺设主体确认 <b style="margin-left:auto;" id="stage1a">0</b></div>
+          <div id="stage1b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 邮件报备 <b style="margin-left:auto;" id="stage1b">0</b></div>
+        </div>
       </div>
-      <div class="stage-card" style="background:#dbeafe;border:1px solid #93c5fd;border-radius:10px;padding:14px;">
-        <div style="font-size:12px;color:#1e40af;font-weight:600;margin-bottom:6px;">阶段二 · 合作关系确认</div>
-        <div style="font-size:26px;font-weight:800;color:#1e40af;"><span id="stage2Count">0</span> <span style="font-size:13px;font-weight:500;">品牌</span></div>
-        <div style="font-size:12px;color:#1d4ed8;margin-top:6px;">线上签约 <b id="stage2a">0</b> · 盒子申请 <b id="stage2b">0</b></div>
+      <div style="display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:24px;font-weight:700;">▶</div>
+      <div class="stage-card" style="background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%);border:1px solid #60a5fa;border-radius:10px;padding:14px;position:relative;">
+        <div style="font-size:11px;color:#1e40af;font-weight:700;letter-spacing:.5px;">STAGE 2</div>
+        <div style="font-size:13px;color:#1e40af;font-weight:600;margin-top:2px;">合作关系确认</div>
+        <div style="font-size:12px;color:#1d4ed8;margin-top:3px;opacity:.8;">签约阶段</div>
+        <div style="font-size:26px;font-weight:800;color:#1e40af;margin-top:10px;line-height:1;"><span id="stage2Count">0</span> <span style="font-size:12px;font-weight:500;">品牌</span></div>
+        <div style="margin-top:10px;font-size:12px;color:#1e3a8a;display:flex;flex-direction:column;gap:4px;">
+          <div id="stage2a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 线上签约 <b style="margin-left:auto;" id="stage2a">0</b></div>
+          <div id="stage2b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 盒子申请 <b style="margin-left:auto;" id="stage2b">0</b></div>
+        </div>
       </div>
-      <div class="stage-card" style="background:#dcfce7;border:1px solid #86efac;border-radius:10px;padding:14px;">
-        <div style="font-size:12px;color:#15803d;font-weight:600;margin-bottom:6px;">阶段三 · 落地执行</div>
-        <div style="font-size:26px;font-weight:800;color:#15803d;"><span id="stage3Count">0</span> <span style="font-size:13px;font-weight:500;">品牌</span></div>
-        <div style="font-size:12px;color:#166534;margin-top:6px;">发货阶段 <b id="stage3a">0</b> · 铺货管理 <b id="stage3b">0</b></div>
+      <div style="display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:24px;font-weight:700;">▶</div>
+      <div class="stage-card" style="background:linear-gradient(135deg,#dcfce7 0%,#bbf7d0 100%);border:1px solid #34d399;border-radius:10px;padding:14px;position:relative;">
+        <div style="font-size:11px;color:#15803d;font-weight:700;letter-spacing:.5px;">STAGE 3</div>
+        <div style="font-size:13px;color:#15803d;font-weight:600;margin-top:2px;">落地执行</div>
+        <div style="font-size:12px;color:#166534;margin-top:3px;opacity:.8;">🚀 计入已铺设</div>
+        <div style="font-size:26px;font-weight:800;color:#15803d;margin-top:10px;line-height:1;"><span id="stage3Count">0</span> <span style="font-size:12px;font-weight:500;">品牌</span></div>
+        <div style="margin-top:10px;font-size:12px;color:#14532d;display:flex;flex-direction:column;gap:4px;">
+          <div id="stage3a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 发货阶段 <b style="margin-left:auto;" id="stage3a">0</b></div>
+          <div id="stage3b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 铺货管理 <b style="margin-left:auto;" id="stage3b">0</b></div>
+        </div>
       </div>
     </div>
     <div style="font-size:12px;color:#64748b;margin-top:10px;">⚪ 待评估：<span id="stagePendCount">0</span> 品牌（尚未纳入推进流程）</div>
@@ -669,7 +686,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
   <!-- 明细表 -->
   <div class="section">
-    <div class="section-title"><div class="icon" style="background:#16a34a"></div> 盒子项目进展 <span id="boxLastUpdate" class="badge" style="background:#dcfce7;color:#15803d;">加载中...</span></div>
+    <div class="section-title"><div class="icon" style="background:#16a34a"></div> 盒子项目进展 <span id="boxLastUpdate" class="badge" style="background:#dcfce7;color:#15803d;">加载中...</span> <button onclick="renderBox()" style="margin-left:auto;background:none;border:1px solid #e2e8f0;border-radius:5px;padding:3px 10px;font-size:12px;color:#64748b;cursor:pointer;">🔄 刷新</button></div>
     <div class="filter-bar" style="gap:8px;flex-wrap:wrap;">
       <select id="boxFilterStage"><option value="">全部阶段</option></select>
       <select id="boxFilterCategory"><option value="">全部行业</option></select>
@@ -793,6 +810,11 @@ document.querySelectorAll('.project-tab').forEach(tab => {
         if (cikaTrendChart) cikaTrendChart.resize();
         renderCikaTrendChart();
       }, 50);
+    }
+    // 盒子 tab 懒加载：首次点击才拉数据
+    if (tab.dataset.project === 'box' && typeof renderBox === 'function' && !window._boxLoaded) {
+      window._boxLoaded = true;
+      renderBox();
     }
   });
 });
@@ -989,7 +1011,7 @@ async function init() {
   renderOverview();
   await renderCika();
   await renderWuyou();
-  await renderBox();
+  // renderBox 改为懒加载：首次点击盒子 tab 时再拉数据，避免阻塞首屏
   renderOverview();
 }
 
@@ -2469,6 +2491,22 @@ function boxRenderOverview() {
   byId('stage2a', s2a); byId('stage2b', s2b); byId('stage2Count', s2a + s2b);
   byId('stage3a', s3a); byId('stage3b', s3b); byId('stage3Count', s3a + s3b);
   byId('stagePendCount', pend);
+
+  // 子阶段状态图标：有品牌=●进行中（亮色），0=○待开始（灰色）
+  const dot = (rowId, hasBrand, colorOn) => {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const d = row.querySelector('.substep-dot');
+    if (!d) return;
+    if (hasBrand) { d.textContent = '●'; d.style.color = colorOn; d.style.opacity = '1'; }
+    else { d.textContent = '○'; d.style.color = '#cbd5e1'; d.style.opacity = '.6'; }
+  };
+  dot('stage1a-row', s1a > 0, '#d97706');
+  dot('stage1b-row', s1b > 0, '#d97706');
+  dot('stage2a-row', s2a > 0, '#2563eb');
+  dot('stage2b-row', s2b > 0, '#2563eb');
+  dot('stage3a-row', s3a > 0, '#16a34a');
+  dot('stage3b-row', s3b > 0, '#16a34a');
   byId('boxDeployed', deployed.toLocaleString());
   byId('boxTarget', BOX_ANNUAL_TARGET.toLocaleString());
   byId('boxProgressPct', pct.toFixed(1));
@@ -2506,8 +2544,15 @@ function boxRenderTable() {
   const onlyRisk = document.getElementById('boxFilterRisk').checked;
   const q = (document.getElementById('boxSearch').value || '').trim().toLowerCase();
 
+  // 表格倒序：阶段三在前（代表进展最靠后）、待评估垫底
+  const STAGE_DESC_ORDER = [
+    '阶段三-铺货管理','阶段三-发货阶段',
+    '阶段二-盒子申请','阶段二-线上签约',
+    '阶段一-邮件报备','阶段一-铺设主体确认',
+    '待评估'
+  ];
   const stageOrder = {};
-  BOX_STAGES.forEach((s,i) => stageOrder[s] = i);
+  STAGE_DESC_ORDER.forEach((s,i) => stageOrder[s] = i);
 
   const data = boxBrands.filter(b => {
     if (stage && b.stage !== stage) return false;
@@ -2560,6 +2605,10 @@ function boxRenderTable() {
 }
 
 async function renderBox() {
+  const tbody = document.getElementById('boxBrandsTbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:40px;color:#94a3b8;">⏳ 加载中...</td></tr>';
+  const badge = document.getElementById('boxLastUpdate');
+  if (badge) badge.textContent = '加载中...';
   await Promise.all([fetchBoxBrandsFromServer(), fetchBoxFeedbackFromServer()]);
   boxRenderOverview();
   boxPopulateFilters();
