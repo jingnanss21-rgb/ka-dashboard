@@ -599,7 +599,8 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th class="sticky-col sticky-col-last" style="left:136px;min-width:60px;">负责人</th>
             <th>品类</th>
             <th class="sortable" data-sort="wuyou-status">无忧会员状态</th>
-            <th style="min-width:200px;">备注（点击编辑）</th>
+            <th style="min-width:120px;">方案</th>
+            <th style="min-width:260px;">反馈（点击查看/编辑）</th>
           </tr>
         </thead>
         <tbody id="wuyouTbody"></tbody>
@@ -616,7 +617,8 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
               <th style="min-width:60px;">负责人</th>
               <th>品类</th>
               <th>无忧会员状态</th>
-              <th style="min-width:200px;">备注（点击编辑）</th>
+              <th style="min-width:120px;">方案</th>
+              <th style="min-width:260px;">反馈</th>
             </tr>
           </thead>
           <tbody id="wuyouCollapsedTbody"></tbody>
@@ -745,6 +747,19 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <button onclick="closeBoxAdd()" style="background:#f1f5f9;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">取消</button>
     <button onclick="submitBoxAdd()" style="background:#16a34a;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:600;">保存</button>
   </div>
+</div>
+
+<!-- 无忧会员反馈抽屉 -->
+<div id="wuyouDrawerMask" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.4);z-index:1000;" onclick="closeWuyouDrawer()"></div>
+<div id="wuyouDrawer" style="display:none;position:fixed;top:0;right:0;width:640px;max-width:100%;height:100%;background:#fff;z-index:1001;box-shadow:-4px 0 20px rgba(0,0,0,0.15);overflow-y:auto;">
+  <div style="padding:20px 24px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:2;">
+    <div>
+      <div id="wuyouDrawerTitle" style="font-size:20px;font-weight:700;color:#0f172a;">—</div>
+      <div id="wuyouDrawerSubtitle" style="font-size:13px;color:#64748b;margin-top:2px;">—</div>
+    </div>
+    <button onclick="closeWuyouDrawer()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#94a3b8;">×</button>
+  </div>
+  <div style="padding:20px 24px;" id="wuyouDrawerBody"></div>
 </div>
 
 </div><!-- /container -->
@@ -2184,6 +2199,9 @@ document.getElementById('cikaTable').addEventListener('click', e => {
 // ============================================================
 let wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}');
 let wuyouStatusOverrides = {};  // { brand_name: status }
+let wuyouPlans = {};            // { brand_name: '普通代扣' | '无忧会员' | '' }
+let wuyouFeedback = {};         // { brand_name: [ {id, content, created_at, updated_at} ] }
+const WUYOU_PLAN_OPTIONS = ['', '普通代扣', '无忧会员'];
 
 async function loadWuyouCommentsFromServer() {
   try {
@@ -2191,9 +2209,11 @@ async function loadWuyouCommentsFromServer() {
     if (error) throw error;
     wuyouComments = {};
     wuyouStatusOverrides = {};
+    wuyouPlans = {};
     (data || []).forEach(row => {
       wuyouComments[row.brand_name] = row.comment || '';
       if (row.status != null && row.status !== '') wuyouStatusOverrides[row.brand_name] = row.status;
+      if (row.plan != null && row.plan !== '') wuyouPlans[row.brand_name] = row.plan;
     });
 
     // 如果新表为空，从旧表 ka_feedbacks 迁移 wuyou:: 前缀的数据
@@ -2225,6 +2245,25 @@ async function loadWuyouCommentsFromServer() {
   }
   try { localStorage.setItem('ka_wuyou_comments', JSON.stringify(wuyouComments)); } catch(e) {}
   try { localStorage.setItem('ka_wuyou_status', JSON.stringify(wuyouStatusOverrides)); } catch(e) {}
+}
+
+async function loadWuyouFeedbackFromServer() {
+  try {
+    const { data, error } = await alertSb
+      .from('ka_wuyou_feedback')
+      .select('*')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    wuyouFeedback = {};
+    (data || []).forEach(r => {
+      if (!wuyouFeedback[r.brand_name]) wuyouFeedback[r.brand_name] = [];
+      wuyouFeedback[r.brand_name].push(r);
+    });
+  } catch(e) {
+    console.warn('加载无忧反馈失败:', e.message);
+    wuyouFeedback = {};
+  }
 }
 
 function applyWuyouStatusOverrides() {
@@ -2286,7 +2325,7 @@ function saveWuyouStatusToServer(brand, status) {
 let wuyouSortDir = null;
 
 async function renderWuyou() {
-  await loadWuyouCommentsFromServer();
+  await Promise.all([loadWuyouCommentsFromServer(), loadWuyouFeedbackFromServer()]);
 
   const brands = KA_DATA.brands;
   const interest = brands.filter(b => b['无忧会员'] === '有意向').length;
@@ -2299,6 +2338,76 @@ async function renderWuyou() {
   `;
 
   renderWuyouTable();
+}
+
+// ── 计算反馈 cutoff（基于最新日报日期 -5 天，与摇优惠一致）
+function getWuyouCutoff() {
+  const reportDate = (latestKaSnapshot && latestKaSnapshot.report_date) || null;
+  if (!reportDate) {
+    const d = new Date();
+    d.setDate(d.getDate() - 5);
+    return d.toISOString().substring(0,10);
+  }
+  const d = new Date(reportDate);
+  d.setDate(d.getDate() - 5);
+  return d.toISOString().substring(0,10);
+}
+
+function fmtWuyouTime(iso) {
+  if (!iso) return '—';
+  return iso.substring(0,16).replace('T',' ');
+}
+
+// ── 生成"反馈列"的紧凑摘要：只显示新反馈条数 + 最新一条摘要
+function wuyouFbSummary(brand) {
+  const fbs = wuyouFeedback[brand] || [];
+  if (!fbs.length) return { text: '<span style="color:#94a3b8;font-size:12px;">点击添加反馈...</span>', newCount: 0 };
+  const cutoff = getWuyouCutoff();
+  const newFbs = fbs.filter(f => f.created_at && f.created_at.substring(0,10) >= cutoff);
+  const latest = fbs[0];
+  const latestTxt = latest.content || '';
+  const trimmed = latestTxt.length > 50 ? latestTxt.slice(0,50) + '…' : latestTxt;
+  const badge = newFbs.length > 0
+    ? `<span style="display:inline-block;background:#dcfce7;color:#16a34a;font-size:10px;padding:1px 6px;border-radius:8px;margin-right:5px;font-weight:600;">🟢 ${newFbs.length} 新</span>`
+    : '';
+  const histBadge = fbs.length > newFbs.length
+    ? `<span style="display:inline-block;background:#fef3c7;color:#92400e;font-size:10px;padding:1px 6px;border-radius:8px;margin-right:5px;">📜 ${fbs.length - newFbs.length} 历史</span>`
+    : '';
+  const timeStr = `<span style="color:#94a3b8;font-size:10px;">${fmtWuyouTime(latest.created_at)}</span>`;
+  return {
+    text: `<div style="font-size:12px;line-height:1.4;">${badge}${histBadge}<div style="color:#334155;margin-top:3px;">${trimmed}</div>${timeStr}</div>`,
+    newCount: newFbs.length
+  };
+}
+
+// ── 方案下拉 HTML
+function wuyouPlanSelect(brand) {
+  const cur = wuyouPlans[brand] || '';
+  const brandEsc = brand.replace(/'/g, "\\'");
+  return `<select onclick="event.stopPropagation();" onchange="saveWuyouPlan('${brandEsc}', this.value)" style="padding:3px 6px;border:1px solid #e2e8f0;border-radius:4px;font-size:12px;background:${cur?'#f0f9ff':'#fff'};color:${cur?'#0369a1':'#94a3b8'};">
+    ${WUYOU_PLAN_OPTIONS.map(o => `<option value="${o}" ${o===cur?'selected':''}>${o || '— 未选 —'}</option>`).join('')}
+  </select>`;
+}
+
+async function saveWuyouPlan(brand, plan) {
+  const oldPlan = wuyouPlans[brand] || '';
+  wuyouPlans[brand] = plan;
+  try {
+    const { error } = await alertSb.from('ka_wuyou_comments').upsert({
+      brand_name: brand,
+      plan: plan || null,
+      status: wuyouStatusOverrides[brand] || null,
+      comment: wuyouComments[brand] || '',
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'brand_name' });
+    if (error) throw error;
+    showToast('方案已保存');
+  } catch(e) {
+    wuyouPlans[brand] = oldPlan;
+    console.warn('保存方案失败:', e.message);
+    showToast('保存失败：' + e.message);
+    renderWuyouTable();
+  }
 }
 
 function renderWuyouTable() {
@@ -2328,32 +2437,30 @@ function renderWuyouTable() {
 
   const tbody = document.getElementById('wuyouTbody');
   tbody.innerHTML = activeData.map((b, idx) => {
-    const comment = wuyouComments[b['品牌']] || '';
     const brandEsc = b['品牌'].replace(/'/g, "\\'");
+    const fb = wuyouFbSummary(b['品牌']);
     return `<tr>
       <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
       <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
       <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
       <td>${statusTagEditable(b['无忧会员'], 'wuyou', brandEsc)}</td>
-      <td class="editable-cell">
-        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'wuyou','${brandEsc}')">${comment || '点击添加备注...'}</div>
-      </td>
+      <td>${wuyouPlanSelect(b['品牌'])}</td>
+      <td class="editable-cell" style="cursor:pointer;" onclick="openWuyouDrawer('${brandEsc}')">${fb.text}</td>
     </tr>`;
   }).join('');
 
   document.getElementById('wuyouCollapsedTbody').innerHTML = collapsedData.map((b, idx) => {
-    const comment = wuyouComments[b['品牌']] || '';
     const brandEsc = b['品牌'].replace(/'/g, "\\'");
+    const fb = wuyouFbSummary(b['品牌']);
     return `<tr>
       <td style="text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
       <td>${b['品牌']}</td>
       <td>${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
       <td>${statusTagEditable(b['无忧会员'], 'wuyou', brandEsc)}</td>
-      <td class="editable-cell">
-        <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'wuyou','${brandEsc}')">${comment || '点击添加备注...'}</div>
-      </td>
+      <td>${wuyouPlanSelect(b['品牌'])}</td>
+      <td class="editable-cell" style="cursor:pointer;" onclick="openWuyouDrawer('${brandEsc}')">${fb.text}</td>
     </tr>`;
   }).join('');
 
@@ -2374,6 +2481,146 @@ document.getElementById('wuyouTable').addEventListener('click', e => {
   if (wuyouSortDir) th.classList.add('sort-' + wuyouSortDir);
   renderWuyouTable();
 });
+
+// ── 无忧反馈抽屉 ─────────────────────────────
+let wuyouCurrentBrand = null;
+
+function openWuyouDrawer(brand) {
+  wuyouCurrentBrand = brand;
+  const fbs = wuyouFeedback[brand] || [];
+  const cutoff = getWuyouCutoff();
+  const newFbs = fbs.filter(f => f.created_at && f.created_at.substring(0,10) >= cutoff);
+  const oldFbs = fbs.filter(f => !f.created_at || f.created_at.substring(0,10) < cutoff);
+
+  document.getElementById('wuyouDrawerTitle').textContent = brand;
+  document.getElementById('wuyouDrawerSubtitle').textContent =
+    `反馈时间线 · cutoff=${cutoff}（前 5 天算新反馈）`;
+
+  const renderFbItem = (f, isNew) => {
+    const bg = isNew ? '#f0fdf4' : '#fffbeb';
+    const borderC = isNew ? '#16a34a' : '#f59e0b';
+    const brdC = isNew ? '#bbf7d0' : '#fde68a';
+    const updTime = f.updated_at && f.updated_at !== f.created_at
+      ? `（编辑于 ${fmtWuyouTime(f.updated_at)}）` : '';
+    return `<div style="margin:5px 0;padding:8px 10px;background:${bg};border:1px solid ${brdC};border-left:3px solid ${borderC};border-radius:6px;font-size:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+        <span style="color:#999;font-size:10px;">${fmtWuyouTime(f.created_at)}${updTime}</span>
+        <span style="display:flex;gap:8px;">
+          <span onclick="editWuyouFeedback(${f.id})" style="cursor:pointer;font-size:11px;color:#3b82f6;font-weight:500;">编辑</span>
+          <span onclick="deleteWuyouFeedback(${f.id})" style="cursor:pointer;font-size:11px;color:#dc2626;font-weight:500;">删除</span>
+        </span>
+      </div>
+      <div style="line-height:1.6;color:#333;white-space:pre-wrap;">${f.content || ''}</div>
+    </div>`;
+  };
+
+  let h = '';
+  // 新增反馈输入框
+  h += `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin-bottom:16px;">
+    <div style="font-size:12px;font-weight:600;color:#1e40af;margin-bottom:6px;">📝 新增反馈</div>
+    <textarea id="wuyouNewFbInput" rows="3" placeholder="记录本次沟通进展..." style="width:100%;padding:8px;border:1px solid #93c5fd;border-radius:5px;font-family:inherit;font-size:12px;"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+      <button onclick="submitWuyouFeedback()" style="background:#3b82f6;color:#fff;border:none;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">保存</button>
+    </div>
+  </div>`;
+
+  // 新反馈区（默认展开）
+  if (newFbs.length > 0) {
+    h += `<div style="margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:600;color:#16a34a;margin-bottom:6px;">🟢 新增反馈 (${newFbs.length}) · 周期内</div>
+      ${newFbs.map(f => renderFbItem(f, true)).join('')}
+    </div>`;
+  } else {
+    h += `<div style="margin-bottom:14px;padding:10px;background:#f8fafc;border-radius:6px;text-align:center;color:#94a3b8;font-size:12px;">周期内暂无新反馈</div>`;
+  }
+
+  // 历史反馈（默认折叠，按日期分组）
+  if (oldFbs.length > 0) {
+    const groups = {};
+    oldFbs.forEach(f => {
+      const d = (f.created_at || '').substring(0,10);
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(f);
+    });
+    const histGid = 'wuyou-hist-' + Date.now();
+    h += `<div>
+      <div onclick="var el=document.getElementById('${histGid}');el.style.display=el.style.display==='none'?'block':'none';this.querySelector('.fba').textContent=el.style.display==='none'?'▶':'▼'" style="cursor:pointer;font-size:13px;font-weight:600;color:#92400e;padding:6px 0;border-bottom:1px dashed #fde68a;user-select:none;">
+        <span class="fba">▶</span> 📜 历史反馈 (${oldFbs.length}) · cutoff 之前
+      </div>
+      <div id="${histGid}" style="display:none;">`;
+    Object.keys(groups).sort().reverse().forEach(d => {
+      h += `<div style="font-size:10px;color:#999;margin-top:8px;font-weight:600;">${d}</div>`;
+      groups[d].forEach(f => { h += renderFbItem(f, false); });
+    });
+    h += `</div></div>`;
+  }
+
+  document.getElementById('wuyouDrawerBody').innerHTML = h;
+  document.getElementById('wuyouDrawerMask').style.display = 'block';
+  document.getElementById('wuyouDrawer').style.display = 'block';
+}
+
+function closeWuyouDrawer() {
+  document.getElementById('wuyouDrawerMask').style.display = 'none';
+  document.getElementById('wuyouDrawer').style.display = 'none';
+  wuyouCurrentBrand = null;
+}
+
+async function submitWuyouFeedback() {
+  const brand = wuyouCurrentBrand;
+  if (!brand) return;
+  const ta = document.getElementById('wuyouNewFbInput');
+  const content = ta.value.trim();
+  if (!content) { showToast('请输入内容'); return; }
+  try {
+    const { error } = await alertSb.from('ka_wuyou_feedback').insert({ brand_name: brand, content });
+    if (error) throw error;
+    showToast('✅ 已添加');
+    await loadWuyouFeedbackFromServer();
+    openWuyouDrawer(brand);
+    renderWuyouTable();
+  } catch(e) {
+    showToast('添加失败：' + e.message);
+  }
+}
+
+async function editWuyouFeedback(fid) {
+  const arr = wuyouFeedback[wuyouCurrentBrand] || [];
+  const f = arr.find(x => x.id === fid);
+  if (!f) return;
+  const newContent = prompt('编辑反馈内容：', f.content);
+  if (newContent == null) return;
+  const content = newContent.trim();
+  if (!content) { showToast('内容不能为空'); return; }
+  try {
+    const { error } = await alertSb.from('ka_wuyou_feedback')
+      .update({ content, updated_at: new Date().toISOString() })
+      .eq('id', fid);
+    if (error) throw error;
+    showToast('✅ 已更新');
+    await loadWuyouFeedbackFromServer();
+    openWuyouDrawer(wuyouCurrentBrand);
+    renderWuyouTable();
+  } catch(e) {
+    showToast('更新失败：' + e.message);
+  }
+}
+
+async function deleteWuyouFeedback(fid) {
+  if (!confirm('确认删除此条反馈？')) return;
+  try {
+    const { error } = await alertSb.from('ka_wuyou_feedback')
+      .update({ is_deleted: true })
+      .eq('id', fid);
+    if (error) throw error;
+    showToast('已删除');
+    await loadWuyouFeedbackFromServer();
+    openWuyouDrawer(wuyouCurrentBrand);
+    renderWuyouTable();
+  } catch(e) {
+    showToast('删除失败：' + e.message);
+  }
+}
 
 // ============================================================
 // Toggle collapsed sections
