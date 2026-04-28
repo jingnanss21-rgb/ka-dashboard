@@ -648,40 +648,71 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div style="width:100%;height:10px;background:#f1f5f9;border-radius:5px;overflow:hidden;">
       <div id="boxProgressBar" style="height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);width:0%;transition:width .6s;"></div>
     </div>
-    <!-- 阶段漏斗：流程化视觉 -->
+    <!-- 阶段漏斗：流程化视觉（精简重构版） -->
     <div style="display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr;gap:10px;margin-top:18px;align-items:stretch;">
-      <div class="stage-card" style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:1px solid #f59e0b;border-radius:10px;padding:14px;position:relative;">
-        <div style="font-size:11px;color:#92400e;font-weight:700;letter-spacing:.5px;">STAGE 1</div>
-        <div style="font-size:13px;color:#92400e;font-weight:600;margin-top:2px;">合作模式确认</div>
-        <div style="font-size:12px;color:#b45309;margin-top:3px;opacity:.8;">⏰ 5月 deadline</div>
-        <div style="font-size:26px;font-weight:800;color:#92400e;margin-top:10px;line-height:1;"><span id="stage1Count">0</span> <span style="font-size:12px;font-weight:500;">品牌</span></div>
+
+      <!-- STAGE 1: 商务阶段 -->
+      <div class="stage-card" style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:1px solid #f59e0b;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:11px;color:#92400e;font-weight:700;letter-spacing:.5px;">📞 STAGE 1 · 商务阶段</div>
+            <div style="font-size:13px;color:#92400e;font-weight:600;margin-top:2px;">合作模式确认</div>
+          </div>
+          <div style="font-size:26px;font-weight:800;color:#92400e;line-height:1;"><span id="stage1Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;">品牌</span></div>
+        </div>
+        <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.55);border-radius:6px;font-size:11px;line-height:1.55;color:#78350f;">
+          <div><b>✅ 核心动作</b>：服务商落地 + 客户邮件确认函</div>
+          <div style="margin-top:4px;color:#b91c1c;"><b>⚠️ 拒绝标准</b>：服务商无法解决 且 品牌老板明确拒绝资金支持</div>
+        </div>
         <div style="margin-top:10px;font-size:12px;color:#78350f;display:flex;flex-direction:column;gap:4px;">
           <div id="stage1a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 铺设主体确认 <b style="margin-left:auto;" id="stage1a">0</b></div>
           <div id="stage1b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 邮件报备 <b style="margin-left:auto;" id="stage1b">0</b></div>
         </div>
       </div>
+
       <div style="display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:24px;font-weight:700;">▶</div>
-      <div class="stage-card" style="background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%);border:1px solid #60a5fa;border-radius:10px;padding:14px;position:relative;">
-        <div style="font-size:11px;color:#1e40af;font-weight:700;letter-spacing:.5px;">STAGE 2</div>
-        <div style="font-size:13px;color:#1e40af;font-weight:600;margin-top:2px;">合作关系确认</div>
-        <div style="font-size:12px;color:#1d4ed8;margin-top:3px;opacity:.8;">签约阶段</div>
-        <div style="font-size:26px;font-weight:800;color:#1e40af;margin-top:10px;line-height:1;"><span id="stage2Count">0</span> <span style="font-size:12px;font-weight:500;">品牌</span></div>
+
+      <!-- STAGE 2: 签约阶段 -->
+      <div class="stage-card" style="background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%);border:1px solid #60a5fa;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
+        <div style="position:absolute;top:-8px;right:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;box-shadow:0 2px 4px rgba(37,99,235,.3);">🎯 里程碑进展</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:11px;color:#1e40af;font-weight:700;letter-spacing:.5px;">✍️ STAGE 2 · 签约阶段</div>
+            <div style="font-size:13px;color:#1e40af;font-weight:600;margin-top:2px;">合作关系确认</div>
+          </div>
+          <div style="font-size:26px;font-weight:800;color:#1e40af;line-height:1;"><span id="stage2Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;">品牌</span></div>
+        </div>
+        <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.6);border-radius:6px;font-size:11px;line-height:1.55;color:#1e3a8a;">
+          <div><b>✅ 核心动作</b>：服务商×品牌完成签约 + 签署承诺函</div>
+          <div style="margin-top:4px;"><b>📌 责任方</b>：目前由服务商背责</div>
+        </div>
         <div style="margin-top:10px;font-size:12px;color:#1e3a8a;display:flex;flex-direction:column;gap:4px;">
           <div id="stage2a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 线上签约 <b style="margin-left:auto;" id="stage2a">0</b></div>
           <div id="stage2b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 盒子申请 <b style="margin-left:auto;" id="stage2b">0</b></div>
         </div>
       </div>
+
       <div style="display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:24px;font-weight:700;">▶</div>
-      <div class="stage-card" style="background:linear-gradient(135deg,#dcfce7 0%,#bbf7d0 100%);border:1px solid #34d399;border-radius:10px;padding:14px;position:relative;">
-        <div style="font-size:11px;color:#15803d;font-weight:700;letter-spacing:.5px;">STAGE 3</div>
-        <div style="font-size:13px;color:#15803d;font-weight:600;margin-top:2px;">落地执行</div>
-        <div style="font-size:12px;color:#166534;margin-top:3px;opacity:.8;">🚀 计入已铺设</div>
-        <div style="font-size:26px;font-weight:800;color:#15803d;margin-top:10px;line-height:1;"><span id="stage3Count">0</span> <span style="font-size:12px;font-weight:500;">品牌</span></div>
+
+      <!-- STAGE 3: 发货阶段 -->
+      <div class="stage-card" style="background:linear-gradient(135deg,#dcfce7 0%,#bbf7d0 100%);border:1px solid #34d399;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:11px;color:#15803d;font-weight:700;letter-spacing:.5px;">📦 STAGE 3 · 发货阶段</div>
+            <div style="font-size:13px;color:#15803d;font-weight:600;margin-top:2px;">实际落地执行</div>
+          </div>
+          <div style="font-size:26px;font-weight:800;color:#15803d;line-height:1;"><span id="stage3Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;">品牌</span></div>
+        </div>
+        <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.6);border-radius:6px;font-size:11px;line-height:1.55;color:#14532d;">
+          <div><b>✅ 核心动作</b>：按总部控制力评估门店数，分批申请+落地</div>
+          <div style="margin-top:4px;"><b>🔧 细节管理</b>：可控门店数评估 + 物理适配（线缆/USB 等）</div>
+        </div>
         <div style="margin-top:10px;font-size:12px;color:#14532d;display:flex;flex-direction:column;gap:4px;">
           <div id="stage3a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 发货阶段 <b style="margin-left:auto;" id="stage3a">0</b></div>
           <div id="stage3b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 铺货管理 <b style="margin-left:auto;" id="stage3b">0</b></div>
         </div>
       </div>
+
     </div>
     <div style="font-size:12px;color:#64748b;margin-top:10px;">⚪ 待评估：<span id="stagePendCount">0</span> 品牌（尚未纳入推进流程）</div>
   </div>
@@ -700,16 +731,16 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
       <table id="boxBrandsTable">
         <thead>
           <tr>
-            <th style="min-width:36px;text-align:center;">#</th>
-            <th style="min-width:60px;">行业</th>
-            <th style="min-width:120px;">品牌</th>
-            <th style="min-width:80px;">品牌ID</th>
+            <th class="sticky-col" style="left:0;min-width:36px;text-align:center;">#</th>
+            <th class="sticky-col" style="left:36px;min-width:60px;">行业</th>
+            <th class="sticky-col" style="left:96px;min-width:120px;">品牌</th>
+            <th class="sticky-col sticky-col-last" style="left:216px;min-width:80px;">品牌ID</th>
             <th style="min-width:100px;">服务商</th>
             <th style="min-width:80px;text-align:right;">门店数</th>
             <th style="min-width:90px;text-align:right;">预估铺设</th>
             <th style="min-width:140px;">当前阶段</th>
-            <th style="min-width:240px;">最新反馈</th>
-            <th style="min-width:180px;">风险点</th>
+            <th style="min-width:200px;max-width:240px;">最新反馈</th>
+            <th style="min-width:160px;max-width:200px;">风险点</th>
             <th style="min-width:100px;">更新时间</th>
             <th style="min-width:70px;">操作</th>
           </tr>
@@ -2828,23 +2859,23 @@ function boxRenderTable() {
     const latestText = latestFb ? latestFb.content : '';
     const latestTime = latestFb ? boxFmtTime(latestFb.created_at) : '';
     const risk = (b.risk_note || '').trim();
-    const riskCell = risk
-      ? `<div style="color:#b91c1c;font-size:12px;line-height:1.4;" title="${risk.replace(/"/g,'&quot;')}">⚠️ ${risk.length>60?risk.slice(0,60)+'...':risk}</div>`
-      : `<span style="color:#cbd5e1;">—</span>`;
     const fbCell = latestText
-      ? `<div style="font-size:12px;line-height:1.4;color:#334155;" title="${latestText.replace(/"/g,'&quot;')}">${latestText.length>70?latestText.slice(0,70)+'...':latestText}<div style="color:#94a3b8;font-size:10px;margin-top:2px;">${latestTime}</div></div>`
+      ? `<div style="font-size:12px;line-height:1.4;color:#334155;white-space:normal;word-break:break-word;" title="${latestText.replace(/"/g,'&quot;')}">${latestText}<div style="color:#94a3b8;font-size:10px;margin-top:2px;">${latestTime}</div></div>`
       : `<span style="color:#cbd5e1;font-size:12px;">暂无反馈</span>`;
+    const riskCellFull = (b.risk_note || '').trim()
+      ? `<div style="color:#b91c1c;font-size:12px;line-height:1.4;white-space:normal;word-break:break-word;" title="${(b.risk_note||'').replace(/"/g,'&quot;')}">⚠️ ${b.risk_note}</div>`
+      : `<span style="color:#cbd5e1;">—</span>`;
     return `<tr style="cursor:pointer;" onclick="openBoxDrawer(${b.id})">
-      <td style="text-align:center;color:#94a3b8;font-size:12px;">${idx+1}</td>
-      <td><span style="display:inline-block;padding:1px 6px;background:#f1f5f9;border-radius:4px;font-size:11px;color:#475569;">${b.category||'—'}</span></td>
-      <td style="font-weight:600;color:#0f172a;">${b.brand_name||'—'}</td>
-      <td style="color:#64748b;font-size:12px;">${b.brand_id != null ? b.brand_id : '<span style="color:#cbd5e1;">留空</span>'}</td>
+      <td class="sticky-col" style="left:0;text-align:center;color:#94a3b8;font-size:12px;">${idx+1}</td>
+      <td class="sticky-col" style="left:36px;"><span style="display:inline-block;padding:1px 6px;background:#f1f5f9;border-radius:4px;font-size:11px;color:#475569;">${b.category||'—'}</span></td>
+      <td class="sticky-col" style="left:96px;font-weight:600;color:#0f172a;">${b.brand_name||'—'}</td>
+      <td class="sticky-col sticky-col-last" style="left:216px;color:#64748b;font-size:12px;">${b.brand_id != null ? b.brand_id : '<span style="color:#cbd5e1;">留空</span>'}</td>
       <td style="color:#475569;font-size:12px;">${b.sp_name||'—'}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;">${b.store_count != null ? Number(b.store_count).toLocaleString() : '—'}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:${b.est_box_count?'#16a34a':'#cbd5e1'};">${b.est_box_count != null ? Number(b.est_box_count).toLocaleString() : '—'}</td>
       <td>${boxStageTag(b.stage)}</td>
-      <td>${fbCell}</td>
-      <td>${riskCell}</td>
+      <td style="max-width:240px;white-space:normal;">${fbCell}</td>
+      <td style="max-width:200px;white-space:normal;">${riskCellFull}</td>
       <td style="color:#94a3b8;font-size:11px;">${boxFmtTime(b.updated_at)}</td>
       <td><span style="color:#16a34a;font-size:12px;">编辑 →</span></td>
     </tr>`;
