@@ -648,68 +648,74 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div style="width:100%;height:10px;background:#f1f5f9;border-radius:5px;overflow:hidden;">
       <div id="boxProgressBar" style="height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);width:0%;transition:width .6s;"></div>
     </div>
-    <!-- 阶段漏斗：流程化视觉（精简重构版） -->
+    <!-- 阶段漏斗：蓝色渐进 · 白底 · 顶部色条 + 角标 -->
     <div style="display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr;gap:10px;margin-top:18px;align-items:stretch;">
 
-      <!-- STAGE 1: 商务阶段 -->
-      <div class="stage-card" style="background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border:1px solid #f59e0b;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
+      <!-- STAGE 1: 商务阶段 (天蓝 #60a5fa) -->
+      <div class="stage-card" style="background:#fff;border:1px solid #60a5fa;border-top:3px solid #60a5fa;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
-            <div style="font-size:11px;color:#92400e;font-weight:700;letter-spacing:.5px;">📞 STAGE 1 · 商务阶段</div>
-            <div style="font-size:13px;color:#92400e;font-weight:600;margin-top:2px;">合作模式确认</div>
+            <div style="display:inline-block;padding:2px 8px;background:#dbeafe;color:#1e40af;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;">STAGE 1</div>
+            <div style="font-size:14px;color:#0f172a;font-weight:700;margin-top:6px;">📞 商务阶段</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;">合作模式确认</div>
           </div>
-          <div style="font-size:26px;font-weight:800;color:#92400e;line-height:1;"><span id="stage1Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;">品牌</span></div>
+          <div style="font-size:28px;font-weight:800;color:#60a5fa;line-height:1;"><span id="stage1Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;color:#94a3b8;">品牌</span></div>
         </div>
-        <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.55);border-radius:6px;font-size:11px;line-height:1.55;color:#78350f;">
-          <div><b>✅ 核心动作</b>：服务商落地 + 客户邮件确认函</div>
-          <div style="margin-top:4px;color:#b91c1c;"><b>⚠️ 拒绝标准</b>：服务商无法解决 且 品牌老板明确拒绝资金支持</div>
+        <div style="height:1px;border-top:1px dashed #cbd5e1;margin:10px 0;"></div>
+        <div style="font-size:11px;line-height:1.6;color:#475569;">
+          <div><b style="color:#334155;">✅ 核心动作</b>：服务商落地 + 客户邮件确认函</div>
+          <div style="margin-top:4px;color:#dc2626;"><b>⚠️ 拒绝标准</b>：服务商无法解决 且 品牌老板明确拒绝资金支持</div>
         </div>
-        <div style="margin-top:10px;font-size:12px;color:#78350f;display:flex;flex-direction:column;gap:4px;">
-          <div id="stage1a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 铺设主体确认 <b style="margin-left:auto;" id="stage1a">0</b></div>
-          <div id="stage1b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 邮件报备 <b style="margin-left:auto;" id="stage1b">0</b></div>
+        <div style="margin-top:10px;font-size:12px;color:#475569;display:flex;flex-direction:column;gap:4px;">
+          <div id="stage1a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot" style="color:#60a5fa;">●</span> 铺设主体确认 <b style="margin-left:auto;color:#1e40af;" id="stage1a">0</b></div>
+          <div id="stage1b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot" style="color:#60a5fa;">●</span> 邮件报备 <b style="margin-left:auto;color:#1e40af;" id="stage1b">0</b></div>
         </div>
       </div>
 
       <div style="display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:24px;font-weight:700;">▶</div>
 
-      <!-- STAGE 2: 签约阶段 -->
-      <div class="stage-card" style="background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%);border:1px solid #60a5fa;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
-        <div style="position:absolute;top:-8px;right:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;box-shadow:0 2px 4px rgba(37,99,235,.3);">🎯 里程碑进展</div>
+      <!-- STAGE 2: 签约阶段 (中蓝 #2563eb) + 里程碑角标 -->
+      <div class="stage-card" style="background:#fff;border:1.5px solid #2563eb;border-top:3px solid #2563eb;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
+        <div style="position:absolute;top:-10px;right:12px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;box-shadow:0 2px 6px rgba(217,119,6,.35);">🎯 里程碑进展</div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
-            <div style="font-size:11px;color:#1e40af;font-weight:700;letter-spacing:.5px;">✍️ STAGE 2 · 签约阶段</div>
-            <div style="font-size:13px;color:#1e40af;font-weight:600;margin-top:2px;">合作关系确认</div>
+            <div style="display:inline-block;padding:2px 8px;background:#2563eb;color:#fff;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;">STAGE 2</div>
+            <div style="font-size:14px;color:#0f172a;font-weight:700;margin-top:6px;">✍️ 签约阶段</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;">合作关系确认</div>
           </div>
-          <div style="font-size:26px;font-weight:800;color:#1e40af;line-height:1;"><span id="stage2Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;">品牌</span></div>
+          <div style="font-size:28px;font-weight:800;color:#2563eb;line-height:1;"><span id="stage2Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;color:#94a3b8;">品牌</span></div>
         </div>
-        <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.6);border-radius:6px;font-size:11px;line-height:1.55;color:#1e3a8a;">
-          <div><b>✅ 核心动作</b>：服务商×品牌完成签约 + 签署承诺函</div>
-          <div style="margin-top:4px;"><b>📌 责任方</b>：目前由服务商背责</div>
+        <div style="height:1.5px;border-top:1.5px solid #bfdbfe;margin:10px 0;"></div>
+        <div style="font-size:11px;line-height:1.6;color:#475569;">
+          <div><b style="color:#334155;">✅ 核心动作</b>：服务商×品牌完成签约 + 签署承诺函</div>
+          <div style="margin-top:4px;"><b style="color:#334155;">📌 责任方</b>：目前由服务商背责</div>
         </div>
-        <div style="margin-top:10px;font-size:12px;color:#1e3a8a;display:flex;flex-direction:column;gap:4px;">
-          <div id="stage2a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 线上签约 <b style="margin-left:auto;" id="stage2a">0</b></div>
-          <div id="stage2b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 盒子申请 <b style="margin-left:auto;" id="stage2b">0</b></div>
+        <div style="margin-top:10px;font-size:12px;color:#475569;display:flex;flex-direction:column;gap:4px;">
+          <div id="stage2a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot" style="color:#2563eb;">●</span> 线上签约 <b style="margin-left:auto;color:#1e3a8a;" id="stage2a">0</b></div>
+          <div id="stage2b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot" style="color:#2563eb;">●</span> 盒子申请 <b style="margin-left:auto;color:#1e3a8a;" id="stage2b">0</b></div>
         </div>
       </div>
 
       <div style="display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:24px;font-weight:700;">▶</div>
 
-      <!-- STAGE 3: 发货阶段 -->
-      <div class="stage-card" style="background:linear-gradient(135deg,#dcfce7 0%,#bbf7d0 100%);border:1px solid #34d399;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
+      <!-- STAGE 3: 发货阶段 (深蓝 #1e3a8a) -->
+      <div class="stage-card" style="background:#fff;border:2px solid #1e3a8a;border-top:3px solid #1e3a8a;border-radius:10px;padding:14px;position:relative;display:flex;flex-direction:column;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
-            <div style="font-size:11px;color:#15803d;font-weight:700;letter-spacing:.5px;">📦 STAGE 3 · 发货阶段</div>
-            <div style="font-size:13px;color:#15803d;font-weight:600;margin-top:2px;">实际落地执行</div>
+            <div style="display:inline-block;padding:2px 8px;background:#1e3a8a;color:#fff;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;">STAGE 3</div>
+            <div style="font-size:14px;color:#0f172a;font-weight:700;margin-top:6px;">📦 发货阶段</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;">实际落地执行</div>
           </div>
-          <div style="font-size:26px;font-weight:800;color:#15803d;line-height:1;"><span id="stage3Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;">品牌</span></div>
+          <div style="font-size:28px;font-weight:800;color:#1e3a8a;line-height:1;"><span id="stage3Count">0</span><span style="font-size:11px;font-weight:500;margin-left:2px;color:#94a3b8;">品牌</span></div>
         </div>
-        <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.6);border-radius:6px;font-size:11px;line-height:1.55;color:#14532d;">
-          <div><b>✅ 核心动作</b>：按总部控制力评估门店数，分批申请+落地</div>
-          <div style="margin-top:4px;"><b>🔧 细节管理</b>：可控门店数评估 + 物理适配（线缆/USB 等）</div>
+        <div style="height:2px;border-top:2px solid #1e3a8a;margin:10px 0;"></div>
+        <div style="font-size:11px;line-height:1.6;color:#475569;">
+          <div><b style="color:#334155;">✅ 核心动作</b>：按总部控制力评估门店数，分批申请+落地</div>
+          <div style="margin-top:4px;"><b style="color:#334155;">🔧 细节管理</b>：可控门店数评估 + 物理适配（线缆/USB 等）</div>
         </div>
-        <div style="margin-top:10px;font-size:12px;color:#14532d;display:flex;flex-direction:column;gap:4px;">
-          <div id="stage3a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 发货阶段 <b style="margin-left:auto;" id="stage3a">0</b></div>
-          <div id="stage3b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot">●</span> 铺货管理 <b style="margin-left:auto;" id="stage3b">0</b></div>
+        <div style="margin-top:10px;font-size:12px;color:#475569;display:flex;flex-direction:column;gap:4px;">
+          <div id="stage3a-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot" style="color:#1e3a8a;">●</span> 发货阶段 <b style="margin-left:auto;color:#1e3a8a;" id="stage3a">0</b></div>
+          <div id="stage3b-row" style="display:flex;align-items:center;gap:6px;"><span class="substep-dot" style="color:#1e3a8a;">●</span> 铺货管理 <b style="margin-left:auto;color:#1e3a8a;" id="stage3b">0</b></div>
         </div>
       </div>
 
@@ -739,8 +745,8 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th style="min-width:80px;text-align:right;">门店数</th>
             <th style="min-width:90px;text-align:right;">预估铺设</th>
             <th style="min-width:140px;">当前阶段</th>
-            <th style="min-width:200px;max-width:240px;">最新反馈</th>
-            <th style="min-width:160px;max-width:200px;">风险点</th>
+            <th style="min-width:200px;max-width:240px;text-align:left;">最新反馈</th>
+            <th style="min-width:160px;max-width:200px;text-align:left;">风险点</th>
             <th style="min-width:100px;">更新时间</th>
             <th style="min-width:70px;">操作</th>
           </tr>
@@ -2874,8 +2880,8 @@ function boxRenderTable() {
       <td style="text-align:right;font-variant-numeric:tabular-nums;">${b.store_count != null ? Number(b.store_count).toLocaleString() : '—'}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:${b.est_box_count?'#16a34a':'#cbd5e1'};">${b.est_box_count != null ? Number(b.est_box_count).toLocaleString() : '—'}</td>
       <td>${boxStageTag(b.stage)}</td>
-      <td style="max-width:240px;white-space:normal;">${fbCell}</td>
-      <td style="max-width:200px;white-space:normal;">${riskCellFull}</td>
+      <td style="max-width:240px;white-space:normal;text-align:left;">${fbCell}</td>
+      <td style="max-width:200px;white-space:normal;text-align:left;">${riskCellFull}</td>
       <td style="color:#94a3b8;font-size:11px;">${boxFmtTime(b.updated_at)}</td>
       <td><span style="color:#16a34a;font-size:12px;">编辑 →</span></td>
     </tr>`;
