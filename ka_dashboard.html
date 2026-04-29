@@ -1130,10 +1130,17 @@ async function renderOverview() {
   const o = KA_DATA.overall;
   const b = KA_DATA.brands;
   
-  const cikaOnline = b.filter(x => x['次卡'] === '已上线').length;
-  const cikaInterest = b.filter(x => x['次卡'] === '有意向').length;
-  const wuyouInterest = b.filter(x => x['无忧会员'] === '有意向' || x['无忧会员'] === '待沟通').length;
-  const boxInterest = b.filter(x => x['盒子'] === '有意向' || x['盒子'] === '待沟通').length;
+  // Live-data aware counts: prefer Supabase overrides over static KA_DATA fields
+  const _boxStageByName = {};
+  (boxBrands || []).forEach(x => { if (x && x.brand_name) _boxStageByName[x.brand_name] = x.stage || '待评估'; });
+  const _getCika  = (name) => (cikaStatusOverrides[name] && cikaStatusOverrides[name].trim()) || b.find(r => r['品牌'] === name)?.['次卡'] || '待评估';
+  const _getWuyou = (name) => (wuyouStatusOverrides[name] && wuyouStatusOverrides[name].trim()) || b.find(r => r['品牌'] === name)?.['无忧会员'] || '待评估';
+  const _getBox   = (name) => { const st = _boxStageByName[name]; return st ? boxStageToOverview(st) : '待评估'; };
+
+  const cikaOnline    = b.filter(x => _getCika(x['品牌'])  === '已上线').length;
+  const cikaInterest  = b.filter(x => _getCika(x['品牌'])  === '有意向').length;
+  const wuyouInterest = b.filter(x => _getWuyou(x['品牌']) === '有意向').length;
+  const boxInterest   = b.filter(x => _getBox(x['品牌'])   === '有意向').length;
   const hasTradeData = b.filter(x => x.has_data !== false && x.m03_bs_all).length;
   var _shake = getShakeBrandCountsForOverview();
   const shakeOnline = _shake.online;
@@ -1170,7 +1177,7 @@ async function renderOverview() {
         <div><div class="oc-title">无忧会员</div><div class="oc-subtitle">推进中</div></div>
       </div>
       <div class="oc-stats">
-        <div class="oc-stat"><div class="os-value" style="color:var(--purple);">${wuyouInterest}</div><div class="os-label">有意向/待沟通</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:var(--purple);">${wuyouInterest}</div><div class="os-label">有意向</div></div>
       </div>
     </div>
     <div class="overview-card" onclick="switchToTab('box')">
@@ -1179,7 +1186,7 @@ async function renderOverview() {
         <div><div class="oc-title">盒子</div><div class="oc-subtitle">推进中</div></div>
       </div>
       <div class="oc-stats">
-        <div class="oc-stat"><div class="os-value" style="color:var(--success);">${boxInterest}</div><div class="os-label">有意向/待沟通</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:var(--success);">${boxInterest}</div><div class="os-label">有意向</div></div>
       </div>
     </div>
   `;
