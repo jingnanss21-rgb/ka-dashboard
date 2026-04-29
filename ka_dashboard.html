@@ -1186,8 +1186,8 @@ async function renderOverview() {
         <div class="oc-stat"><div class="os-value" style="color:var(--success);">${shakeAchieved}</div><div class="os-label">达标品牌</div></div>
         <div class="oc-stat"><div class="os-value" style="color:var(--danger);">${shakeNotAchieved}</div><div class="os-label">未达标</div></div>
         ` : `
-        <div class="oc-stat"><div class="os-value">${shakeOnline}</div><div class="os-label">在线品牌</div></div>
-        <div class="oc-stat"><div class="os-value" style="color:var(--success);">${shakeAlive}</div><div class="os-label">存活品牌</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:var(--success);">${shakeAlive}</div><div class="os-label">存活</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:var(--warning);">${shakeOnline - shakeAlive}</div><div class="os-label">不存活</div></div>
         `}
       </div>
     </div>
