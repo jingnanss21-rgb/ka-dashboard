@@ -845,6 +845,8 @@ let latestKaSnapshot = { report_date: null, data_date_label: null };
 let gOverviewShakeSubtitle = '摇优惠周报';
 /** 摇优惠在线/存活：来自快照时为 { online, alive }，否则 renderOverview 回退 KA_DATA */
 let gShakeBrandCounts = null;
+// 快照 brands 按品牌名索引 (dailyRedeem/dailyPayment/penetrationTarget)
+let gSnapshotBrandsByName = {};
 
 const ALERT_SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
 const ALERT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imltb2dldWNwd2ZidXJzd29weWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODM5ODMsImV4cCI6MjA4OTU1OTk4M30.n_TtumzvJvuuUiWYZ4NfL2drKQLF9awpbvvDQdhg6Fk';
@@ -987,6 +989,13 @@ async function refreshKaSnapshotPeriod() {
       latestKaSnapshot.data_date_label = data.data_date_label || data.report_date;
       var computed = computeShakeBrandCountsFromSnapshotBrands(data.brands);
       if (computed) gShakeBrandCounts = computed;
+      // 建立快照品牌索引 (用于达标判定)
+      var snapBrands = parseSnapshotBrandsArray(data.brands);
+      gSnapshotBrandsByName = {};
+      snapBrands.forEach(function(sb) {
+        var n = sb.name || sb.brandName || sb.assignmentBrand || '';
+        if (n) gSnapshotBrandsByName[n] = sb;
+      });
     }
   } catch (e) {
     console.warn('refreshKaSnapshotPeriod:', e.message || e);
@@ -1147,10 +1156,12 @@ async function renderOverview() {
   const shakeOnline = _shake.online;
   const shakeAlive = _shake.alive;
 
-  // 行业达标计算
+  // 行业达标计算 (从快照 brands 读取)
   const shakeAchieved = b.filter(x => {
     if (!x['摇优惠'] || x['摇优惠'] === '未在线') return false;
-    const dr = x.dailyRedeem, dp = x.dailyPayment, pt = x.penetrationTarget;
+    var snap = gSnapshotBrandsByName[x['品牌']];
+    if (!snap) return false;
+    var dr = snap.dailyRedeem, dp = snap.dailyPayment, pt = snap.penetrationTarget;
     if (!dr || !dp || dp <= 0 || !pt || pt <= 0) return false;
     return (dr / (dp * 10000)) / pt >= 1.0;
   }).length;
@@ -1528,14 +1539,17 @@ function shakeStatusTag(s) {
   return '<span class="tag tag-gray">未在线</span>';
 }
 
-// 摇优惠行业达标判定
+// 摇优惠行业达标判定 (从快照 brands 读取 dailyRedeem/dailyPayment/penetrationTarget)
 function shakeAchieveTag(b) {
-  const dr = b.dailyRedeem;
-  const dp = b.dailyPayment;
-  const pt = b.penetrationTarget;
+  var brandName = b['品牌'];
+  var snap = gSnapshotBrandsByName[brandName];
+  if (!snap) return '<span class="tag tag-gray">—</span>';
+  var dr = snap.dailyRedeem;
+  var dp = snap.dailyPayment;
+  var pt = snap.penetrationTarget;
   if (!dr || !dp || dp <= 0 || !pt || pt <= 0) return '<span class="tag tag-gray">—</span>';
-  const ratio = dr / (dp * 10000);
-  const achieved = ratio / pt >= 1.0;
+  var ratio = dr / (dp * 10000);
+  var achieved = ratio / pt >= 1.0;
   return achieved
     ? '<span class="tag tag-green">达标</span>'
     : '<span class="tag tag-red" style="background:#fee2e2;color:#dc2626;">未达标</span>';
@@ -1567,8 +1581,9 @@ function renderOverviewTable() {
       // 按达标率排序
       data.sort((a, b) => {
         const calcRate = (x) => {
-          if (!x.dailyRedeem || !x.dailyPayment || x.dailyPayment <= 0 || !x.penetrationTarget || x.penetrationTarget <= 0) return -1;
-          return (x.dailyRedeem / (x.dailyPayment * 10000)) / x.penetrationTarget;
+          var snap = gSnapshotBrandsByName[x['品牌']];
+          if (!snap || !snap.dailyRedeem || !snap.dailyPayment || snap.dailyPayment <= 0 || !snap.penetrationTarget || snap.penetrationTarget <= 0) return -1;
+          return (snap.dailyRedeem / (snap.dailyPayment * 10000)) / snap.penetrationTarget;
         };
         const va = calcRate(a), vb = calcRate(b);
         return overviewSortDir === 'asc' ? va - vb : vb - va;
