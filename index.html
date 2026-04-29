@@ -736,13 +736,24 @@ async function loadActivitiesFromDailyTable(reportDate) {
     d.setDate(d.getDate() - 6);
     const start = d.toISOString().substring(0, 10);
 
-    const { data, error } = await sbClient
-      .from('ka_activity_daily')
-      .select('date,brand_name,activity_id,activity_name,batch_name,coupon_type,price_power,exp_pv,claim_pv,use_pv')
-      .gte('date', start)
-      .lte('date', end);
-    if(error) throw error;
-    const rows = data || [];
+    // 分页拉取全量活动数据（Supabase 默认 limit=1000，7天约 5600 行需分页）
+    let allRows = [];
+    let offset = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data: page, error: pageErr } = await sbClient
+        .from('ka_activity_daily')
+        .select('date,brand_name,activity_id,activity_name,batch_name,coupon_type,price_power,exp_pv,claim_pv,use_pv')
+        .gte('date', start)
+        .lte('date', end)
+        .range(offset, offset + pageSize - 1);
+      if (pageErr) throw pageErr;
+      if (!page || !page.length) break;
+      allRows = allRows.concat(page);
+      if (page.length < pageSize) break;
+      offset += pageSize;
+    }
+    const rows = allRows;
     if(!rows.length) return [];
 
     // 按 (brand_name + activity_id) 聚合
