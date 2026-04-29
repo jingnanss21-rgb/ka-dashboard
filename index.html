@@ -808,8 +808,26 @@ async function loadWeeklyActivitiesForDate(reportDate) {
   return [];
 }
 
+// ── 惊喜货盘：从活动日表数据计算 (次卡 + 赠品券) ──
+var SURPRISE_GOODS_CALC = null; // { total, byBrand: { name: { dailyRedeem } } }
+function calcSurpriseGoodsFromActivities(activities) {
+  const SG_TYPES = new Set(['次卡', '赠品券']);
+  const byBrand = {};
+  var total = 0;
+  (activities || []).forEach(function(a) {
+    if (!SG_TYPES.has(a.couponType)) return;
+    var dr = a.dailyRedeem || 0;
+    var bn = a.brandName || '';
+    if (!bn) return;
+    if (!byBrand[bn]) byBrand[bn] = { dailyRedeem: 0 };
+    byBrand[bn].dailyRedeem += dr;
+    total += dr;
+  });
+  SURPRISE_GOODS_CALC = { total: total, byBrand: byBrand };
+  return SURPRISE_GOODS_CALC;
+}
+
 /**
- * 快照列 channel_data 与 upload_daily 写入一致，期望结构：
  * { globalData: { channels, totExp, totWrt, ... }, brandChannelData: { "品牌名": {...} } }
  * 兼容 DB/序列化产生的 snake_case 与缺省 channels。
  */
@@ -880,6 +898,7 @@ async function loadDataForDate(dateStr) {
 
   snapshotDateLabel = row.data_date_label || "";
   currentReportDate = dateStr;
+  calcSurpriseGoodsFromActivities(activities);
   DATA = {
     brands,
     activities,
@@ -1209,19 +1228,13 @@ function buildViewPanel(viewId, ownerFilter, title) {
   // 核销达标率：达标品牌数 / 在线品牌数
   const survivalAchieveRate = activeBrands.length>0 ? redeemRatioAchievedCount/activeBrands.length : 0;
 
-  // 惊喜货盘达成率：在线惊喜货盘 / 惊喜货盘目标
-  // surprise_goods 数据没有 owner 字段，需要通过品牌名关联 assignments 获取 owner
-  const allSG = DATA.surpriseGoods || [];
-  const sgRows = ownerFilter ? allSG.filter(r => {
-    if (r.owner === ownerFilter) return true;
-    // 通过品牌名从 assignments 查找 owner
-    const bn = r.brand || r.brandName;
-    const matchedAssign = assignments.find(a => a.brand === bn || a.brand === BRAND_ALIAS[bn] || bn === BRAND_ALIAS[a.brand]);
-    return matchedAssign && matchedAssign.owner === ownerFilter;
-  }) : allSG;
-  const sgTarget = sgRows.reduce((s,r)=>s+(r.target||r.surpriseTarget||0), 0);
-  const sgOnline = sgRows.reduce((s,r)=>s+(r.online||r.surpriseOnline||0), 0);
-  const sgAchieveRate = sgTarget>0 ? sgOnline/sgTarget : 0;
+  // 惊喜货盘：从活动日表计算 (次卡+赠品券)
+  const _sgCalc = SURPRISE_GOODS_CALC || { total: 0, byBrand: {} };
+  const _sgTotalRedeem = _sgCalc.total;
+  const _kaOverallRedeem = DATA.overall.totalDailyRedeem || totalRedeem || 1;
+  const _sgRatio = _kaOverallRedeem > 0 ? _sgTotalRedeem / _kaOverallRedeem : 0;
+  const _sgTarget = 0.5; // 目标占比 50%
+  const sgAchieveRate = _sgRatio / _sgTarget;  // 达成率
 
   // 计算该视图的环比数据
   let viewWrtQoq, viewExpQoq, viewAliveQoq;
@@ -1269,7 +1282,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       ${buildAchieveBar('🎯 核销量达成率', achieveRate, `目标${fmt(totalTarget)} / 日均${fmt(totalRedeem)}`, 0.6, 0.3, viewWrtQoq)}
       ${buildAchieveBar('📡 曝光量达成率', exposureAchieveRate, `目标${totalEstExposure.toFixed(0)}w / 实际${totalExposure7d.toFixed(1)}w`, 0.6, 0.3, viewExpQoq)}
       ${buildAchieveBar('📊 核销达标率', survivalAchieveRate, `达标${redeemRatioAchievedCount} / 在线${activeBrands.length}个品牌`, 0.5, 0.3, viewAliveQoq)}
-      ${buildAchieveBar('🎁 惊喜货盘达成率', sgAchieveRate, sgTarget>0?`在线${sgOnline} / 目标${sgTarget}`:'暂无数据')}
+      ${buildAchieveBar('🎁 惊喜货盘达成率', sgAchieveRate, `占比${(_sgRatio*100).toFixed(1)}% / 目标50%`)}
     </div>
   </div>`;
 
@@ -1941,9 +1954,9 @@ function refreshTable(viewId, ownerFilter) {
         <th class="sortable" data-sort="oldCustomerExpPerPayment2x1" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>老客曝光比例<br>（二选一）</th>
         <th class="sortable" data-sort="oldCustomerJinRate2x1" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>老客尽曝率<br>（二选一）</th>
         <!-- 惊喜货盘 3列 -->
-        <th style="border-left:2px solid #e8b4d0;font-size:11px;"${_bexp?' rowspan="2"':''}>目标</th>
-        <th style="font-size:11px;"${_bexp?' rowspan="2"':''}>在线数</th>
-        <th style="font-size:11px;max-width:150px;"${_bexp?' rowspan="2"':''}>货盘内容</th>
+        <th style="border-left:2px solid #e8b4d0;font-size:11px;"${_bexp?' rowspan="2"':''}>日均核销PV</th>
+        <th style="font-size:11px;"${_bexp?' rowspan="2"':''}>占品牌<br>核销比</th>
+        <th style="font-size:11px;"${_bexp?' rowspan="2"':''}>占惊喜<br>整体比</th>
         <!-- 核销达标率 3列 -->
         <th class="sortable" data-sort="redeemRatio" data-view="${viewId}" data-owner="${ownerFilter||''}" style="border-left:2px solid #10b981;font-size:11px;"${_bexp?' rowspan="2"':''}>核销<br>占比</th>
         <th class="sortable" data-sort="redeemRatioTarget" data-view="${viewId}" data-owner="${ownerFilter||''}" style="font-size:11px;"${_bexp?' rowspan="2"':''}>核销<br>目标</th>
@@ -2354,10 +2367,18 @@ function refreshTable(viewId, ownerFilter) {
         +'<td style="text-align:center;'+oldCustStyle('oldCustomerJinRate',m.oldCustomerJinRate)+'">'+(m.oldCustomerJinRate!==null&&m.oldCustomerJinRate!==undefined&&m.oldCustomerJinRate>0?((m.oldCustomerJinRate*100).toFixed(1)+'%'):'-')+'</td>'
         +'<td style="text-align:center;'+oldCustStyle('oldCustomerExpPerPayment2x1',m.oldCustomerExpPerPayment2x1)+'">'+(m.oldCustomerExpPerPayment2x1!==null&&m.oldCustomerExpPerPayment2x1!==undefined&&m.oldCustomerExpPerPayment2x1>0?((m.oldCustomerExpPerPayment2x1*100).toFixed(1)+'%'):'-')+'</td>'
         +'<td style="text-align:center;'+oldCustStyle('oldCustomerJinRate2x1',m.oldCustomerJinRate2x1)+'">'+(m.oldCustomerJinRate2x1!==null&&m.oldCustomerJinRate2x1!==undefined&&m.oldCustomerJinRate2x1>0?((m.oldCustomerJinRate2x1*100).toFixed(1)+'%'):'-')+'</td>'
-        // === 惊喜货盘 3列 ===
-        +'<td style="border-left:2px solid #fce7f3;font-size:12px;text-align:center;">'+(m.surpriseTarget||m.sgTarget||'-')+'</td>'
-        +'<td style="font-size:12px;text-align:center;">'+((m.surpriseTarget||m.sgTarget)>0?((m.surpriseOnline||m.sgOnline)>0?'<span class="tag tag-green">'+(m.surpriseOnline||m.sgOnline)+'</span>':'<span style="color:#bbb;">0</span>'):'-')+'</td>'
-        +'<td style="font-size:11px;color:#555;max-width:150px;white-space:pre-wrap;word-break:break-all;line-height:1.4;">'+((m.surpriseContent||m.sgContent)?escHtml(m.surpriseContent||m.sgContent):'<span style="color:#bbb;">无</span>')+'</td>'
+        // === 惊喜货盘 3列 (次卡+赠品券) ===
+        +function(){
+          var _sg = SURPRISE_GOODS_CALC || {total:0, byBrand:{}};
+          var _sgB = _sg.byBrand[m.brand] || {dailyRedeem:0};
+          var _sgDr = _sgB.dailyRedeem;
+          var _brandDr = m.dailyRedeem || 0;
+          var _brandPct = _brandDr > 0 ? (_sgDr / _brandDr * 100) : 0;
+          var _totalPct = _sg.total > 0 ? (_sgDr / _sg.total * 100) : 0;
+          return '<td style="border-left:2px solid #fce7f3;font-size:12px;text-align:center;">'+(_sgDr > 0 ? fmt(_sgDr) : '<span style="color:#bbb;">0</span>')+'</td>'
+            +'<td style="font-size:12px;text-align:center;">'+(_sgDr > 0 ? _brandPct.toFixed(1)+'%' : '<span style="color:#bbb;">-</span>')+'</td>'
+            +'<td style="font-size:12px;text-align:center;">'+(_sgDr > 0 ? _totalPct.toFixed(1)+'%' : '<span style="color:#bbb;">-</span>')+'</td>';
+        }()
         // === 核销达标率 3列 ===
         +'<td style="border-left:2px solid #d1fae5;text-align:center;font-size:12px;'+(m.redeemRatioTarget>0&&m.redeemRatio<m.redeemRatioTarget?'color:#dc2626;font-weight:600;':'color:#1e293b;font-weight:500;')+'">'+(m.redeemRatio>0?((m.redeemRatio*100).toFixed(2)+'%'):'-')+'</td>'
         +'<td style="text-align:center;font-size:12px;color:#1e293b;">'+(m.redeemRatioTarget>0?((m.redeemRatioTarget*100).toFixed(2)+'%'):'-')+'</td>'
