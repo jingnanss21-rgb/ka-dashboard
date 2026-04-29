@@ -127,6 +127,24 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .tag-orange { background:#ffedd5; color:#ea580c; }
 .tag-teal { background:#ccfbf1; color:#0d9488; }
 
+/* Tab0 项目状态下拉 (Tag 样式) */
+.ov-status-sel {
+  padding:2px 18px 2px 8px; border-radius:10px; font-size:11px; font-weight:600;
+  border:0; cursor:pointer; outline:none; appearance:none;
+  background-repeat:no-repeat; background-position:right 4px center; background-size:10px 10px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><path d='M2 4 L5 7 L8 4' stroke='currentColor' fill='none' stroke-width='1.2'/></svg>");
+  transition:all .15s;
+}
+.ov-status-sel:hover { filter:brightness(0.97); box-shadow:0 0 0 2px rgba(148,163,184,.2); }
+.ov-status-sel:focus { box-shadow:0 0 0 2px rgba(37,99,235,.3); }
+.ov-status-sel option { background:#fff; color:#0f172a; padding:4px; }
+/* 按值配色 */
+.ov-status-sel[data-val="待评估"] { background-color:#f1f5f9; color:#64748b; }
+.ov-status-sel[data-val="有意向"] { background-color:#fef3c7; color:#d97706; }
+.ov-status-sel[data-val="已上线"] { background-color:#dcfce7; color:#15803d; }
+.ov-status-sel[data-val="暂不考虑"] { background-color:#ffedd5; color:#ea580c; }
+.ov-status-sel[data-val="不合适"] { background-color:#fee2e2; color:#dc2626; }
+
 .trend-up { color:var(--success); } .trend-up::before { content:'▲ '; font-size:10px; }
 .trend-down { color:var(--danger); } .trend-down::before { content:'▼ '; font-size:10px; }
 
@@ -1552,7 +1570,7 @@ function renderOverviewTable() {
   // 小 util: Tab0 状态 → 彩色 tag (保留原 statusTag 兼容，但自己渲染下拉)
   function ovStatusSelect(project, brandName, currentVal){
     const opts = OV_STATUS_OPTS.map(o => `<option value="${o}" ${o===currentVal?'selected':''}>${o}</option>`).join('');
-    return `<select class="ov-status-sel" data-project="${project}" data-brand="${brandName.replace(/"/g,'&quot;')}" onchange="ovOnStatusChange(this)" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:6px;font-size:11px;background:#fff;cursor:pointer;min-width:78px;">${opts}</select>`;
+    return `<select class="ov-status-sel" data-val="${currentVal}" data-project="${project}" data-brand="${brandName.replace(/"/g,'&quot;')}" onchange="ovOnStatusChange(this)">${opts}</select>`;
   }
 
   tbody.innerHTML = data.map((b, idx) => {
@@ -1600,6 +1618,8 @@ async function ovOnStatusChange(sel){
   const project = sel.dataset.project;       // 'cika' / 'wuyou' / 'box'
   const brandName = sel.dataset.brand;
   const newVal = sel.value;
+  // 立即更新颜色 (即使 box 场景后面可能恢复)
+  sel.dataset.val = newVal;
 
   if (project === 'cika'){
     cikaStatusOverrides[brandName] = newVal;
@@ -1637,14 +1657,18 @@ async function ovOnStatusChange(sel){
       if (choice === null){
         // 用户取消 → 恢复原值
         const existing = boxBrands.find(x => x.brand_name === brandName);
-        sel.value = existing ? boxStageToOverview(existing.stage || '') : '待评估';
+        const restored = existing ? boxStageToOverview(existing.stage || '') : '待评估';
+        sel.value = restored;
+        sel.dataset.val = restored;
         return;
       }
       const idx = parseInt(choice, 10) - 1;
       if (isNaN(idx) || idx < 0 || idx >= choices.length){
         alert('选择无效，已取消');
         const existing = boxBrands.find(x => x.brand_name === brandName);
-        sel.value = existing ? boxStageToOverview(existing.stage || '') : '待评估';
+        const restored = existing ? boxStageToOverview(existing.stage || '') : '待评估';
+        sel.value = restored;
+        sel.dataset.val = restored;
         return;
       }
       targetStage = choices[idx];
