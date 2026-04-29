@@ -731,8 +731,10 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
       <select id="boxFilterCategory"><option value="">全部行业</option></select>
       <select id="boxFilterSp"><option value="">全部服务商</option></select>
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#64748b;"><input type="checkbox" id="boxFilterRisk"/> 仅看有风险</label>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#64748b;"><input type="checkbox" id="boxShowDropped" onchange="boxRenderTable()"/> 显示暂不考虑/不合适</label>
       <input type="search" id="boxSearch" placeholder="🔍 搜索品牌..." style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;min-width:180px;" />
     </div>
+    <div id="boxDroppedBadge" style="display:none;margin-top:8px;padding:6px 10px;background:#fef3c7;color:#92400e;border-radius:6px;font-size:11px;"></div>
     <div class="scroll-table-wrapper">
       <table id="boxBrandsTable">
         <thead>
@@ -856,6 +858,10 @@ document.querySelectorAll('.project-tab').forEach(tab => {
     document.querySelectorAll('.project-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + tab.dataset.project).classList.add('active');
     updatePeriodBadge(tab.dataset.project);
+    // 切回运营总览时，重新渲染一次（次卡/无忧/盒子的 Supabase 状态可能变了）
+    if (tab.dataset.project === 'overview' && typeof renderOverviewTable === 'function') {
+      renderOverviewTable();
+    }
     // 切换到次卡 tab 时，如果 ECharts 尚未 init 或尺寸异常，做一次 resize 渲染
     if (tab.dataset.project === 'cika' && typeof renderCikaTrendChart === 'function') {
       setTimeout(() => {
@@ -1102,7 +1108,7 @@ function populateFilters() {
 // ============================================================
 // PANEL: Overview
 // ============================================================
-function renderOverview() {
+async function renderOverview() {
   const o = KA_DATA.overall;
   const b = KA_DATA.brands;
   
@@ -1162,7 +1168,16 @@ function renderOverview() {
   
   // 品牌数badge
   document.getElementById('brandCountBadge').textContent = `${b.length}个品牌 · 月报数据`;
-  
+
+  // Tab0 项目状态需要读 Supabase 3 张表的 override (次卡/无忧/盒子), 并行预加载
+  try {
+    await Promise.all([
+      loadCikaCommentsFromServer().catch(e => { console.warn('[Overview] cika 预加载失败:', e); }),
+      loadWuyouCommentsFromServer().catch(e => { console.warn('[Overview] wuyou 预加载失败:', e); }),
+      fetchBoxBrandsFromServer().catch(e => { console.warn('[Overview] box 预加载失败:', e); }),
+    ]);
+  } catch(e) { console.warn('[Overview] 预加载部分失败:', e); }
+
   renderOverviewTable();
   // 动态设置双行表头第二行的sticky top
   requestAnimationFrame(() => {
@@ -1482,19 +1497,33 @@ function renderOverviewTable() {
     return true;
   });
   
-  // 状态列排序映射
+  // 状态列排序映射 (统一: 待评估=0, 有意向=1, 已上线=2, 暂不考虑=3, 不合适=4)
+  const UNIFIED_SORT = {'待评估':0,'有意向':1,'已上线':2,'暂不考虑':3,'不合适':4,'':5};
   const statusSortMap = {
     '摇优惠': {'存活':0,'未存活':1,'未在线':2},
-    '次卡': {'已上线':0,'有意向':1,'暂不考虑':2,'':3},
-    '无忧会员': {'有意向':0,'待沟通':1,'':2},
-    '盒子': {'已上线':0,'有意向':1,'待沟通':2,'暂不考虑':3,'':4}
+    '次卡': UNIFIED_SORT,
+    '无忧会员': UNIFIED_SORT,
+    '盒子': UNIFIED_SORT
   };
   if (overviewSortCol) {
     if (statusSortMap[overviewSortCol]) {
       const sm = statusSortMap[overviewSortCol];
+      // 构造 boxStage 映射 (用于盒子列动态排序)
+      const _boxStageByName = {};
+      (boxBrands || []).forEach(x => { if (x && x.brand_name) _boxStageByName[x.brand_name] = x.stage || '待评估'; });
+      const getV = (b) => {
+        if (overviewSortCol === '摇优惠') return b['摇优惠'] || '';
+        if (overviewSortCol === '次卡') return (cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '待评估';
+        if (overviewSortCol === '无忧会员') return (wuyouStatusOverrides[b['品牌']] && wuyouStatusOverrides[b['品牌']].trim()) || b['无忧会员'] || '待评估';
+        if (overviewSortCol === '盒子') {
+          const stage = _boxStageByName[b['品牌']] || '';
+          return stage ? boxStageToOverview(stage) : '待评估';
+        }
+        return b[overviewSortCol];
+      };
       data.sort((a, b) => {
-        const va = sm[a[overviewSortCol]] ?? 99;
-        const vb = sm[b[overviewSortCol]] ?? 99;
+        const va = sm[getV(a)] ?? 99;
+        const vb = sm[getV(b)] ?? 99;
         return overviewSortDir === 'asc' ? va - vb : vb - va;
       });
     } else {
@@ -1509,15 +1538,40 @@ function renderOverviewTable() {
   }
   
   const tbody = document.getElementById('overviewTbody');
-  tbody.innerHTML = data.map((b, idx) => `<tr>
+  // Tab0 统一状态选项（摇优惠除外，它来自周报算出）
+  const OV_STATUS_OPTS = ['待评估','有意向','已上线','暂不考虑','不合适'];
+  // 盒子 stage 的二级菜单（用于 Tab0 改成"有意向/已上线"时选具体子阶段）
+  const OV_BOX_SUBSTAGES = {
+    '有意向': ['阶段一-铺设主体确认','阶段一-邮件报备','阶段二-线上签约','阶段二-盒子申请'],
+    '已上线': ['阶段三-发货阶段','阶段三-铺货管理']
+  };
+  // 构造 boxBrands 的 brand_name -> stage 映射 (for Tab0 盒子列)
+  const boxStageByName = {};
+  (boxBrands || []).forEach(x => { if (x && x.brand_name) boxStageByName[x.brand_name] = x.stage || '待评估'; });
+
+  // 小 util: Tab0 状态 → 彩色 tag (保留原 statusTag 兼容，但自己渲染下拉)
+  function ovStatusSelect(project, brandName, currentVal){
+    const opts = OV_STATUS_OPTS.map(o => `<option value="${o}" ${o===currentVal?'selected':''}>${o}</option>`).join('');
+    return `<select class="ov-status-sel" data-project="${project}" data-brand="${brandName.replace(/"/g,'&quot;')}" onchange="ovOnStatusChange(this)" style="padding:3px 6px;border:1px solid #cbd5e1;border-radius:6px;font-size:11px;background:#fff;cursor:pointer;min-width:78px;">${opts}</select>`;
+  }
+
+  tbody.innerHTML = data.map((b, idx) => {
+    // 1. 次卡: 优先读 Supabase override, 空则回退 KA_DATA
+    const cikaVal = (cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '待评估';
+    // 2. 无忧: 同上
+    const wuyouVal = (wuyouStatusOverrides[b['品牌']] && wuyouStatusOverrides[b['品牌']].trim()) || b['无忧会员'] || '待评估';
+    // 3. 盒子: 从 boxBrands 的 stage 自动映射
+    const boxStage = boxStageByName[b['品牌']] || '';
+    const boxVal = boxStage ? boxStageToOverview(boxStage) : '待评估';
+    return `<tr>
     <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
     <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
     <td class="sticky-col" style="left:146px;">${ownerTag(b['负责人'])}</td>
     <td class="sticky-col sticky-col-last" style="left:206px;">${b['品类']}</td>
     <td>${shakeStatusTag(b['摇优惠'])}</td>
-    <td>${statusTag(b['次卡'])}</td>
-    <td>${statusTag(b['无忧会员'])}</td>
-    <td>${statusTag(b['盒子'])}</td>
+    <td>${ovStatusSelect('cika', b['品牌'], cikaVal)}</td>
+    <td>${ovStatusSelect('wuyou', b['品牌'], wuyouVal)}</td>
+    <td>${ovStatusSelect('box', b['品牌'], boxVal)}</td>
     <td>${b.m03_bs_all ? fmt(b.m03_bs_all,1) : '-'}</td>
     <td>${b.m03_je_all ? fmt(b.m03_je_all,1) : '-'}</td>
     <td>${b.m03_bs_xcx ? fmt(b.m03_bs_xcx,1) : '-'}</td>
@@ -1525,7 +1579,8 @@ function renderOverviewTable() {
     <td style="font-weight:700;${b.bs_rate_03>50?'color:var(--success)':''}">${b.bs_rate_03 != null ? fmtPct(b.bs_rate_03) : '-'}</td>
     <td>${fmtPP(b.bs_rate_hb)}</td>
     <td>${fmtPP(b.bs_rate_tb)}</td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 // Sort handler for overview table
@@ -1539,6 +1594,96 @@ document.getElementById('overviewTable').addEventListener('click', e => {
   th.classList.add('sort-' + overviewSortDir);
   renderOverviewTable();
 });
+
+// Tab0 项目状态下拉 onChange 处理: 写回对应 Supabase 表
+async function ovOnStatusChange(sel){
+  const project = sel.dataset.project;       // 'cika' / 'wuyou' / 'box'
+  const brandName = sel.dataset.brand;
+  const newVal = sel.value;
+
+  if (project === 'cika'){
+    cikaStatusOverrides[brandName] = newVal;
+    try {
+      await alertSb.from('ka_cika_comments').upsert({ brand_name: brandName, status: newVal }, { onConflict: 'brand_name' });
+      showToast('✅ 次卡状态已更新');
+    } catch(e){ console.error(e); showToast('❌ 写入失败: ' + e.message); }
+    return;
+  }
+
+  if (project === 'wuyou'){
+    wuyouStatusOverrides[brandName] = newVal;
+    try {
+      await alertSb.from('ka_wuyou_comments').upsert({ brand_name: brandName, status: newVal }, { onConflict: 'brand_name' });
+      showToast('✅ 无忧会员状态已更新');
+    } catch(e){ console.error(e); showToast('❌ 写入失败: ' + e.message); }
+    return;
+  }
+
+  if (project === 'box'){
+    // 盒子: 需要写到 ka_box_brands.stage
+    // 如果选"有意向"/"已上线"，弹二级菜单选具体子阶段
+    const subStages = {
+      '有意向': ['阶段一-铺设主体确认','阶段一-邮件报备','阶段二-线上签约','阶段二-盒子申请'],
+      '已上线': ['阶段三-发货阶段','阶段三-铺货管理']
+    };
+
+    let targetStage;
+    if (subStages[newVal]){
+      // 弹 prompt 选子阶段
+      const choices = subStages[newVal];
+      const promptMsg = '请选择具体子阶段（输入 1-' + choices.length + '）：\n' +
+                       choices.map((s, i) => (i+1) + '. ' + s).join('\n');
+      const choice = window.prompt(promptMsg, '1');
+      if (choice === null){
+        // 用户取消 → 恢复原值
+        const existing = boxBrands.find(x => x.brand_name === brandName);
+        sel.value = existing ? boxStageToOverview(existing.stage || '') : '待评估';
+        return;
+      }
+      const idx = parseInt(choice, 10) - 1;
+      if (isNaN(idx) || idx < 0 || idx >= choices.length){
+        alert('选择无效，已取消');
+        const existing = boxBrands.find(x => x.brand_name === brandName);
+        sel.value = existing ? boxStageToOverview(existing.stage || '') : '待评估';
+        return;
+      }
+      targetStage = choices[idx];
+    } else {
+      // 待评估 / 暂不考虑 / 不合适 直接映射
+      targetStage = newVal;
+    }
+
+    // 查 ka_box_brands 表，已有品牌就 update，没有就 insert
+    const existing = boxBrands.find(x => x.brand_name === brandName);
+    try {
+      if (existing){
+        const { error } = await alertSb.from('ka_box_brands').update({ stage: targetStage }).eq('id', existing.id);
+        if (error) throw error;
+        existing.stage = targetStage;
+      } else {
+        // 新插一行，用 KA_DATA 里的元数据
+        const meta = (KA_DATA.brands || []).find(x => x['品牌'] === brandName) || {};
+        const payload = {
+          brand_name: brandName,
+          brand_id: meta['品牌id'] ? Number(meta['品牌id']) : null,
+          category: meta['品类'] || '',
+          sp_name: '',
+          stage: targetStage,
+          store_count: null,
+          est_box_count: null,
+          risk_note: '',
+        };
+        const { data, error } = await alertSb.from('ka_box_brands').insert(payload).select();
+        if (error) throw error;
+        if (data && data[0]) boxBrands.push(data[0]);
+      }
+      showToast('✅ 盒子状态已更新 → ' + targetStage);
+      // 盒子 Tab 如果打开着，刷一下
+      if (document.getElementById('panel-box').classList.contains('active')) renderBox();
+    } catch(e){ console.error(e); showToast('❌ 写入失败: ' + e.message); }
+    return;
+  }
+}
 
 // ============================================================ ============================================================
 // PANEL: Cika (次卡)
@@ -1594,7 +1739,7 @@ function applyCikaStatusOverrides() {
   });
 }
 
-const CIKA_STATUS_OPTIONS = ['已上线', '有意向', '暂不考虑', ''];
+const CIKA_STATUS_OPTIONS = ['待评估', '有意向', '已上线', '暂不考虑', '不合适'];
 const CIKA_STATUS_LABELS = {'已上线':'已上线', '有意向':'有意向', '暂不考虑':'暂不考虑', '':'未沟通'};
 
 function editCikaStatus(el, brand) {
@@ -2309,7 +2454,7 @@ function applyWuyouStatusOverrides() {
   });
 }
 
-const WUYOU_STATUS_OPTIONS = ['有意向', '待沟通', ''];
+const WUYOU_STATUS_OPTIONS = ['待评估', '有意向', '已上线', '暂不考虑', '不合适'];
 const WUYOU_STATUS_LABELS = {'有意向':'有意向', '待沟通':'待沟通', '':'未沟通'};
 
 function editWuyouStatus(el, brand) {
@@ -2691,9 +2836,19 @@ const BOX_STAGES = [
   '待评估',
   '阶段一-铺设主体确认','阶段一-邮件报备',
   '阶段二-线上签约','阶段二-盒子申请',
-  '阶段三-发货阶段','阶段三-铺货管理'
+  '阶段三-发货阶段','阶段三-铺货管理',
+  '暂不考虑','不合适'
 ];
 const BOX_DEPLOYED_STAGES = ['阶段三-发货阶段','阶段三-铺货管理'];
+// 盒子 stage → Tab0 统一状态 (待评估/有意向/已上线/暂不考虑/不合适)
+function boxStageToOverview(stage){
+  if (!stage || stage === '待评估') return '待评估';
+  if (stage === '暂不考虑') return '暂不考虑';
+  if (stage === '不合适') return '不合适';
+  if (stage.startsWith('阶段三')) return '已上线';
+  if (stage.startsWith('阶段一') || stage.startsWith('阶段二')) return '有意向';
+  return '待评估';
+}
 
 let boxBrands = [];
 let boxFeedback = {}; // { box_brand_id: [ {id, content, created_at, updated_at} ] }
@@ -2826,26 +2981,46 @@ function boxRenderTable() {
   const cat = document.getElementById('boxFilterCategory').value;
   const sp = document.getElementById('boxFilterSp').value;
   const onlyRisk = document.getElementById('boxFilterRisk').checked;
+  const showDropped = document.getElementById('boxShowDropped')?.checked;
   const q = (document.getElementById('boxSearch').value || '').trim().toLowerCase();
 
-  // 表格倒序：阶段三在前（代表进展最靠后）、待评估垫底
+  // 表格倒序：阶段三在前（代表进展最靠后）、待评估垫底、暂不考虑/不合适最底
   const STAGE_DESC_ORDER = [
     '阶段三-铺货管理','阶段三-发货阶段',
     '阶段二-盒子申请','阶段二-线上签约',
     '阶段一-邮件报备','阶段一-铺设主体确认',
-    '待评估'
+    '待评估','暂不考虑','不合适'
   ];
   const stageOrder = {};
   STAGE_DESC_ORDER.forEach((s,i) => stageOrder[s] = i);
 
+  // 默认折叠: stage ∈ {暂不考虑, 不合适} 除非用户点击"显示"或筛选器指定
+  const DROPPED_STAGES = new Set(['暂不考虑','不合适']);
+
   const data = boxBrands.filter(b => {
     if (stage && b.stage !== stage) return false;
+    // 默认不展示"暂不考虑/不合适"，除非筛选器选到或开关打开
+    if (!stage && !showDropped && DROPPED_STAGES.has(b.stage)) return false;
     if (cat && b.category !== cat) return false;
     if (sp && b.sp_name !== sp) return false;
     if (onlyRisk && !(b.risk_note || '').trim()) return false;
     if (q && !(b.brand_name || '').toLowerCase().includes(q) && !String(b.brand_id||'').includes(q)) return false;
     return true;
   });
+
+  // 顶部显示"X 家已折叠" 如果有折叠
+  const droppedCnt = boxBrands.filter(b => DROPPED_STAGES.has(b.stage)).length;
+  const droppedBadge = document.getElementById('boxDroppedBadge');
+  if (droppedBadge){
+    if (droppedCnt > 0 && !stage){
+      droppedBadge.style.display = 'inline';
+      droppedBadge.innerHTML = showDropped
+        ? `当前显示 <b>${droppedCnt}</b> 家"暂不考虑/不合适" · <a href="javascript:void(0)" onclick="document.getElementById('boxShowDropped').checked=false;boxRenderTable()" style="color:#2563eb">折叠</a>`
+        : `已折叠 <b>${droppedCnt}</b> 家"暂不考虑/不合适" · <a href="javascript:void(0)" onclick="document.getElementById('boxShowDropped').checked=true;boxRenderTable()" style="color:#2563eb">展开</a>`;
+    } else {
+      droppedBadge.style.display = 'none';
+    }
+  }
 
   data.sort((a,b) => {
     const sa = stageOrder[a.stage] ?? 99;
