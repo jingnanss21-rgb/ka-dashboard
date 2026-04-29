@@ -1152,16 +1152,16 @@ async function renderOverview() {
   const wuyouInterest = b.filter(x => _getWuyou(x['品牌']) === '有意向').length;
   const boxInterest   = b.filter(x => _getBox(x['品牌'])   === '有意向').length;
   const hasTradeData = b.filter(x => x.has_data !== false && x.m03_bs_all).length;
-  var _shake = getShakeBrandCountsForOverview();
-  const shakeOnline = _shake.online;
-  const shakeAlive = _shake.alive;
+  // 统一从快照计算在线/存活/达标 (不再用静态 KA_DATA.brands 的 '摇优惠' 字段)
+  var _snapBrands = Object.values(gSnapshotBrandsByName);
+  const shakeOnline = _snapBrands.filter(function(s){ var v = s.isAlive; return v === true || v === 1 || v === '1'; }).length;
+  const shakeAlive = _snapBrands.filter(function(s){ var v = s.isSurvived; return v === true || v === 1 || v === '1'; }).length;
 
   // 行业达标计算 (从快照 brands 读取)
-  const shakeAchieved = b.filter(x => {
-    if (!x['摇优惠'] || x['摇优惠'] === '未在线') return false;
-    var snap = gSnapshotBrandsByName[x['品牌']];
-    if (!snap) return false;
-    var dr = snap.dailyRedeem, dp = snap.dailyPayment, pt = snap.penetrationTarget;
+  const shakeAchieved = _snapBrands.filter(function(s) {
+    var alive = s.isAlive;
+    if (!(alive === true || alive === 1 || alive === '1')) return false;
+    var dr = s.dailyRedeem, dp = s.dailyPayment, pt = s.penetrationTarget;
     if (!dr || !dp || dp <= 0 || !pt || pt <= 0) return false;
     return (dr / (dp * 10000)) / pt >= 1.0;
   }).length;
