@@ -1244,7 +1244,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
   const _sgTotalRedeem = _sgCalc.total;
   const _kaOverallRedeem = DATA.overall.totalDailyRedeem || totalRedeem || 1;
   const _sgRatio = _kaOverallRedeem > 0 ? _sgTotalRedeem / _kaOverallRedeem : 0;
-  const _sgTarget = 0.5; // 目标占比 50%
+  const _sgTarget = 0.2; // 目标占比 20%
   const sgAchieveRate = _sgRatio / _sgTarget;  // 达成率
 
   // 计算该视图的环比数据
@@ -1293,7 +1293,7 @@ function buildViewPanel(viewId, ownerFilter, title) {
       ${buildAchieveBar('🎯 核销量达成率', achieveRate, `目标${fmt(totalTarget)} / 日均${fmt(totalRedeem)}`, 0.6, 0.3, viewWrtQoq)}
       ${buildAchieveBar('📡 曝光量达成率', exposureAchieveRate, `目标${totalEstExposure.toFixed(0)}w / 实际${totalExposure7d.toFixed(1)}w`, 0.6, 0.3, viewExpQoq)}
       ${buildAchieveBar('📊 核销达标率', survivalAchieveRate, `达标${redeemRatioAchievedCount} / 在线${activeBrands.length}个品牌`, 0.5, 0.3, viewAliveQoq)}
-      ${buildAchieveBar('🎁 惊喜货盘达成率', sgAchieveRate, `占比${(_sgRatio*100).toFixed(1)}% / 目标50%`)}
+      ${buildAchieveBar('🎁 惊喜货盘达成率', sgAchieveRate, `占比${(_sgRatio*100).toFixed(1)}% / 目标20%`)}
     </div>
   </div>`;
 
