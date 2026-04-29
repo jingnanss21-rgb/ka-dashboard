@@ -1222,9 +1222,12 @@ function buildViewPanel(viewId, ownerFilter, title) {
     const _dp = parseFloat(b.dailyPayment)||0;
     const _rr = _dp > 0 ? curR / (_dp * 10000) : 0;
     const _a = assignments.find(a => a.brand === b.name || BRAND_ALIAS[a.brand] === b.name || a.brand === BRAND_ALIAS[b.name]);
-    // 优先用分工表 H 列"大盘渗透目标"；缺失回退到"转化率目标"
+    // 优先用分工表 H 列"大盘渗透目标"；缺失回退到品牌快照的 penetrationTarget；再回退到转化率目标
     const _ctRaw = _a ? (_a.penetrationTarget != null && _a.penetrationTarget !== '' ? parseFloat(_a.penetrationTarget) : NaN) : NaN;
-    const _ct = Number.isFinite(_ctRaw) && _ctRaw > 0 ? _ctRaw : (_a ? parseFloat(_a.conversionTarget)||0 : 0);
+    const _ctFallback = (b.penetrationTarget != null && b.penetrationTarget !== '') ? parseFloat(b.penetrationTarget) : NaN;
+    const _ct = Number.isFinite(_ctRaw) && _ctRaw > 0 ? _ctRaw
+             : (Number.isFinite(_ctFallback) && _ctFallback > 0 ? _ctFallback
+             : (_a ? parseFloat(_a.conversionTarget)||0 : 0));
     return _ct > 0 && _rr / _ct >= 1;
   }).length;
   const totalExposure7d = brands.reduce((s,b)=>{
