@@ -1536,7 +1536,21 @@ function loadShakeIframe() {
 function shakeStatusTag(s) {
   if (s === '存活') return '<span class="tag tag-green">存活</span>';
   if (s === '未存活') return '<span class="tag tag-yellow">未存活</span>';
+  if (s === '不在线') return '<span class="tag tag-gray">不在线</span>';
   return '<span class="tag tag-gray">未在线</span>';
+}
+
+// 从快照获取存活状态文本
+function getShakeStatusFromSnapshot(brandName) {
+  var snap = gSnapshotBrandsByName[brandName];
+  if (!snap) return '未在线';
+  var alive = snap.isAlive;
+  if (alive === 1 || alive === true || alive === '1') {
+    var surv = snap.isSurvived;
+    if (surv === 1 || surv === true || surv === '1') return '存活';
+    return '未存活';
+  }
+  return '不在线';
 }
 
 // 摇优惠行业达标判定 (从快照 brands 读取 dailyRedeem/dailyPayment/penetrationTarget)
@@ -1571,7 +1585,7 @@ function renderOverviewTable() {
   // 状态列排序映射 (统一: 待评估=0, 有意向=1, 已上线=2, 暂不考虑=3, 不合适=4)
   const UNIFIED_SORT = {'待评估':0,'有意向':1,'已上线':2,'暂不考虑':3,'不合适':4,'':5};
   const statusSortMap = {
-    '摇优惠': {'存活':0,'未存活':1,'未在线':2},
+    '摇优惠': {'存活':0,'未存活':1,'不在线':2,'未在线':2},
     '次卡': UNIFIED_SORT,
     '无忧会员': UNIFIED_SORT,
     '盒子': UNIFIED_SORT
@@ -1594,7 +1608,7 @@ function renderOverviewTable() {
       const _boxStageByName = {};
       (boxBrands || []).forEach(x => { if (x && x.brand_name) _boxStageByName[x.brand_name] = x.stage || '待评估'; });
       const getV = (b) => {
-        if (overviewSortCol === '摇优惠') return b['摇优惠'] || '';
+        if (overviewSortCol === '摇优惠') return getShakeStatusFromSnapshot(b['品牌']);
         if (overviewSortCol === '次卡') return (cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '待评估';
         if (overviewSortCol === '无忧会员') return (wuyouStatusOverrides[b['品牌']] && wuyouStatusOverrides[b['品牌']].trim()) || b['无忧会员'] || '待评估';
         if (overviewSortCol === '盒子') {
@@ -1650,7 +1664,7 @@ function renderOverviewTable() {
     <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
     <td class="sticky-col" style="left:146px;">${ownerTag(b['负责人'])}</td>
     <td class="sticky-col sticky-col-last" style="left:206px;">${b['品类']}</td>
-    <td>${shakeStatusTag(b['摇优惠'])}</td>
+    <td>${shakeStatusTag(getShakeStatusFromSnapshot(b['品牌']))}</td>
     <td>${shakeAchieveTag(b)}</td>
     <td>${ovStatusSelect('cika', b['品牌'], cikaVal)}</td>
     <td>${ovStatusSelect('wuyou', b['品牌'], wuyouVal)}</td>
