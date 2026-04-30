@@ -1557,11 +1557,13 @@ function getShakeStatusFromSnapshot(brandName) {
 function shakeAchieveTag(b) {
   var brandName = b['品牌'];
   var snap = gSnapshotBrandsByName[brandName];
-  if (!snap) return '<span class="tag tag-gray">—</span>';
+  if (!snap) return '<span class="tag tag-gray">不在线</span>';
+  var alive = snap.isAlive;
+  if (!(alive === true || alive === 1 || alive === '1')) return '<span class="tag tag-gray">不在线</span>';
   var dr = snap.dailyRedeem;
   var dp = snap.dailyPayment;
   var pt = snap.penetrationTarget;
-  if (!dr || !dp || dp <= 0 || !pt || pt <= 0) return '<span class="tag tag-gray">—</span>';
+  if (!dr || !dp || dp <= 0 || !pt || pt <= 0) return '<span class="tag tag-gray">不在线</span>';
   var ratio = dr / (dp * 10000);
   var achieved = ratio / pt >= 1.0;
   return achieved
