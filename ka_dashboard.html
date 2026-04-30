@@ -1184,10 +1184,10 @@ async function renderOverview() {
       <div class="oc-stats">
         ${(!window._shakeCardTab||window._shakeCardTab==='achieve') ? `
         <div class="oc-stat"><div class="os-value" style="color:var(--success);">${shakeAchieved}</div><div class="os-label">达标品牌</div></div>
-        <div class="oc-stat"><div class="os-value" style="color:var(--danger);">${shakeNotAchieved}</div><div class="os-label">未达标</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:var(--warning);">${shakeNotAchieved}</div><div class="os-label">未达标</div></div>
         ` : `
         <div class="oc-stat"><div class="os-value" style="color:var(--success);">${shakeAlive}</div><div class="os-label">存活</div></div>
-        <div class="oc-stat"><div class="os-value" style="color:var(--warning);">${shakeOnline - shakeAlive}</div><div class="os-label">不存活</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:var(--danger);">${shakeOnline - shakeAlive}</div><div class="os-label">不存活</div></div>
         `}
       </div>
     </div>
@@ -1535,7 +1535,7 @@ function loadShakeIframe() {
 
 function shakeStatusTag(s) {
   if (s === '存活') return '<span class="tag tag-green">存活</span>';
-  if (s === '未存活') return '<span class="tag tag-yellow">未存活</span>';
+  if (s === '未存活') return '<span class="tag tag-red" style="background:#fee2e2;color:#dc2626;">未存活</span>';
   if (s === '不在线') return '<span class="tag tag-gray">不在线</span>';
   return '<span class="tag tag-gray">未在线</span>';
 }
@@ -1568,7 +1568,7 @@ function shakeAchieveTag(b) {
   var achieved = ratio / pt >= 1.0;
   return achieved
     ? '<span class="tag tag-green">达标</span>'
-    : '<span class="tag tag-red" style="background:#fee2e2;color:#dc2626;">未达标</span>';
+    : '<span class="tag tag-yellow">未达标</span>';
 }
 
 let overviewSortCol = null, overviewSortDir = 'desc';
