@@ -1400,6 +1400,15 @@ function renderAlertGroup(upList, downList, prefix, suffix, curPeriod, prevPerio
   const maxAbs = Math.max(...all.map(a => Math.abs(a[`${prefix}_rate_${suffix}`] || 0)), 10);
   const barGradientUp = 'linear-gradient(90deg, #86efac, #22c55e)';
   const barGradientDown = 'linear-gradient(90deg, #fca5a5, #ef4444)';
+  // 从 KA_DATA.brands 补齐 alert 中缺失的同比字段
+  const _brandsMap = {};
+  (KA_DATA.brands || []).forEach(b => { _brandsMap[b['品牌']] = b; });
+  const _getRate = (a, period) => {
+    const key = `${prefix}_rate_${period}`;
+    if (a[key] != null) return a[key];
+    const brandRow = _brandsMap[a.brand];
+    return brandRow ? brandRow[key] : null;
+  };
   let html = '';
   
   // 列标题行
@@ -1418,8 +1427,8 @@ function renderAlertGroup(upList, downList, prefix, suffix, curPeriod, prevPerio
       const pp = a[`${prefix}_rate_${suffix}`];
       const absHb = Math.abs(pp);
       const barPct = Math.min((absHb / maxAbs) * 100, 100);
-      const curRate = a[`${prefix}_rate_${curPeriod}`];
-      const prevRate = a[`${prefix}_rate_${prevPeriod}`];
+      const curRate = _getRate(a, curPeriod);
+      const prevRate = _getRate(a, prevPeriod);
       const fbKey = a.brand + '_' + cmpType;
       const fbVal = fb[fbKey] || '';
       html += `<div class="alert-bar-row">
@@ -1450,8 +1459,8 @@ function renderAlertGroup(upList, downList, prefix, suffix, curPeriod, prevPerio
       const pp = a[`${prefix}_rate_${suffix}`];
       const absHb = Math.abs(pp);
       const barPct = Math.min((absHb / maxAbs) * 100, 100);
-      const curRate = a[`${prefix}_rate_${curPeriod}`];
-      const prevRate = a[`${prefix}_rate_${prevPeriod}`];
+      const curRate = _getRate(a, curPeriod);
+      const prevRate = _getRate(a, prevPeriod);
       const fbKey = a.brand + '_' + cmpType;
       const fbVal = fb[fbKey] || '';
       html += `<div class="alert-bar-row">
