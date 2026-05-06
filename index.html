@@ -1671,7 +1671,7 @@ function getFeedbackWeekTag(f) {
 function buildTableFbCell(brandName, viewId, ownerFilter) {
   var fb = feedbacks[brandName] || [];
   fb.forEach(ensureFeedbackStableId);
-  var cutoff = (function(){ if(!currentReportDate) return '2000-01-01'; var d=new Date(currentReportDate); d.setDate(d.getDate()-5); return d.toISOString().substring(0,10); })();
+  var cutoff = (function(){ if(!currentReportDate) return '2000-01-01'; var d=new Date(currentReportDate); d.setDate(d.getDate()-3); return d.toISOString().substring(0,10); })();
   var newFb = fb.filter(function(f){ return f.rawTime && f.rawTime.substring(0,10) >= cutoff; });
   var oldFb = fb.filter(function(f){ return !f.rawTime || f.rawTime.substring(0,10) < cutoff; });
   var out = '<div style="font-size:11px;">';
@@ -1835,7 +1835,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
   if(fbs.length === 0) {
     h += '<p style="color:#999;font-size:12px;margin:0;">\u6682\u65e0\u53cd\u9988</p>';
   } else {
-    var cutoff = (function(){ if(!currentReportDate) return '2000-01-01'; var d=new Date(currentReportDate); d.setDate(d.getDate()-5); return d.toISOString().substring(0,10); })();
+    var cutoff = (function(){ if(!currentReportDate) return '2000-01-01'; var d=new Date(currentReportDate); d.setDate(d.getDate()-3); return d.toISOString().substring(0,10); })();
     var newFbs = fbs.filter(function(f2){ return f2.rawTime && f2.rawTime.substring(0,10) >= cutoff; });
     var oldFbs = fbs.filter(function(f2){ return !f2.rawTime || f2.rawTime.substring(0,10) < cutoff; });
     // 新增反馈（默认展开）
