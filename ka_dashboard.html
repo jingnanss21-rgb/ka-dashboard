@@ -1767,29 +1767,38 @@ async function ovOnStatusChange(sel){
       targetStage = newVal;
     }
 
-    // 查 ka_box_brands 表，已有品牌就 update，没有就 insert
+    // 查 ka_box_brands 表（不限 is_active），已有品牌就 update，没有就 insert
     const existing = boxBrands.find(x => x.brand_name === brandName);
     try {
       if (existing){
-        const { error } = await alertSb.from('ka_box_brands').update({ stage: targetStage }).eq('id', existing.id);
+        const { error } = await alertSb.from('ka_box_brands').update({ stage: targetStage, is_active: true }).eq('id', existing.id);
         if (error) throw error;
         existing.stage = targetStage;
       } else {
-        // 新插一行，用 KA_DATA 里的元数据
-        const meta = (KA_DATA.brands || []).find(x => x['品牌'] === brandName) || {};
-        const payload = {
-          brand_name: brandName,
-          brand_id: meta['品牌id'] ? Number(meta['品牌id']) : null,
-          category: meta['品类'] || '',
-          sp_name: '',
-          stage: targetStage,
-          store_count: null,
-          est_box_count: null,
-          risk_note: '',
-        };
-        const { data, error } = await alertSb.from('ka_box_brands').insert(payload).select();
-        if (error) throw error;
-        if (data && data[0]) boxBrands.push(data[0]);
+        // 先查 DB 中是否有该品牌（可能 is_active=false 未被加载到本地）
+        const { data: dbRow } = await alertSb.from('ka_box_brands').select('id').eq('brand_name', brandName).maybeSingle();
+        if (dbRow) {
+          // 已有记录，直接 update + 激活
+          const { error } = await alertSb.from('ka_box_brands').update({ stage: targetStage, is_active: true }).eq('id', dbRow.id);
+          if (error) throw error;
+        } else {
+          // 真没有，新插一行
+          const meta = (KA_DATA.brands || []).find(x => x['品牌'] === brandName) || {};
+          const payload = {
+            brand_name: brandName,
+            brand_id: meta['品牌id'] ? Number(meta['品牌id']) : null,
+            category: meta['品类'] || '',
+            sp_name: '',
+            stage: targetStage,
+            is_active: true,
+            store_count: null,
+            est_box_count: null,
+            risk_note: '',
+          };
+          const { data, error } = await alertSb.from('ka_box_brands').insert(payload).select();
+          if (error) throw error;
+          if (data && data[0]) boxBrands.push(data[0]);
+        }
       }
       showToast('✅ 盒子状态已更新 → ' + targetStage);
       // 盒子 Tab 如果打开着，刷一下
