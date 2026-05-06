@@ -1242,10 +1242,14 @@ function buildViewPanel(viewId, ownerFilter, title) {
   // 核销达标率：达标品牌数 / 在线品牌数
   const survivalAchieveRate = activeBrands.length>0 ? redeemRatioAchievedCount/activeBrands.length : 0;
 
-  // 惊喜货盘：从活动日表计算 (次卡+赠品券)
+  // 惊喜货盘：从活动日表计算 (次卡+赠品券)，按当前视图品牌筛选
   const _sgCalc = SURPRISE_GOODS_CALC || { total: 0, byBrand: {} };
-  const _sgTotalRedeem = _sgCalc.total;
-  const _kaOverallRedeem = DATA.overall.totalDailyRedeem || totalRedeem || 1;
+  const _viewBrandNames = new Set(brands.map(b => b.name));
+  const _sgTotalRedeem = ownerFilter
+    ? Object.entries(_sgCalc.byBrand).reduce((s, [name, v]) => _viewBrandNames.has(name) ? s + (v.dailyRedeem || 0) : s, 0)
+    : _sgCalc.total;
+  const _viewTotalRedeem = ownerFilter ? totalRedeem : (DATA.overall.totalDailyRedeem || totalRedeem || 1);
+  const _kaOverallRedeem = _viewTotalRedeem || 1;
   const _sgRatio = _kaOverallRedeem > 0 ? _sgTotalRedeem / _kaOverallRedeem : 0;
   const _sgTarget = 0.2; // 目标占比 20%
   const sgAchieveRate = _sgRatio / _sgTarget;  // 达成率
