@@ -1139,7 +1139,16 @@ function populateFilters() {
 async function renderOverview() {
   const o = KA_DATA.overall;
   const b = KA_DATA.brands;
-  
+
+  // 预加载 Supabase 3 张表 (次卡/无忧/盒子)，在渲染大卡之前完成
+  try {
+    await Promise.all([
+      loadCikaCommentsFromServer().catch(e => { console.warn('[Overview] cika 预加载失败:', e); }),
+      loadWuyouCommentsFromServer().catch(e => { console.warn('[Overview] wuyou 预加载失败:', e); }),
+      fetchBoxBrandsFromServer().catch(e => { console.warn('[Overview] box 预加载失败:', e); }),
+    ]);
+  } catch(e) { console.warn('[Overview] 预加载部分失败:', e); }
+
   // Live-data aware counts: prefer Supabase overrides over static KA_DATA fields
   const _boxStageByName = {};
   (boxBrands || []).forEach(x => { if (x && x.brand_name) _boxStageByName[x.brand_name] = x.stage || '待评估'; });
@@ -1223,15 +1232,6 @@ async function renderOverview() {
   
   // 品牌数badge
   document.getElementById('brandCountBadge').textContent = `${b.length}个品牌 · 月报数据`;
-
-  // Tab0 项目状态需要读 Supabase 3 张表的 override (次卡/无忧/盒子), 并行预加载
-  try {
-    await Promise.all([
-      loadCikaCommentsFromServer().catch(e => { console.warn('[Overview] cika 预加载失败:', e); }),
-      loadWuyouCommentsFromServer().catch(e => { console.warn('[Overview] wuyou 预加载失败:', e); }),
-      fetchBoxBrandsFromServer().catch(e => { console.warn('[Overview] box 预加载失败:', e); }),
-    ]);
-  } catch(e) { console.warn('[Overview] 预加载部分失败:', e); }
 
   renderOverviewTable();
   // 动态设置双行表头第二行的sticky top
