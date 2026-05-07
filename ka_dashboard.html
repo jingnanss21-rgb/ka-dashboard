@@ -32,7 +32,7 @@
 body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
 
 /* Header */
-.header { background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 40%,#2563eb 100%); color:#fff; padding:18px 32px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 4px 20px rgba(15,23,42,0.3); }
+.header { background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 40%,#2563eb 100%); color:#fff; padding:14px 32px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; box-shadow:0 4px 20px rgba(15,23,42,0.3); }
 .header h1 { font-size:20px; font-weight:700; letter-spacing:0.5px; }
 .header .subtitle { font-size:12px; opacity:0.7; margin-top:2px; }
 .header .right-info { display:flex; align-items:center; gap:12px; }
@@ -41,7 +41,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .current-identity:hover { background:rgba(255,255,255,0.3); }
 
 /* Top-level project tabs */
-.project-tabs { display:flex; background:#fff; border-bottom:2px solid var(--border); padding:0 32px; position:sticky; top:62px; z-index:99; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.project-tabs { display:flex; background:#fff; border-bottom:2px solid var(--border); padding:0 32px; position:sticky; top:0; z-index:99; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
 .project-tab { padding:14px 28px; cursor:pointer; font-weight:500; color:var(--text-secondary); transition:all .25s; white-space:nowrap; border-bottom:3px solid transparent; display:flex; align-items:center; gap:8px; }
 .project-tab:hover { color:var(--primary); background:linear-gradient(180deg,transparent 0%,#eff6ff 100%); }
 .project-tab.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; background:linear-gradient(180deg,transparent 60%,#eff6ff 100%); }
@@ -1068,6 +1068,14 @@ function showToast(msg) {
 // Init
 // ============================================================
 async function init() {
+  // 动态设置 tabs sticky top = header 高度
+  requestAnimationFrame(() => {
+    const header = document.querySelector('.header');
+    const tabs = document.getElementById('projectTabs');
+    if (header && tabs) {
+      tabs.style.top = header.offsetHeight + 'px';
+    }
+  });
   // 埋点
   try {
     // sessionId：同一标签页刷新保持一致
