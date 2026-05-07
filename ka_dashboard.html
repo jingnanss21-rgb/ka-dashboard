@@ -2695,20 +2695,21 @@ function renderCikaGantt() {
   }
 
   // Build summary header above chart
-  const monthLabels = option._months.map(m => {
+  const monthSummaryParts = option._months.map(m => {
     const cnt = option._monthCounts[m];
-    return cnt > 0 ? `<span style="display:inline-block;min-width:50px;text-align:center;"><span style="font-weight:700;color:#3b82f6;">${cnt}</span><span style="font-size:10px;color:#94a3b8;">个</span></span>` : `<span style="display:inline-block;min-width:50px;text-align:center;color:#e2e8f0;">—</span>`;
-  }).join('');
+    const label = _ganttMonthLabel(m);
+    return cnt > 0 ? `<span style="background:#eff6ff;color:#3b82f6;padding:2px 6px;border-radius:4px;font-weight:600;font-size:11px;">${label} ${cnt}个</span>` : '';
+  }).filter(Boolean).join(' ');
 
   // Insert header div
   let headerDiv = el.parentNode.querySelector('.gantt-header');
   if (!headerDiv) {
     headerDiv = document.createElement('div');
     headerDiv.className = 'gantt-header';
-    headerDiv.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0 0 8px 0;';
+    headerDiv.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0 0 8px 0;flex-wrap:wrap;gap:6px;';
     el.parentNode.insertBefore(headerDiv, el);
   }
-  headerDiv.innerHTML = `<span style="font-size:12px;color:#10b981;font-weight:600;">✅ ${option._headerText}</span><span style="font-size:11px;color:#64748b;">每月预计: ${monthLabels}</span>`;
+  headerDiv.innerHTML = `<span style="font-size:12px;color:#10b981;font-weight:600;">✅ ${option._headerText}</span><span style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">${monthSummaryParts || '<span style="font-size:11px;color:#94a3b8;">暂无排期</span>'}</span>`;
 
   // Adjust chart height
   const h = Math.max(180, option.yAxis.data.length * 30 + 70);
@@ -2740,14 +2741,16 @@ function renderWuyouGantt() {
   if (!headerDiv) {
     headerDiv = document.createElement('div');
     headerDiv.className = 'gantt-header';
-    headerDiv.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0 0 8px 0;';
+    headerDiv.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0 0 8px 0;flex-wrap:wrap;gap:6px;';
     el.parentNode.insertBefore(headerDiv, el);
   }
-  const monthLabels = option._months.map(m => {
+  const monthSummaryParts2 = option._months.map(m => {
     const cnt = option._monthCounts[m];
-    return cnt > 0 ? `<span style="display:inline-block;min-width:50px;text-align:center;"><span style="font-weight:700;color:#3b82f6;">${cnt}</span><span style="font-size:10px;color:#94a3b8;">个</span></span>` : `<span style="display:inline-block;min-width:50px;text-align:center;color:#e2e8f0;">—</span>`;
-  }).join('');
-  headerDiv.innerHTML = `<span style="font-size:12px;color:#10b981;font-weight:600;">✅ ${option._headerText}</span><span style="font-size:11px;color:#64748b;">每月预计: ${monthLabels}</span>`;
+    const label = _ganttMonthLabel(m);
+    return cnt > 0 ? `<span style="background:#eff6ff;color:#3b82f6;padding:2px 6px;border-radius:4px;font-weight:600;font-size:11px;">${label} ${cnt}个</span>` : '';
+  }).filter(Boolean).join(' ');
+  const onlineCount2 = KA_DATA.brands.filter(b => { const st = wuyouStatusOverrides[b['品牌']] || b['无忧会员'] || ''; return st === '已上线'; }).length;
+  headerDiv.innerHTML = `<span style="font-size:12px;color:#10b981;font-weight:600;">✅ 已上线 ${onlineCount2} 个</span><span style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">${monthSummaryParts2 || '<span style="font-size:11px;color:#94a3b8;">暂无排期</span>'}</span>`;
 
   const h = Math.max(180, option.yAxis.data.length * 30 + 70);
   el.style.height = h + 'px';
@@ -2838,8 +2841,7 @@ function applyWuyouStatusOverrides() {
   });
 }
 
-const WUYOU_STATUS_OPTIONS = ['待评估', '有意向', '已上线', '暂不考虑', '不合适'];
-const WUYOU_STATUS_LABELS = {'有意向':'有意向', '待沟通':'待沟通', '':'未沟通'};
+const WUYOU_STATUS_OPTIONS = ['有意向', '待沟通', '已签约', '已上线', '暂不考虑', '不合适'];
 
 function editWuyouStatus(el, brand) {
   const brandObj = KA_DATA.brands.find(b => b['品牌'] === brand);
@@ -2849,7 +2851,7 @@ function editWuyouStatus(el, brand) {
   WUYOU_STATUS_OPTIONS.forEach(opt => {
     const o = document.createElement('option');
     o.value = opt;
-    o.textContent = WUYOU_STATUS_LABELS[opt];
+    o.textContent = opt;
     if (opt === current) o.selected = true;
     sel.appendChild(o);
   });
