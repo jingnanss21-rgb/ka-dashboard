@@ -2524,10 +2524,10 @@ document.getElementById('cikaTable').addEventListener('click', e => {
 // ============================================================
 
 function _ganttMonthRange() {
-  const now = new Date();
+  // 固定从2026-05开始，展示8个月
   const months = [];
-  for (let i = -1; i <= 4; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+  for (let i = 0; i < 8; i++) {
+    const d = new Date(2026, 4 + i, 1); // 2026-05 起
     months.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
   }
   return months;
@@ -2539,12 +2539,10 @@ function _ganttMonthLabel(ym) {
 }
 
 function launchMonthSelect(project, brandEsc, currentVal) {
-  const months = _ganttMonthRange();
-  // Extend range a bit further for selection
-  const now = new Date();
+  // 选项从2026-05到2027-03
   const allMonths = [];
-  for (let i = -1; i <= 10; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+  for (let i = 0; i < 11; i++) {
+    const d = new Date(2026, 4 + i, 1);
     allMonths.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
   }
   const opts = ['<option value="">—</option>'].concat(
@@ -2580,22 +2578,32 @@ async function onLaunchMonthChange(sel) {
 function _buildGanttOption(brands, expectedLaunchMap, statusMap, statusKey) {
   const months = _ganttMonthRange();
 
-  // Filter brands: exclude 暂不考虑, and must have expected_launch or be 已上线
+  // 统计已上线数量
+  const onlineCount = brands.filter(b => {
+    const st = statusMap[b['品牌']] || b[statusKey] || '';
+    return st === '已上线';
+  }).length;
+
+  // 未上线且有预计月份的品牌
   const items = brands.filter(b => {
     const st = statusMap[b['品牌']] || b[statusKey] || '';
-    if (st === '暂不考虑' || st === '不合适') return false;
-    return st === '已上线' || expectedLaunchMap[b['品牌']];
+    if (st === '已上线' || st === '暂不考虑' || st === '不合适') return false;
+    return !!expectedLaunchMap[b['品牌']];
   });
 
-  // Sort: 已上线 first (by month), then by expected month
+  // 按预计月份排序
   items.sort((a, b) => {
-    const stA = statusMap[a['品牌']] || a[statusKey] || '';
-    const stB = statusMap[b['品牌']] || b[statusKey] || '';
-    const mA = expectedLaunchMap[a['品牌']] || '2026-01';
-    const mB = expectedLaunchMap[b['品牌']] || '2026-01';
-    if (stA === '已上线' && stB !== '已上线') return -1;
-    if (stB === '已上线' && stA !== '已上线') return 1;
+    const mA = expectedLaunchMap[a['品牌']] || '';
+    const mB = expectedLaunchMap[b['品牌']] || '';
     return mA.localeCompare(mB);
+  });
+
+  // 每月预计上线数量
+  const monthCounts = {};
+  months.forEach(m => { monthCounts[m] = 0; });
+  items.forEach(b => {
+    const m = expectedLaunchMap[b['品牌']];
+    if (monthCounts[m] !== undefined) monthCounts[m]++;
   });
 
   const brandNames = items.map(b => b['品牌']);
@@ -2603,26 +2611,34 @@ function _buildGanttOption(brands, expectedLaunchMap, statusMap, statusKey) {
   // Build series data
   const seriesData = items.map((b, yIdx) => {
     const st = statusMap[b['品牌']] || b[statusKey] || '';
-    const month = expectedLaunchMap[b['品牌']] || months[0];
+    const month = expectedLaunchMap[b['品牌']];
     const xIdx = months.indexOf(month);
-    const color = st === '已上线' ? '#10b981' : (st === '有意向' ? '#3b82f6' : '#94a3b8');
-    return { value: [xIdx >= 0 ? xIdx : 0, yIdx], itemStyle: { color: color }, _status: st, _month: month };
+    const color = st === '有意向' || st === '已签约' ? '#3b82f6' : '#94a3b8';
+    return { value: [xIdx >= 0 ? xIdx : 0, yIdx], itemStyle: { color }, _status: st, _month: month, _brand: b['品牌'] };
   });
 
+  // 顶部汇总文字
+  const headerText = `已上线 ${onlineCount} 个`;
+  const monthCountText = months.map(m => monthCounts[m] || '').join('   ');
+
   return {
+    _headerText: headerText,
+    _monthCounts: monthCounts,
+    _months: months,
     tooltip: {
       trigger: 'item',
       formatter: function(p) {
-        const b = items[p.value[1]];
-        const st = seriesData[p.value[1]]._status;
-        const m = seriesData[p.value[1]]._month;
-        return `<b>${b['品牌']}</b><br/>状态: ${st}<br/>预计: ${_ganttMonthLabel(m)}`;
+        if (!p.value) return '';
+        const d = seriesData[p.dataIndex];
+        if (!d) return '';
+        return `<b>${d._brand}</b><br/>状态: ${d._status}<br/>预计: ${_ganttMonthLabel(d._month)}`;
       }
     },
-    grid: { left: 90, right: 30, top: 10, bottom: 30 },
+    grid: { left: 90, right: 30, top: 36, bottom: 50 },
     xAxis: {
       type: 'category',
       data: months.map(_ganttMonthLabel),
+      position: 'bottom',
       axisLine: { lineStyle: { color: '#e2e8f0' } },
       axisLabel: { color: '#64748b', fontSize: 12 }
     },
@@ -2650,7 +2666,7 @@ function _buildGanttOption(brands, expectedLaunchMap, statusMap, statusKey) {
             width: end[0] - start[0] - 4,
             height: bandWidth
           },
-          style: api.style({ fill: seriesData[params.dataIndex].itemStyle.color }),
+          style: api.style({ fill: seriesData[params.dataIndex].itemStyle.color, borderRadius: 3 }),
           styleEmphasis: { shadowBlur: 4, shadowColor: 'rgba(0,0,0,0.2)' }
         };
       },
@@ -2665,20 +2681,40 @@ let _cikaGanttInstance = null;
 function renderCikaGantt() {
   const el = document.getElementById('cikaGanttChart');
   if (!el) return;
-  if (!_cikaGanttInstance) _cikaGanttInstance = echarts.init(el);
 
   const brands = KA_DATA.brands;
   const option = _buildGanttOption(brands, cikaExpectedLaunch, cikaStatusOverrides, '次卡');
 
   if (option.yAxis.data.length === 0) {
-    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:13px;">暂无数据 — 请在下方表格中为品牌设置「预计上线」月份</div>';
+    el.innerHTML = `<div style="padding:16px;text-align:center;">
+      <div style="font-size:13px;color:#10b981;font-weight:600;margin-bottom:8px;">✅ ${option._headerText}</div>
+      <div style="color:#94a3b8;font-size:12px;">暂无预计上线排期 — 请在下方表格中为品牌设置「预计上线」月份</div>
+    </div>`;
     if (_cikaGanttInstance) { _cikaGanttInstance.dispose(); _cikaGanttInstance = null; }
     return;
   }
 
-  // Adjust chart height based on brand count
-  const h = Math.max(200, option.yAxis.data.length * 32 + 60);
+  // Build summary header above chart
+  const monthLabels = option._months.map(m => {
+    const cnt = option._monthCounts[m];
+    return cnt > 0 ? `<span style="display:inline-block;min-width:50px;text-align:center;"><span style="font-weight:700;color:#3b82f6;">${cnt}</span><span style="font-size:10px;color:#94a3b8;">个</span></span>` : `<span style="display:inline-block;min-width:50px;text-align:center;color:#e2e8f0;">—</span>`;
+  }).join('');
+
+  // Insert header div
+  let headerDiv = el.parentNode.querySelector('.gantt-header');
+  if (!headerDiv) {
+    headerDiv = document.createElement('div');
+    headerDiv.className = 'gantt-header';
+    headerDiv.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0 0 8px 0;';
+    el.parentNode.insertBefore(headerDiv, el);
+  }
+  headerDiv.innerHTML = `<span style="font-size:12px;color:#10b981;font-weight:600;">✅ ${option._headerText}</span><span style="font-size:11px;color:#64748b;">每月预计: ${monthLabels}</span>`;
+
+  // Adjust chart height
+  const h = Math.max(180, option.yAxis.data.length * 30 + 70);
   el.style.height = h + 'px';
+
+  if (!_cikaGanttInstance) _cikaGanttInstance = echarts.init(el);
   _cikaGanttInstance.resize();
   _cikaGanttInstance.setOption(option, true);
 }
@@ -2687,19 +2723,36 @@ let _wuyouGanttInstance = null;
 function renderWuyouGantt() {
   const el = document.getElementById('wuyouGanttChart');
   if (!el) return;
-  if (!_wuyouGanttInstance) _wuyouGanttInstance = echarts.init(el);
 
   const brands = KA_DATA.brands;
   const option = _buildGanttOption(brands, wuyouExpectedLaunch, wuyouStatusOverrides, '无忧会员');
 
   if (option.yAxis.data.length === 0) {
-    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:13px;">暂无数据 — 请在下方表格中为品牌设置「预计上线」月份</div>';
+    el.innerHTML = `<div style="padding:16px;text-align:center;">
+      <div style="font-size:13px;color:#10b981;font-weight:600;margin-bottom:8px;">✅ ${option._headerText}</div>
+      <div style="color:#94a3b8;font-size:12px;">暂无预计上线排期 — 请在下方表格中为品牌设置「预计上线」月份</div>
+    </div>`;
     if (_wuyouGanttInstance) { _wuyouGanttInstance.dispose(); _wuyouGanttInstance = null; }
     return;
   }
 
-  const h = Math.max(200, option.yAxis.data.length * 32 + 60);
+  let headerDiv = el.parentNode.querySelector('.gantt-header');
+  if (!headerDiv) {
+    headerDiv = document.createElement('div');
+    headerDiv.className = 'gantt-header';
+    headerDiv.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0 0 8px 0;';
+    el.parentNode.insertBefore(headerDiv, el);
+  }
+  const monthLabels = option._months.map(m => {
+    const cnt = option._monthCounts[m];
+    return cnt > 0 ? `<span style="display:inline-block;min-width:50px;text-align:center;"><span style="font-weight:700;color:#3b82f6;">${cnt}</span><span style="font-size:10px;color:#94a3b8;">个</span></span>` : `<span style="display:inline-block;min-width:50px;text-align:center;color:#e2e8f0;">—</span>`;
+  }).join('');
+  headerDiv.innerHTML = `<span style="font-size:12px;color:#10b981;font-weight:600;">✅ ${option._headerText}</span><span style="font-size:11px;color:#64748b;">每月预计: ${monthLabels}</span>`;
+
+  const h = Math.max(180, option.yAxis.data.length * 30 + 70);
   el.style.height = h + 'px';
+
+  if (!_wuyouGanttInstance) _wuyouGanttInstance = echarts.init(el);
   _wuyouGanttInstance.resize();
   _wuyouGanttInstance.setOption(option, true);
 }
