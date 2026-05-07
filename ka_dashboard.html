@@ -2684,8 +2684,8 @@ function renderCikaGantt() {
 
   const brands = KA_DATA.brands;
   const option = _buildGanttOption(brands, cikaExpectedLaunch, cikaStatusOverrides, '次卡');
-  // 已上线数量以实际有活动数据的品牌为准（与上方表格一致）
-  const cikaOnlineNum = (cikaOnlineAggCache || []).length;
+  // 已上线数量以实际有活动数据且日均曝光>=100的品牌为准（排除测试品牌）
+  const cikaOnlineNum = (cikaOnlineAggCache || []).filter(r => r.exp_daily >= 100).length;
   option._headerText = `已上线 ${cikaOnlineNum} 个`;
 
   if (option.yAxis.data.length === 0) {
