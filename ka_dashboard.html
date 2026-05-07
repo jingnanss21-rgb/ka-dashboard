@@ -1372,30 +1372,30 @@ function renderAlertContent(type) {
   html += '<div class="alert-block">';
   html += `<div class="alert-block-header mom-hdr">
     <span>📊 环比波动</span>
-    <span class="period-tag mom">2026年3月 vs 2026年2月</span>
+    <span class="period-tag mom">2026年4月 vs 2026年3月</span>
     <span class="count-tag">${momRelevant.length} 个品牌触发</span>
   </div>`;
   if (momRelevant.length === 0) {
     html += `<div class="alert-no-data" style="border:1px solid #dbeafe;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}渗透率环比波动均 ≤ 5pp，无异常</div>`;
   } else {
     html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
-    html += renderAlertGroup(momUp, momDown, prefix, 'hb', '03', '02', '3月', '2月', 'mom', fb, label);
+    html += renderAlertGroup(momUp, momDown, prefix, 'hb', '04', '03', '4月', '3月', 'mom', fb, label);
     html += '</div>';
   }
   html += '</div>';
-  
+
   // ====== 同比 Block ======
   html += '<div class="alert-block">';
   html += `<div class="alert-block-header yoy-hdr">
     <span>📊 同比波动</span>
-    <span class="period-tag yoy">2026年3月 vs 2025年3月</span>
+    <span class="period-tag yoy">2026年4月 vs 2025年4月</span>
     <span class="count-tag">${yoyRelevant.length} 个品牌触发</span>
   </div>`;
   if (yoyRelevant.length === 0) {
     html += `<div class="alert-no-data" style="border:1px solid #f3e8ff;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}渗透率同比波动均 ≤ 5pp，无异常</div>`;
   } else {
     html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
-    html += renderAlertGroup(yoyUp, yoyDown, prefix, 'tb', '03', 'y03', '26年3月', '25年3月', 'yoy', fb, label);
+    html += renderAlertGroup(yoyUp, yoyDown, prefix, 'tb', '04', 'y04', '26年4月', '25年4月', 'yoy', fb, label);
     html += '</div>';
   }
   html += '</div>';
