@@ -528,6 +528,11 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
   <!-- ───── 区块 2：未上线商户沟通进展 ───── -->
   <div class="section" style="margin-top:16px;">
+    <div class="section-title"><div class="icon" style="background:#3b82f6"></div> 📅 上线节奏 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">按预计上线月份排列</span></div>
+    <div id="cikaGanttChart" style="width:100%;height:280px;"></div>
+  </div>
+
+  <div class="section" style="margin-top:16px;">
     <div class="section-title"><div class="icon" style="background:#f59e0b"></div> 💬 未上线商户沟通进展 <span id="cikaOfflineCount" class="badge" style="background:#fef3c7;color:#b45309;">0 个</span></div>
     <div class="filter-bar">
       <select id="cikaFilterOwner"><option value="">全部负责人</option></select>
@@ -542,6 +547,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th class="sticky-col sticky-col-last" style="left:136px;min-width:60px;">负责人</th>
             <th>品类</th>
             <th class="sortable" data-sort="cika-status">次卡状态</th>
+            <th style="min-width:100px;">预计上线</th>
             <th style="min-width:200px;">备注（点击编辑）</th>
           </tr>
         </thead>
@@ -559,6 +565,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
               <th style="min-width:60px;">负责人</th>
               <th>品类</th>
               <th>次卡状态</th>
+              <th style="min-width:100px;">预计上线</th>
               <th style="min-width:200px;">备注（点击编辑）</th>
             </tr>
           </thead>
@@ -602,7 +609,12 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 <!-- ============ PANEL: 无忧会员 ============ -->
 <div class="project-panel" id="panel-wuyou">
   <div class="status-grid" id="wuyouStatusGrid"></div>
-  
+
+  <div class="section">
+    <div class="section-title"><div class="icon" style="background:#3b82f6"></div> 📅 上线节奏 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">按预计上线月份排列</span></div>
+    <div id="wuyouGanttChart" style="width:100%;height:280px;"></div>
+  </div>
+
   <div class="section">
     <div class="section-title"><div class="icon" style="background:var(--purple)"></div> 无忧会员项目进展 <span id="wuyouPeriodBadge" class="badge" style="background:#ede9fe;color:#7c3aed;">推进中</span></div>
     <div class="filter-bar">
@@ -618,6 +630,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th class="sticky-col sticky-col-last" style="left:136px;min-width:60px;">负责人</th>
             <th>品类</th>
             <th class="sortable" data-sort="wuyou-status">无忧会员状态</th>
+            <th style="min-width:100px;">预计上线</th>
             <th style="min-width:120px;">方案</th>
             <th style="min-width:260px;">反馈（点击查看/编辑）</th>
           </tr>
@@ -636,6 +649,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
               <th style="min-width:60px;">负责人</th>
               <th>品类</th>
               <th>无忧会员状态</th>
+              <th style="min-width:100px;">预计上线</th>
               <th style="min-width:120px;">方案</th>
               <th style="min-width:260px;">反馈</th>
             </tr>
@@ -1813,6 +1827,7 @@ async function ovOnStatusChange(sel){
 // ============================================================
 let cikaComments = JSON.parse(localStorage.getItem('ka_cika_comments') || '{}');
 let cikaStatusOverrides = {};  // { brand_name: status }
+let cikaExpectedLaunch = {};   // { brand_name: '2026-06' }
 
 async function loadCikaCommentsFromServer() {
   try {
@@ -1820,9 +1835,11 @@ async function loadCikaCommentsFromServer() {
     if (error) throw error;
     cikaComments = {};
     cikaStatusOverrides = {};
+    cikaExpectedLaunch = {};
     (data || []).forEach(row => {
       cikaComments[row.brand_name] = row.comment || '';
       if (row.status != null && row.status !== '') cikaStatusOverrides[row.brand_name] = row.status;
+      if (row.expected_launch) cikaExpectedLaunch[row.brand_name] = row.expected_launch;
     });
 
     // 如果新表为空，从旧表 ka_feedbacks 迁移 cika:: 前缀的数据
@@ -2415,6 +2432,7 @@ async function renderCika() {
 
   // 未上线品牌表（原逻辑）
   renderCikaTable();
+  renderCikaGantt();
 }
 
 function renderCikaTable() {
@@ -2456,6 +2474,7 @@ function renderCikaTable() {
       <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
       <td>${statusTagEditable(b['次卡'], 'cika', brandEsc)}</td>
+      <td>${launchMonthSelect('cika', brandEsc, cikaExpectedLaunch[b['品牌']])}</td>
       <td class="editable-cell">
         <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'cika','${brandEsc}')">${comment || '点击添加备注...'}</div>
       </td>
@@ -2471,6 +2490,7 @@ function renderCikaTable() {
       <td>${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
       <td>${statusTagEditable(b['次卡'], 'cika', brandEsc)}</td>
+      <td>${launchMonthSelect('cika', brandEsc, cikaExpectedLaunch[b['品牌']])}</td>
       <td class="editable-cell">
         <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'cika','${brandEsc}')">${comment || '点击添加备注...'}</div>
       </td>
@@ -2500,11 +2520,197 @@ document.getElementById('cikaTable').addEventListener('click', e => {
 });
 
 // ============================================================
+// 甘特图 + 预计上线月份 (次卡 & 无忧共用)
+// ============================================================
+
+function _ganttMonthRange() {
+  const now = new Date();
+  const months = [];
+  for (let i = -1; i <= 4; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    months.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
+  }
+  return months;
+}
+
+function _ganttMonthLabel(ym) {
+  const [y, m] = ym.split('-');
+  return parseInt(m) + '月';
+}
+
+function launchMonthSelect(project, brandEsc, currentVal) {
+  const months = _ganttMonthRange();
+  // Extend range a bit further for selection
+  const now = new Date();
+  const allMonths = [];
+  for (let i = -1; i <= 10; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    allMonths.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
+  }
+  const opts = ['<option value="">—</option>'].concat(
+    allMonths.map(m => `<option value="${m}" ${m===currentVal?'selected':''}>${_ganttMonthLabel(m)}</option>`)
+  ).join('');
+  return `<select class="launch-month-sel" style="font-size:12px;padding:2px 4px;border:1px solid #e2e8f0;border-radius:4px;background:#fff;min-width:70px;" data-project="${project}" data-brand="${brandEsc}" onchange="onLaunchMonthChange(this)">${opts}</select>`;
+}
+
+async function onLaunchMonthChange(sel) {
+  const project = sel.dataset.project;
+  const brand = sel.dataset.brand.replace(/\\'/g, "'");
+  const val = sel.value || null;
+
+  const table = project === 'cika' ? 'ka_cika_comments' : 'ka_wuyou_comments';
+  const launchMap = project === 'cika' ? cikaExpectedLaunch : wuyouExpectedLaunch;
+
+  if (val) launchMap[brand] = val;
+  else delete launchMap[brand];
+
+  try {
+    await alertSb.from(table).upsert({ brand_name: brand, expected_launch: val }, { onConflict: 'brand_name' });
+    showToast('✅ 预计上线已更新');
+  } catch(e) {
+    console.error(e);
+    showToast('❌ 保存失败: ' + e.message);
+  }
+
+  // 刷新甘特图
+  if (project === 'cika') renderCikaGantt();
+  else renderWuyouGantt();
+}
+
+function _buildGanttOption(brands, expectedLaunchMap, statusMap, statusKey) {
+  const months = _ganttMonthRange();
+
+  // Filter brands: exclude 暂不考虑, and must have expected_launch or be 已上线
+  const items = brands.filter(b => {
+    const st = statusMap[b['品牌']] || b[statusKey] || '';
+    if (st === '暂不考虑' || st === '不合适') return false;
+    return st === '已上线' || expectedLaunchMap[b['品牌']];
+  });
+
+  // Sort: 已上线 first (by month), then by expected month
+  items.sort((a, b) => {
+    const stA = statusMap[a['品牌']] || a[statusKey] || '';
+    const stB = statusMap[b['品牌']] || b[statusKey] || '';
+    const mA = expectedLaunchMap[a['品牌']] || '2026-01';
+    const mB = expectedLaunchMap[b['品牌']] || '2026-01';
+    if (stA === '已上线' && stB !== '已上线') return -1;
+    if (stB === '已上线' && stA !== '已上线') return 1;
+    return mA.localeCompare(mB);
+  });
+
+  const brandNames = items.map(b => b['品牌']);
+
+  // Build series data
+  const seriesData = items.map((b, yIdx) => {
+    const st = statusMap[b['品牌']] || b[statusKey] || '';
+    const month = expectedLaunchMap[b['品牌']] || months[0];
+    const xIdx = months.indexOf(month);
+    const color = st === '已上线' ? '#10b981' : (st === '有意向' ? '#3b82f6' : '#94a3b8');
+    return { value: [xIdx >= 0 ? xIdx : 0, yIdx], itemStyle: { color: color }, _status: st, _month: month };
+  });
+
+  return {
+    tooltip: {
+      trigger: 'item',
+      formatter: function(p) {
+        const b = items[p.value[1]];
+        const st = seriesData[p.value[1]]._status;
+        const m = seriesData[p.value[1]]._month;
+        return `<b>${b['品牌']}</b><br/>状态: ${st}<br/>预计: ${_ganttMonthLabel(m)}`;
+      }
+    },
+    grid: { left: 90, right: 30, top: 10, bottom: 30 },
+    xAxis: {
+      type: 'category',
+      data: months.map(_ganttMonthLabel),
+      axisLine: { lineStyle: { color: '#e2e8f0' } },
+      axisLabel: { color: '#64748b', fontSize: 12 }
+    },
+    yAxis: {
+      type: 'category',
+      data: brandNames,
+      inverse: true,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: '#334155', fontSize: 11 }
+    },
+    series: [{
+      type: 'custom',
+      renderItem: function(params, api) {
+        const xVal = api.value(0);
+        const yVal = api.value(1);
+        const start = api.coord([xVal, yVal]);
+        const end = api.coord([xVal + 1, yVal]);
+        const bandWidth = api.size([0, 1])[1] * 0.6;
+        return {
+          type: 'rect',
+          shape: {
+            x: start[0],
+            y: start[1] - bandWidth / 2,
+            width: end[0] - start[0] - 4,
+            height: bandWidth
+          },
+          style: api.style({ fill: seriesData[params.dataIndex].itemStyle.color }),
+          styleEmphasis: { shadowBlur: 4, shadowColor: 'rgba(0,0,0,0.2)' }
+        };
+      },
+      encode: { x: 0, y: 1 },
+      data: seriesData,
+      z: 10
+    }]
+  };
+}
+
+let _cikaGanttInstance = null;
+function renderCikaGantt() {
+  const el = document.getElementById('cikaGanttChart');
+  if (!el) return;
+  if (!_cikaGanttInstance) _cikaGanttInstance = echarts.init(el);
+
+  const brands = KA_DATA.brands;
+  const option = _buildGanttOption(brands, cikaExpectedLaunch, cikaStatusOverrides, '次卡');
+
+  if (option.yAxis.data.length === 0) {
+    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:13px;">暂无数据 — 请在下方表格中为品牌设置「预计上线」月份</div>';
+    if (_cikaGanttInstance) { _cikaGanttInstance.dispose(); _cikaGanttInstance = null; }
+    return;
+  }
+
+  // Adjust chart height based on brand count
+  const h = Math.max(200, option.yAxis.data.length * 32 + 60);
+  el.style.height = h + 'px';
+  _cikaGanttInstance.resize();
+  _cikaGanttInstance.setOption(option, true);
+}
+
+let _wuyouGanttInstance = null;
+function renderWuyouGantt() {
+  const el = document.getElementById('wuyouGanttChart');
+  if (!el) return;
+  if (!_wuyouGanttInstance) _wuyouGanttInstance = echarts.init(el);
+
+  const brands = KA_DATA.brands;
+  const option = _buildGanttOption(brands, wuyouExpectedLaunch, wuyouStatusOverrides, '无忧会员');
+
+  if (option.yAxis.data.length === 0) {
+    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:13px;">暂无数据 — 请在下方表格中为品牌设置「预计上线」月份</div>';
+    if (_wuyouGanttInstance) { _wuyouGanttInstance.dispose(); _wuyouGanttInstance = null; }
+    return;
+  }
+
+  const h = Math.max(200, option.yAxis.data.length * 32 + 60);
+  el.style.height = h + 'px';
+  _wuyouGanttInstance.resize();
+  _wuyouGanttInstance.setOption(option, true);
+}
+
+// ============================================================
 // PANEL: Wuyou (无忧会员)
 // ============================================================
 let wuyouComments = JSON.parse(localStorage.getItem('ka_wuyou_comments') || '{}');
 let wuyouStatusOverrides = {};  // { brand_name: status }
 let wuyouPlans = {};            // { brand_name: '普通代扣' | '无忧会员' | '' }
+let wuyouExpectedLaunch = {};   // { brand_name: '2026-06' }
 let wuyouFeedback = {};         // { brand_name: [ {id, content, created_at, updated_at} ] }
 const WUYOU_PLAN_OPTIONS = ['', '普通代扣', '无忧会员'];
 
@@ -2515,10 +2721,12 @@ async function loadWuyouCommentsFromServer() {
     wuyouComments = {};
     wuyouStatusOverrides = {};
     wuyouPlans = {};
+    wuyouExpectedLaunch = {};
     (data || []).forEach(row => {
       wuyouComments[row.brand_name] = row.comment || '';
       if (row.status != null && row.status !== '') wuyouStatusOverrides[row.brand_name] = row.status;
       if (row.plan != null && row.plan !== '') wuyouPlans[row.brand_name] = row.plan;
+      if (row.expected_launch) wuyouExpectedLaunch[row.brand_name] = row.expected_launch;
     });
 
     // 如果新表为空，从旧表 ka_feedbacks 迁移 wuyou:: 前缀的数据
@@ -2643,6 +2851,7 @@ async function renderWuyou() {
   `;
 
   renderWuyouTable();
+  renderWuyouGantt();
 }
 
 // ── 计算反馈 cutoff（基于最新日报日期 -5 天，与摇优惠一致）
@@ -2750,6 +2959,7 @@ function renderWuyouTable() {
       <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
       <td>${statusTagEditable(b['无忧会员'], 'wuyou', brandEsc)}</td>
+      <td>${launchMonthSelect('wuyou', brandEsc, wuyouExpectedLaunch[b['品牌']])}</td>
       <td>${wuyouPlanSelect(b['品牌'])}</td>
       <td class="editable-cell" style="cursor:pointer;" onclick="openWuyouDrawer('${brandEsc}')">${fb.text}</td>
     </tr>`;
@@ -2764,6 +2974,7 @@ function renderWuyouTable() {
       <td>${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
       <td>${statusTagEditable(b['无忧会员'], 'wuyou', brandEsc)}</td>
+      <td>${launchMonthSelect('wuyou', brandEsc, wuyouExpectedLaunch[b['品牌']])}</td>
       <td>${wuyouPlanSelect(b['品牌'])}</td>
       <td class="editable-cell" style="cursor:pointer;" onclick="openWuyouDrawer('${brandEsc}')">${fb.text}</td>
     </tr>`;
