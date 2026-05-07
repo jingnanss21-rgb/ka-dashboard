@@ -2192,7 +2192,7 @@ function renderCikaTrendChart() {
 }
 
 function renderCikaOnlineTable() {
-  const rows = cikaOnlineAggCache || [];
+  const rows = (cikaOnlineAggCache || []).filter(r => r.exp_daily >= 100);
   // 排序
   const key = cikaOnlineSort.key;
   const dir = cikaOnlineSort.dir;
