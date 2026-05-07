@@ -424,11 +424,11 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th class="sortable" data-col="次卡">次卡</th>
             <th class="sortable" data-col="无忧会员">无忧会员</th>
             <th class="sortable" data-col="盒子">盒子</th>
-            <th class="sortable" data-col="m03_bs_all">笔数</th>
-            <th class="sortable" data-col="m03_je_all">金额</th>
-            <th class="sortable" data-col="m03_bs_xcx">笔数</th>
-            <th class="sortable" data-col="m03_je_xcx">金额</th>
-            <th class="sortable" data-col="bs_rate_03">渗透率</th>
+            <th class="sortable" data-col="m04_bs_all">笔数</th>
+            <th class="sortable" data-col="m04_je_all">金额</th>
+            <th class="sortable" data-col="m04_bs_xcx">笔数</th>
+            <th class="sortable" data-col="m04_je_xcx">金额</th>
+            <th class="sortable" data-col="bs_rate_04">渗透率</th>
             <th class="sortable" data-col="bs_rate_hb">环比</th>
             <th class="sortable" data-col="bs_rate_tb">同比</th>
           </tr>
@@ -1200,8 +1200,8 @@ async function renderOverview() {
   const shakeNotAchieved = shakeOnline - shakeAchieved;
   
   // 总体渗透率变化
-  const bsRateHb = (o.m03.bs_rate - o.m02.bs_rate).toFixed(2);
-  const bsRateTb = (o.m03.bs_rate - o.y03.bs_rate).toFixed(2);
+  const bsRateHb = (o.m04.bs_rate - o.m03.bs_rate).toFixed(2);
+  const bsRateTb = (o.m04.bs_rate - o.y04.bs_rate).toFixed(2);
   
   document.getElementById('overviewGrid').innerHTML = `
     <div class="overview-card" onclick="switchToTab('shake')">
@@ -1664,7 +1664,7 @@ function renderOverviewTable() {
       });
     }
   } else {
-    data.sort((a, b) => (b.m04_bs_all || 0) - (a.m03_bs_all || 0));
+    data.sort((a, b) => (b.m04_bs_all || 0) - (a.m04_bs_all || 0));
   }
   
   const tbody = document.getElementById('overviewTbody');
