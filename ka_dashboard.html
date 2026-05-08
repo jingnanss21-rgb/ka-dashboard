@@ -903,7 +903,12 @@ document.querySelectorAll('.project-tab').forEach(tab => {
       setTimeout(() => {
         if (cikaTrendChart) cikaTrendChart.resize();
         renderCikaTrendChart();
+        renderCikaGantt();
       }, 50);
+    }
+    // 切换到无忧 tab 时，resize 甘特图
+    if (tab.dataset.project === 'wuyou' && typeof renderWuyouGantt === 'function') {
+      setTimeout(() => { renderWuyouGantt(); }, 50);
     }
     // 盒子 tab 懒加载：首次点击才拉数据
     if (tab.dataset.project === 'box' && typeof renderBox === 'function' && !window._boxLoaded) {
