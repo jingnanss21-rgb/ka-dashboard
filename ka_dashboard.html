@@ -970,7 +970,8 @@ function rebuildPeriodMapFromSnapshot() {
     shake: shakeLine,
     cika: lab ? (String(lab) + ' · 同周报周期') : '推进中',
     wuyou: lab ? (String(lab) + ' · 同周报周期') : '推进中',
-    box: lab ? (String(lab) + ' · 同周报周期') : '推进中'
+    box: lab ? (String(lab) + ' · 同周报周期') : '推进中',
+    requests: EMBEDDED_TRADE_MONTH_LABEL + ' | ' + shakeLine
   };
   const cikaEl = document.getElementById('cikaPeriodBadge');
   const wuyouEl = document.getElementById('wuyouPeriodBadge');
