@@ -3931,6 +3931,10 @@ function renderProductRequests() {
         <span style="background:${pColor}18;color:${pColor};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">${r.priority}</span>
         <span style="background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">${r.project}</span>
         <span style="font-size:15px;font-weight:700;color:#1e293b;">${r.title}</span>
+        <span style="margin-left:auto;display:flex;gap:6px;">
+          <span onclick="_reqEdit(${r.id})" style="cursor:pointer;font-size:13px;color:#64748b;" title="编辑">✎</span>
+          <span onclick="_reqDelete(${r.id})" style="cursor:pointer;font-size:13px;color:#dc2626;" title="删除">×</span>
+        </span>
       </div>
       ${r.description ? '<div style="font-size:12px;color:#475569;margin-bottom:6px;">'+r.description+'</div>' : ''}
       ${r.impact ? '<div style="font-size:11px;color:#64748b;margin-bottom:8px;">影响面：'+r.impact+'</div>' : ''}
@@ -3963,6 +3967,50 @@ async function _reqUpdateStatus(id, newStatus) {
     renderProductRequests();
     showToast('✅ 状态已更新');
   } catch(e) { showToast('❌ 更新失败: ' + e.message); }
+}
+
+async function _reqEdit(id) {
+  const req = _reqData.find(r => r.id === id);
+  if (!req) return;
+  const newTitle = prompt('标题:', req.title);
+  if (newTitle === null) return;
+  const newDesc = prompt('描述:', req.description || '');
+  if (newDesc === null) return;
+  const newImpact = prompt('影响面:', req.impact || '');
+  if (newImpact === null) return;
+  const priorities = ['P0','P1','P2'];
+  const pIdx = prompt('优先级 (输入 0=P0, 1=P1, 2=P2):', priorities.indexOf(req.priority).toString());
+  if (pIdx === null) return;
+  const newPriority = priorities[parseInt(pIdx)] || req.priority;
+  try {
+    await alertSb.from('ka_product_requests').update({
+      title: newTitle.trim() || req.title,
+      description: newDesc.trim(),
+      impact: newImpact.trim(),
+      priority: newPriority,
+      updated_at: new Date().toISOString()
+    }).eq('id', id);
+    req.title = newTitle.trim() || req.title;
+    req.description = newDesc.trim();
+    req.impact = newImpact.trim();
+    req.priority = newPriority;
+    renderProductRequests();
+    showToast('✅ 需求已更新');
+  } catch(e) { showToast('❌ 编辑失败: ' + e.message); }
+}
+
+async function _reqDelete(id) {
+  if (!confirm('确认删除这条需求？相关反馈也会一并删除。')) return;
+  try {
+    // 先删反馈
+    await alertSb.from('ka_product_request_feedback').delete().eq('request_id', id);
+    // 再删需求
+    await alertSb.from('ka_product_requests').delete().eq('id', id);
+    _reqData = _reqData.filter(r => r.id !== id);
+    delete _reqFeedback[id];
+    renderProductRequests();
+    showToast('✅ 需求已删除');
+  } catch(e) { showToast('❌ 删除失败: ' + e.message); }
 }
 
 async function _reqAddFeedback(requestId) {
