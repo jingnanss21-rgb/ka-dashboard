@@ -390,6 +390,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
   <div class="project-tab" data-project="cika"><span class="tab-icon">🎫</span> 次卡</div>
   <div class="project-tab" data-project="wuyou"><span class="tab-icon">🛡️</span> 无忧会员</div>
   <div class="project-tab" data-project="box"><span class="tab-icon">🟩</span> 盒子</div>
+  <div class="project-tab" data-project="requests"><span class="tab-icon">📋</span> 产品需求</div>
 </div>
 
 <div class="container" id="mainContainer">
@@ -792,6 +793,34 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
   </div>
 </div>
 
+<!-- ============ PANEL: 产品需求 ============ -->
+<div class="project-panel" id="panel-requests">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div id="reqProjectTabs" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    <button onclick="openReqForm()" style="padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">+ 新增需求</button>
+  </div>
+  <div id="reqCardList" style="display:flex;flex-direction:column;gap:12px;"></div>
+  <!-- 新增需求表单 (默认隐藏) -->
+  <div id="reqFormOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.4);z-index:1100;display:none;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:24px;width:480px;max-width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="margin:0;font-size:16px;">新增产品需求</h3>
+        <button onclick="closeReqForm()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#64748b;">✕</button>
+      </div>
+      <div style="display:grid;gap:12px;">
+        <div><label style="font-size:12px;font-weight:600;color:#475569;">标题 *</label><input id="reqFormTitle" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;margin-top:4px;" placeholder="需求简述"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><label style="font-size:12px;font-weight:600;color:#475569;">项目 *</label><select id="reqFormProject" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;margin-top:4px;"><option value="摇优惠">摇优惠</option><option value="次卡">次卡</option><option value="无忧会员">无忧会员</option><option value="盒子">盒子</option></select></div>
+          <div><label style="font-size:12px;font-weight:600;color:#475569;">优先级 *</label><select id="reqFormPriority" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;margin-top:4px;"><option value="P0">P0</option><option value="P1" selected>P1</option><option value="P2">P2</option></select></div>
+        </div>
+        <div><label style="font-size:12px;font-weight:600;color:#475569;">影响面</label><input id="reqFormImpact" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;margin-top:4px;" placeholder="影响哪些品牌/指标"></div>
+        <div><label style="font-size:12px;font-weight:600;color:#475569;">详细描述</label><textarea id="reqFormDesc" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;margin-top:4px;min-height:80px;resize:vertical;" placeholder="需求详细说明..."></textarea></div>
+        <button onclick="submitReqForm()" style="padding:10px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;">提交需求</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 品牌详情抽屉 -->
 <div id="boxDrawerMask" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.4);z-index:1000;" onclick="closeBoxDrawer()"></div>
 <div id="boxDrawer" style="display:none;position:fixed;top:0;right:0;width:640px;max-width:100%;height:100%;background:#fff;z-index:1001;box-shadow:-4px 0 20px rgba(0,0,0,0.15);overflow-y:auto;">
@@ -914,6 +943,11 @@ document.querySelectorAll('.project-tab').forEach(tab => {
     if (tab.dataset.project === 'box' && typeof renderBox === 'function' && !window._boxLoaded) {
       window._boxLoaded = true;
       renderBox();
+    }
+    // 产品需求 tab 懒加载
+    if (tab.dataset.project === 'requests' && !window._reqLoaded) {
+      window._reqLoaded = true;
+      loadProductRequests().then(() => renderProductRequests());
     }
   });
 });
@@ -3811,6 +3845,168 @@ function saveComment(input, type, brand) {
       showToast('备注已本地保存（云端同步失败）');
     }
   }, 500);
+}
+
+// ============================================================
+// PANEL: 产品需求跟进
+// ============================================================
+let _reqData = [];    // [{id, title, project, priority, impact, description, status, creator, created_at, updated_at}]
+let _reqFeedback = {}; // { request_id: [{id, content, author, created_at}] }
+let _reqFilter = '';   // '' = 全部, or '摇优惠'/'次卡'/'无忧会员'/'盒子'
+
+const REQ_STATUS_OPTS = ['待评估','已排期','开发中','已上线','已拒绝'];
+const REQ_STATUS_COLORS = {'待评估':'#94a3b8','已排期':'#3b82f6','开发中':'#f59e0b','已上线':'#10b981','已拒绝':'#ef4444'};
+const REQ_PRIORITY_COLORS = {'P0':'#dc2626','P1':'#f59e0b','P2':'#94a3b8'};
+const REQ_PROJECTS = ['摇优惠','次卡','无忧会员','盒子'];
+
+async function loadProductRequests() {
+  try {
+    const { data: reqs, error } = await alertSb.from('ka_product_requests').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    _reqData = reqs || [];
+
+    const { data: fbs, error: fbErr } = await alertSb.from('ka_product_request_feedback').select('*').order('created_at', { ascending: true });
+    if (fbErr) throw fbErr;
+    _reqFeedback = {};
+    (fbs || []).forEach(f => {
+      if (!_reqFeedback[f.request_id]) _reqFeedback[f.request_id] = [];
+      _reqFeedback[f.request_id].push(f);
+    });
+  } catch(e) {
+    console.error('[ProductReq] 加载失败:', e.message);
+  }
+}
+
+function renderProductRequests() {
+  // Project tabs
+  const tabsEl = document.getElementById('reqProjectTabs');
+  if (tabsEl) {
+    const allCount = _reqData.filter(r => r.status !== '已上线' && r.status !== '已拒绝').length;
+    let tabsHtml = `<button onclick="_reqSetFilter('')" style="padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid ${!_reqFilter?'#2563eb':'#cbd5e1'};background:${!_reqFilter?'#eff6ff':'#fff'};color:${!_reqFilter?'#1d4ed8':'#475569'};font-weight:600;">全部 (${allCount})</button>`;
+    REQ_PROJECTS.forEach(p => {
+      const cnt = _reqData.filter(r => r.project === p && r.status !== '已上线' && r.status !== '已拒绝').length;
+      tabsHtml += `<button onclick="_reqSetFilter('${p}')" style="padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid ${_reqFilter===p?'#2563eb':'#cbd5e1'};background:${_reqFilter===p?'#eff6ff':'#fff'};color:${_reqFilter===p?'#1d4ed8':'#475569'};font-weight:600;">${p} (${cnt})</button>`;
+    });
+    tabsEl.innerHTML = tabsHtml;
+  }
+
+  // Filter and sort
+  let list = _reqData;
+  if (_reqFilter) list = list.filter(r => r.project === _reqFilter);
+  // Sort: P0>P1>P2, then by created_at desc
+  const pOrder = {'P0':0,'P1':1,'P2':2};
+  list.sort((a, b) => {
+    const pa = pOrder[a.priority] ?? 1, pb = pOrder[b.priority] ?? 1;
+    if (pa !== pb) return pa - pb;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+
+  // Render cards
+  const container = document.getElementById('reqCardList');
+  if (!container) return;
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8;font-size:13px;">暂无需求 — 点击右上角「+ 新增需求」添加</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(r => {
+    const pColor = REQ_PRIORITY_COLORS[r.priority] || '#94a3b8';
+    const sColor = REQ_STATUS_COLORS[r.status] || '#94a3b8';
+    const fbs = _reqFeedback[r.id] || [];
+    const createdDate = r.created_at ? r.created_at.substring(0, 10) : '';
+
+    // Status select
+    const statusOpts = REQ_STATUS_OPTS.map(s => `<option value="${s}" ${s===r.status?'selected':''}>${s}</option>`).join('');
+
+    // Feedback timeline
+    let fbHtml = fbs.map(f => {
+      const fDate = f.created_at ? f.created_at.substring(5, 10) : '';
+      return `<div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#334155;"><span style="color:#94a3b8;white-space:nowrap;">${fDate}</span><span>${f.content}</span>${f.author ? '<span style="color:#94a3b8;white-space:nowrap;">—— '+f.author+'</span>' : ''}</div>`;
+    }).join('');
+
+    return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="background:${pColor}18;color:${pColor};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">${r.priority}</span>
+        <span style="background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">${r.project}</span>
+        <span style="font-size:15px;font-weight:700;color:#1e293b;">${r.title}</span>
+      </div>
+      ${r.description ? '<div style="font-size:12px;color:#475569;margin-bottom:6px;">'+r.description+'</div>' : ''}
+      ${r.impact ? '<div style="font-size:11px;color:#64748b;margin-bottom:8px;">影响面：'+r.impact+'</div>' : ''}
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">${r.creator||'匿名'} · ${createdDate}</div>
+      <div style="border-top:1px solid #f1f5f9;padding-top:10px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:11px;font-weight:600;color:#475569;">状态</span>
+          <select onchange="_reqUpdateStatus(${r.id}, this.value)" style="font-size:12px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:4px;background:${sColor}18;color:${sColor};font-weight:600;">${statusOpts}</select>
+        </div>
+        ${fbs.length > 0 ? '<div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">'+fbHtml+'</div>' : ''}
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <input id="reqFbInput_${r.id}" style="flex:1;padding:6px 10px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" placeholder="添加反馈...">
+          <button onclick="_reqAddFeedback(${r.id})" style="padding:6px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;cursor:pointer;font-weight:600;color:#475569;">发送</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _reqSetFilter(f) {
+  _reqFilter = f;
+  renderProductRequests();
+}
+
+async function _reqUpdateStatus(id, newStatus) {
+  try {
+    await alertSb.from('ka_product_requests').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', id);
+    const req = _reqData.find(r => r.id === id);
+    if (req) req.status = newStatus;
+    renderProductRequests();
+    showToast('✅ 状态已更新');
+  } catch(e) { showToast('❌ 更新失败: ' + e.message); }
+}
+
+async function _reqAddFeedback(requestId) {
+  const input = document.getElementById('reqFbInput_' + requestId);
+  if (!input) return;
+  const content = input.value.trim();
+  if (!content) return;
+  const author = currentIdentity || '';
+  try {
+    const { data, error } = await alertSb.from('ka_product_request_feedback').insert({ request_id: requestId, content, author }).select().single();
+    if (error) throw error;
+    if (!_reqFeedback[requestId]) _reqFeedback[requestId] = [];
+    _reqFeedback[requestId].push(data);
+    renderProductRequests();
+    showToast('✅ 反馈已添加');
+  } catch(e) { showToast('❌ 添加失败: ' + e.message); }
+}
+
+function openReqForm() {
+  document.getElementById('reqFormOverlay').style.display = 'flex';
+}
+function closeReqForm() {
+  document.getElementById('reqFormOverlay').style.display = 'none';
+}
+
+async function submitReqForm() {
+  const title = document.getElementById('reqFormTitle').value.trim();
+  const project = document.getElementById('reqFormProject').value;
+  const priority = document.getElementById('reqFormPriority').value;
+  const impact = document.getElementById('reqFormImpact').value.trim();
+  const description = document.getElementById('reqFormDesc').value.trim();
+  if (!title) { showToast('请填写标题'); return; }
+  const creator = currentIdentity || '';
+  try {
+    const { data, error } = await alertSb.from('ka_product_requests').insert({ title, project, priority, impact, description, creator }).select().single();
+    if (error) throw error;
+    _reqData.unshift(data);
+    closeReqForm();
+    // Clear form
+    document.getElementById('reqFormTitle').value = '';
+    document.getElementById('reqFormImpact').value = '';
+    document.getElementById('reqFormDesc').value = '';
+    renderProductRequests();
+    showToast('✅ 需求已提交');
+  } catch(e) { showToast('❌ 提交失败: ' + e.message); }
 }
 
 // ============================================================
