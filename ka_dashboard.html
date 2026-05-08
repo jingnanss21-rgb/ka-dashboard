@@ -3972,31 +3972,19 @@ async function _reqUpdateStatus(id, newStatus) {
 async function _reqEdit(id) {
   const req = _reqData.find(r => r.id === id);
   if (!req) return;
-  const newTitle = prompt('标题:', req.title);
-  if (newTitle === null) return;
-  const newDesc = prompt('描述:', req.description || '');
-  if (newDesc === null) return;
-  const newImpact = prompt('影响面:', req.impact || '');
-  if (newImpact === null) return;
-  const priorities = ['P0','P1','P2'];
-  const pIdx = prompt('优先级 (输入 0=P0, 1=P1, 2=P2):', priorities.indexOf(req.priority).toString());
-  if (pIdx === null) return;
-  const newPriority = priorities[parseInt(pIdx)] || req.priority;
-  try {
-    await alertSb.from('ka_product_requests').update({
-      title: newTitle.trim() || req.title,
-      description: newDesc.trim(),
-      impact: newImpact.trim(),
-      priority: newPriority,
-      updated_at: new Date().toISOString()
-    }).eq('id', id);
-    req.title = newTitle.trim() || req.title;
-    req.description = newDesc.trim();
-    req.impact = newImpact.trim();
-    req.priority = newPriority;
-    renderProductRequests();
-    showToast('✅ 需求已更新');
-  } catch(e) { showToast('❌ 编辑失败: ' + e.message); }
+  // 打开编辑表单（复用新增表单，填充当前值）
+  document.getElementById('reqFormTitle').value = req.title || '';
+  document.getElementById('reqFormProject').value = req.project || '摇优惠';
+  document.getElementById('reqFormPriority').value = req.priority || 'P1';
+  document.getElementById('reqFormImpact').value = req.impact || '';
+  document.getElementById('reqFormDesc').value = req.description || '';
+  window._reqEditingId = id;
+  document.getElementById('reqFormOverlay').style.display = 'flex';
+  // 改按钮文案
+  const btn = document.getElementById('reqFormOverlay').querySelector('button[onclick="submitReqForm()"]');
+  if (btn) btn.textContent = '保存修改';
+  const h3 = document.getElementById('reqFormOverlay').querySelector('h3');
+  if (h3) h3.textContent = '编辑需求';
 }
 
 async function _reqDelete(id) {
@@ -4030,9 +4018,20 @@ async function _reqAddFeedback(requestId) {
 }
 
 function openReqForm() {
+  window._reqEditingId = null;
+  document.getElementById('reqFormTitle').value = '';
+  document.getElementById('reqFormProject').value = '摇优惠';
+  document.getElementById('reqFormPriority').value = 'P1';
+  document.getElementById('reqFormImpact').value = '';
+  document.getElementById('reqFormDesc').value = '';
+  const btn = document.getElementById('reqFormOverlay').querySelector('button[onclick="submitReqForm()"]');
+  if (btn) btn.textContent = '提交需求';
+  const h3 = document.getElementById('reqFormOverlay').querySelector('h3');
+  if (h3) h3.textContent = '新增产品需求';
   document.getElementById('reqFormOverlay').style.display = 'flex';
 }
 function closeReqForm() {
+  window._reqEditingId = null;
   document.getElementById('reqFormOverlay').style.display = 'none';
 }
 
@@ -4043,6 +4042,23 @@ async function submitReqForm() {
   const impact = document.getElementById('reqFormImpact').value.trim();
   const description = document.getElementById('reqFormDesc').value.trim();
   if (!title) { showToast('请填写标题'); return; }
+
+  // 编辑模式
+  if (window._reqEditingId) {
+    const id = window._reqEditingId;
+    try {
+      const { error } = await alertSb.from('ka_product_requests').update({ title, project, priority, impact, description, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      const req = _reqData.find(r => r.id === id);
+      if (req) { req.title = title; req.project = project; req.priority = priority; req.impact = impact; req.description = description; }
+      closeReqForm();
+      renderProductRequests();
+      showToast('✅ 需求已更新');
+    } catch(e) { showToast('❌ 更新失败: ' + e.message); }
+    return;
+  }
+
+  // 新增模式
   const creator = currentIdentity || '';
   try {
     const { data, error } = await alertSb.from('ka_product_requests').insert({ title, project, priority, impact, description, creator }).select().single();
