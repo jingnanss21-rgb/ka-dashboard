@@ -1327,6 +1327,18 @@ const PROJECT_LABELS = {
   'box': '盒子'
 };
 
+function getShakeAliveStatus(snap) {
+  // 和明细表 getShakeStatusFromSnapshot 完全一致: 存活/未存活/不在线
+  if (!snap) return '不在线';
+  const alive = snap.isAlive;
+  if (alive === 1 || alive === true || alive === '1') {
+    const surv = snap.isSurvived;
+    if (surv === 1 || surv === true || surv === '1') return '存活';
+    return '未存活';
+  }
+  return '不在线';
+}
+
 function getShakeAchieveStatus(brandName) {
   const snap = gSnapshotBrandsByName[brandName];
   if (!snap) return '不在线';
@@ -1352,8 +1364,7 @@ async function checkAndWriteStatusSnapshot() {
     const rows = [];
     // 摇优惠-存活 & 摇优惠-达标
     for (const [name, snap] of Object.entries(gSnapshotBrandsByName)) {
-      const alive = (snap.isAlive === true || snap.isAlive === 1 || snap.isAlive === '1');
-      rows.push({ snapshot_date: today, brand_name: name, project: 'shake_alive', status: alive ? '存活' : '不存活' });
+      rows.push({ snapshot_date: today, brand_name: name, project: 'shake_alive', status: getShakeAliveStatus(snap) });
       rows.push({ snapshot_date: today, brand_name: name, project: 'shake_achieve', status: getShakeAchieveStatus(name) });
     }
     // 次卡
@@ -1403,73 +1414,78 @@ async function renderStatusChangeNotice() {
       return;
     }
 
-    // 按 (brand_name, project) 分组，取最早和最新状态
+    // 按 (brand_name, project) 分组，按日期排序
     const groups = {};
     data.forEach(r => {
       const key = r.brand_name + '||' + r.project;
-      if (!groups[key]) groups[key] = { brand: r.brand_name, project: r.project, first: r, last: r };
-      if (r.snapshot_date < groups[key].first.snapshot_date) groups[key].first = r;
-      if (r.snapshot_date >= groups[key].last.snapshot_date) groups[key].last = r;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(r);
     });
 
-    // 找出状态变化的
-    const changes = [];
-    for (const g of Object.values(groups)) {
-      if (g.first.status !== g.last.status) {
-        const isPositive = STATUS_POSITIVE.has(g.last.status);
-        changes.push({
-          brand: g.brand,
-          project: g.project,
-          oldStatus: g.first.status,
-          newStatus: g.last.status,
-          date: g.last.snapshot_date,
-          positive: isPositive
-        });
+    // 逐天对比，生成轨迹
+    const trajectories = []; // { brand, project, steps: [{status, date}], lastDate }
+    for (const [key, records] of Object.entries(groups)) {
+      records.sort((a, b) => a.snapshot_date.localeCompare(b.snapshot_date));
+      // 找所有跳变点
+      const steps = [{ status: records[0].status, date: records[0].snapshot_date }];
+      for (let i = 1; i < records.length; i++) {
+        if (records[i].status !== records[i - 1].status) {
+          steps.push({ status: records[i].status, date: records[i].snapshot_date });
+        }
       }
+      if (steps.length < 2) continue; // 无变化
+      const [brand, project] = key.split('||');
+      const lastStatus = steps[steps.length - 1].status;
+      trajectories.push({ brand, project, steps, lastDate: steps[steps.length - 1].date, positive: STATUS_POSITIVE.has(lastStatus) });
     }
 
-    if (changes.length === 0) {
+    if (trajectories.length === 0) {
       section.innerHTML = `<div style="padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:12px;color:#94a3b8;text-align:center">近7日无状态变更 ✓</div>`;
       return;
     }
 
-    // 按日期倒序
-    changes.sort((a, b) => b.date.localeCompare(a.date));
+    // 按最后变更日期倒序
+    trajectories.sort((a, b) => b.lastDate.localeCompare(a.lastDate));
 
     const maxShow = 10;
-    const showAll = changes.length <= maxShow;
-    const visible = showAll ? changes : changes.slice(0, maxShow);
+    const showAll = trajectories.length <= maxShow;
+    const visible = showAll ? trajectories : trajectories.slice(0, maxShow);
 
     let html = `<div style="background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden">`;
-    html += `<div style="display:flex;align-items:center;justify-content:between;padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
-      <span style="font-size:13px;font-weight:700;color:#1e293b">🔔 近7日状态变更（${changes.length}条）</span>
+    html += `<div style="display:flex;align-items:center;padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+      <span style="font-size:13px;font-weight:700;color:#1e293b">🔔 近7日状态变更（${trajectories.length}条）</span>
       <button onclick="this.closest('#statusChangeSection').querySelector('.sc-list').style.display=this.closest('#statusChangeSection').querySelector('.sc-list').style.display==='none'?'':'none';this.textContent=this.textContent==='收起 ▲'?'展开 ▼':'收起 ▲'" style="margin-left:auto;background:none;border:none;color:#64748b;font-size:11px;cursor:pointer">收起 ▲</button>
     </div>`;
     html += `<div class="sc-list" style="padding:8px 12px">`;
 
-    function renderItem(c) {
-      const color = c.positive ? '#059669' : '#dc2626';
-      const icon = c.positive ? '🟢' : '🔴';
-      const label = PROJECT_LABELS[c.project] || c.project;
-      const dateStr = c.date.slice(5); // MM-DD
-      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #f8fafc">
+    function renderTrajectory(t) {
+      const finalColor = t.positive ? '#059669' : '#dc2626';
+      const icon = t.positive ? '🟢' : '🔴';
+      const label = PROJECT_LABELS[t.project] || t.project;
+      // 轨迹: 状态1(日期) → 状态2(日期) → ...
+      const trail = t.steps.map((s, i) => {
+        const dateStr = s.date.slice(5);
+        if (i === 0) return `<span style="color:#64748b">${s.status}</span>`;
+        const isPos = STATUS_POSITIVE.has(s.status);
+        const c = isPos ? '#059669' : '#dc2626';
+        return `<span style="font-weight:600;color:${c}">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${dateStr})</span>`;
+      }).join('<span style="color:#94a3b8;margin:0 3px">→</span>');
+
+      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap">
         <span style="font-size:14px">${icon}</span>
-        <span style="font-size:12px;font-weight:600;color:#1e293b;min-width:80px">${c.brand}</span>
-        <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${color}12;color:${color};font-weight:600">${label}</span>
-        <span style="font-size:12px;color:#64748b">${c.oldStatus}</span>
-        <span style="font-size:11px;color:#94a3b8">→</span>
-        <span style="font-size:12px;font-weight:600;color:${color}">${c.newStatus}</span>
-        <span style="margin-left:auto;font-size:11px;color:#94a3b8">${dateStr}</span>
+        <span style="font-size:12px;font-weight:600;color:#1e293b;min-width:60px">${t.brand}</span>
+        <span style="font-size:10px;padding:2px 6px;border-radius:10px;background:${finalColor}12;color:${finalColor};font-weight:600">${label}</span>
+        <span style="font-size:12px;display:flex;align-items:center;gap:0;flex-wrap:wrap">${trail}</span>
       </div>`;
     }
 
-    visible.forEach(c => { html += renderItem(c); });
+    visible.forEach(t => { html += renderTrajectory(t); });
 
     if (!showAll) {
       html += `<div id="sc-more-items" style="display:none">`;
-      changes.slice(maxShow).forEach(c => { html += renderItem(c); });
+      trajectories.slice(maxShow).forEach(t => { html += renderTrajectory(t); });
       html += `</div>`;
-      html += `<button onclick="document.getElementById('sc-more-items').style.display='';this.style.display='none'" style="width:100%;padding:8px;background:none;border:none;color:#2563eb;font-size:12px;cursor:pointer;font-weight:600">展开更多（${changes.length - maxShow}条）</button>`;
+      html += `<button onclick="document.getElementById('sc-more-items').style.display='';this.style.display='none'" style="width:100%;padding:8px;background:none;border:none;color:#2563eb;font-size:12px;cursor:pointer;font-weight:600">展开更多（${trajectories.length - maxShow}条）</button>`;
     }
 
     html += `</div></div>`;
