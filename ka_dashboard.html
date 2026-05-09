@@ -1399,9 +1399,9 @@ async function renderStatusChangeNotice() {
 
   try {
     const today = new Date();
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const startDate = sevenDaysAgo.toISOString().slice(0, 10);
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const startDate = thirtyDaysAgo.toISOString().slice(0, 10);
 
     const { data, error } = await alertSb.from('ka_status_history')
       .select('snapshot_date, brand_name, project, status')
@@ -1410,7 +1410,7 @@ async function renderStatusChangeNotice() {
 
     if (error) throw error;
     if (!data || data.length === 0) {
-      section.innerHTML = `<div style="padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:12px;color:#94a3b8;text-align:center">近7日无状态变更 ✓</div>`;
+      section.innerHTML = `<div style="padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:12px;color:#94a3b8;text-align:center">近30日无状态变更 ✓</div>`;
       return;
     }
 
@@ -1423,71 +1423,79 @@ async function renderStatusChangeNotice() {
     });
 
     // 逐天对比，生成轨迹
-    const trajectories = []; // { brand, project, steps: [{status, date}], lastDate }
+    const trajectories = [];
     for (const [key, records] of Object.entries(groups)) {
       records.sort((a, b) => a.snapshot_date.localeCompare(b.snapshot_date));
-      // 找所有跳变点
       const steps = [{ status: records[0].status, date: records[0].snapshot_date }];
       for (let i = 1; i < records.length; i++) {
         if (records[i].status !== records[i - 1].status) {
           steps.push({ status: records[i].status, date: records[i].snapshot_date });
         }
       }
-      if (steps.length < 2) continue; // 无变化
+      if (steps.length < 2) continue;
       const [brand, project] = key.split('||');
       const lastStatus = steps[steps.length - 1].status;
       trajectories.push({ brand, project, steps, lastDate: steps[steps.length - 1].date, positive: STATUS_POSITIVE.has(lastStatus) });
     }
 
     if (trajectories.length === 0) {
-      section.innerHTML = `<div style="padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:12px;color:#94a3b8;text-align:center">近7日无状态变更 ✓</div>`;
+      section.innerHTML = `<div style="padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:12px;color:#94a3b8;text-align:center">近30日无状态变更 ✓</div>`;
       return;
     }
 
-    // 按最后变更日期倒序
-    trajectories.sort((a, b) => b.lastDate.localeCompare(a.lastDate));
-
-    const maxShow = 10;
-    const showAll = trajectories.length <= maxShow;
-    const visible = showAll ? trajectories : trajectories.slice(0, maxShow);
-
-    let html = `<div style="background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden">`;
-    html += `<div style="display:flex;align-items:center;padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
-      <span style="font-size:13px;font-weight:700;color:#1e293b">🔔 近7日状态变更（${trajectories.length}条）</span>
-      <button onclick="this.closest('#statusChangeSection').querySelector('.sc-list').style.display=this.closest('#statusChangeSection').querySelector('.sc-list').style.display==='none'?'':'none';this.textContent=this.textContent==='收起 ▲'?'展开 ▼':'收起 ▲'" style="margin-left:auto;background:none;border:none;color:#64748b;font-size:11px;cursor:pointer">收起 ▲</button>
-    </div>`;
-    html += `<div class="sc-list" style="padding:8px 12px">`;
+    // 分正向/负向
+    const positiveList = trajectories.filter(t => t.positive).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+    const negativeList = trajectories.filter(t => !t.positive).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
 
     function renderTrajectory(t) {
       const finalColor = t.positive ? '#059669' : '#dc2626';
-      const icon = t.positive ? '🟢' : '🔴';
       const label = PROJECT_LABELS[t.project] || t.project;
-      // 轨迹: 状态1(日期) → 状态2(日期) → ...
       const trail = t.steps.map((s, i) => {
         const dateStr = s.date.slice(5);
         if (i === 0) return `<span style="color:#64748b">${s.status}</span>`;
         const isPos = STATUS_POSITIVE.has(s.status);
         const c = isPos ? '#059669' : '#dc2626';
         return `<span style="font-weight:600;color:${c}">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${dateStr})</span>`;
-      }).join('<span style="color:#94a3b8;margin:0 3px">→</span>');
+      }).join('<span style="color:#94a3b8;margin:0 2px">→</span>');
 
-      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap">
-        <span style="font-size:14px">${icon}</span>
-        <span style="font-size:12px;font-weight:600;color:#1e293b;min-width:60px">${t.brand}</span>
-        <span style="font-size:10px;padding:2px 6px;border-radius:10px;background:${finalColor}12;color:${finalColor};font-weight:600">${label}</span>
-        <span style="font-size:12px;display:flex;align-items:center;gap:0;flex-wrap:wrap">${trail}</span>
+      return `<div style="display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:600;color:#1e293b;min-width:50px">${t.brand}</span>
+        <span style="font-size:10px;padding:1px 5px;border-radius:8px;background:${finalColor}12;color:${finalColor};font-weight:600">${label}</span>
+        <span style="font-size:11px;display:flex;align-items:center;flex-wrap:wrap">${trail}</span>
       </div>`;
     }
 
-    visible.forEach(t => { html += renderTrajectory(t); });
+    let html = `<div style="background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden">`;
+    html += `<div style="display:flex;align-items:center;padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+      <span style="font-size:13px;font-weight:700;color:#1e293b">🔔 近30日状态变更（${trajectories.length}条）</span>
+      <button onclick="this.closest('#statusChangeSection').querySelector('.sc-list').style.display=this.closest('#statusChangeSection').querySelector('.sc-list').style.display==='none'?'':'none';this.textContent=this.textContent==='收起 ▲'?'展开 ▼':'收起 ▲'" style="margin-left:auto;background:none;border:none;color:#64748b;font-size:11px;cursor:pointer">收起 ▲</button>
+    </div>`;
+    html += `<div class="sc-list" style="padding:8px 12px">`;
 
-    if (!showAll) {
-      html += `<div id="sc-more-items" style="display:none">`;
-      trajectories.slice(maxShow).forEach(t => { html += renderTrajectory(t); });
-      html += `</div>`;
-      html += `<button onclick="document.getElementById('sc-more-items').style.display='';this.style.display='none'" style="width:100%;padding:8px;background:none;border:none;color:#2563eb;font-size:12px;cursor:pointer;font-weight:600">展开更多（${trajectories.length - maxShow}条）</button>`;
+    // 双列布局：左正向 右负向
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">`;
+
+    // 左列：正向
+    html += `<div>`;
+    html += `<div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #d1fae5">🟢 正向变更（${positiveList.length}）</div>`;
+    if (positiveList.length === 0) {
+      html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0">无</div>`;
+    } else {
+      positiveList.forEach(t => { html += renderTrajectory(t); });
     }
+    html += `</div>`;
 
+    // 右列：负向
+    html += `<div>`;
+    html += `<div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #fecaca">🔴 负向变更（${negativeList.length}）</div>`;
+    if (negativeList.length === 0) {
+      html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0">无</div>`;
+    } else {
+      negativeList.forEach(t => { html += renderTrajectory(t); });
+    }
+    html += `</div>`;
+
+    html += `</div>`; // grid end
     html += `</div></div>`;
     section.innerHTML = html;
   } catch (e) {
