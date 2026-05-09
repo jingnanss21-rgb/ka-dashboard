@@ -1516,8 +1516,11 @@ function renderStatusChangeContent() {
       // 结束时间 = 下一个step的日期前一天，最后一个用"至今"
       let range;
       if (i < t.steps.length - 1) {
-        const endDate = t.steps[i + 1].date.slice(5);
-        range = `${startDate}~${endDate}`;
+        // 结束日期 = 下一个step日期的前一天
+        const nextD = new Date(t.steps[i + 1].date);
+        nextD.setDate(nextD.getDate() - 1);
+        const endDate = (nextD.getMonth()+1).toString().padStart(2,'0') + '-' + nextD.getDate().toString().padStart(2,'0');
+        range = startDate === endDate ? startDate : `${startDate}~${endDate}`;
       } else {
         range = `${startDate}起`;
       }
