@@ -1449,12 +1449,18 @@ async function renderStatusChangeNotice() {
       trajectories.push({ brand, project, steps, lastDate: steps[steps.length - 1].date });
     }
 
-    // 分类: newOnline(不在线→未存活/未达标), positive(→存活/达标/已上线), negative(其余)
+    // 分类:
+    // newOnline: 不在线→任何在线状态(存活/未存活/达标/未达标)
+    // newOffline: 任何在线状态→不在线
+    // positive: 未存活→存活, 未达标→达标 (在线内变好)
+    // negative: 存活→未存活, 达标→未达标 (在线内变差)
     for (const t of trajectories) {
       const first = t.steps[0].status;
       const last = t.steps[t.steps.length - 1].status;
-      if (first === '不在线' && (last === '未存活' || last === '未达标')) {
+      if (first === '不在线' && last !== '不在线') {
         t.category = 'newOnline';
+      } else if (first !== '不在线' && last === '不在线') {
+        t.category = 'newOffline';
       } else if (STATUS_POSITIVE.has(last)) {
         t.category = 'positive';
       } else {
@@ -1485,6 +1491,7 @@ function renderStatusChangeContent() {
   // 按当前 tab 过滤
   const filtered = trajectories.filter(t => t.project === scActiveTab);
   const newOnlineList = filtered.filter(t => t.category === 'newOnline').sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+  const newOfflineList = filtered.filter(t => t.category === 'newOffline').sort((a, b) => b.lastDate.localeCompare(a.lastDate));
   const positiveList = filtered.filter(t => t.category === 'positive').sort((a, b) => b.lastDate.localeCompare(a.lastDate));
   const negativeList = filtered.filter(t => t.category === 'negative').sort((a, b) => b.lastDate.localeCompare(a.lastDate));
 
@@ -1493,13 +1500,25 @@ function renderStatusChangeContent() {
   SC_TABS.forEach(tab => { tabCounts[tab.key] = trajectories.filter(t => t.project === tab.key).length; });
 
   function renderTrajectory(t) {
+    // 区间展示: 状态1(起始~结束) → 状态2(起始起)
     const trail = t.steps.map((s, i) => {
-      const dateStr = s.date.slice(5);
-      if (i === 0) return `<span style="color:#64748b">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${dateStr})</span>`;
+      const startDate = s.date.slice(5);
+      // 结束时间 = 下一个step的日期前一天，最后一个用"至今"
+      let range;
+      if (i < t.steps.length - 1) {
+        const endDate = t.steps[i + 1].date.slice(5);
+        range = `${startDate}~${endDate}`;
+      } else {
+        range = `${startDate}起`;
+      }
+      if (i === 0) {
+        return `<span style="color:#64748b">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${range})</span>`;
+      }
       const isPos = STATUS_POSITIVE.has(s.status);
-      const isNeutral = t.category === 'newOnline' && (s.status === '未存活' || s.status === '未达标');
-      const c = isNeutral ? '#2563eb' : (isPos ? '#059669' : '#dc2626');
-      return `<span style="font-weight:600;color:${c}">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${dateStr})</span>`;
+      const isNewOnline = t.category === 'newOnline';
+      const isNewOffline = t.category === 'newOffline' && s.status === '不在线';
+      const c = isNewOnline ? '#2563eb' : isNewOffline ? '#dc2626' : (isPos ? '#059669' : '#dc2626');
+      return `<span style="font-weight:600;color:${c}">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${range})</span>`;
     }).join('<span style="color:#94a3b8;margin:0 2px">→</span>');
 
     return `<div style="display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap">
@@ -1532,12 +1551,18 @@ function renderStatusChangeContent() {
   if (filtered.length === 0) {
     html += `<div style="padding:16px;text-align:center;font-size:12px;color:#94a3b8">该项目近30日无状态变更 ✓</div>`;
   } else {
-    // 三列布局：新上线 / 正向 / 负向
-    html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">`;
+    // 四列: 新上线 / 新下线 / 存活(正向) / 未存活(负向)
+    // 达标Tab: 新上线 / 新下线 / 达标 / 未达标
+    const isAliveTab = scActiveTab === 'shake_alive';
+    const isAchieveTab = scActiveTab === 'shake_achieve';
+    const posLabel = isAliveTab ? '存活' : isAchieveTab ? '达标' : '已上线';
+    const negLabel = isAliveTab ? '未存活' : isAchieveTab ? '未达标' : '变差';
 
-    // 左列：新上线
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">`;
+
+    // 列1：新上线
     html += `<div>`;
-    html += `<div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #bfdbfe">🆕 新上线（${newOnlineList.length}）</div>`;
+    html += `<div style="font-size:11px;font-weight:700;color:#2563eb;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #bfdbfe">🆕 新上线（${newOnlineList.length}）</div>`;
     if (newOnlineList.length === 0) {
       html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0">无</div>`;
     } else {
@@ -1545,9 +1570,19 @@ function renderStatusChangeContent() {
     }
     html += `</div>`;
 
-    // 中列：正向
+    // 列2：新下线
     html += `<div>`;
-    html += `<div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #d1fae5">🟢 正向（${positiveList.length}）</div>`;
+    html += `<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #e5e7eb">⬇️ 新下线（${newOfflineList.length}）</div>`;
+    if (newOfflineList.length === 0) {
+      html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0">无</div>`;
+    } else {
+      newOfflineList.forEach(t => { html += renderTrajectory(t); });
+    }
+    html += `</div>`;
+
+    // 列3：正向（存活/达标）
+    html += `<div>`;
+    html += `<div style="font-size:11px;font-weight:700;color:#059669;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #d1fae5">🟢 ${posLabel}（${positiveList.length}）</div>`;
     if (positiveList.length === 0) {
       html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0">无</div>`;
     } else {
@@ -1555,9 +1590,9 @@ function renderStatusChangeContent() {
     }
     html += `</div>`;
 
-    // 右列：负向
+    // 列4：负向（未存活/未达标）
     html += `<div>`;
-    html += `<div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #fecaca">🔴 负向（${negativeList.length}）</div>`;
+    html += `<div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #fecaca">🔴 ${negLabel}（${negativeList.length}）</div>`;
     if (negativeList.length === 0) {
       html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0">无</div>`;
     } else {
