@@ -1493,7 +1493,7 @@ function renderStatusChangeContent() {
   function renderTrajectory(t) {
     const trail = t.steps.map((s, i) => {
       const dateStr = s.date.slice(5);
-      if (i === 0) return `<span style="color:#64748b">${s.status}</span>`;
+      if (i === 0) return `<span style="color:#64748b">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${dateStr})</span>`;
       const isPos = STATUS_POSITIVE.has(s.status);
       const isNeutral = t.category === 'newOnline' && (s.status === '未存活' || s.status === '未达标');
       const c = isNeutral ? '#2563eb' : (isPos ? '#059669' : '#dc2626');
