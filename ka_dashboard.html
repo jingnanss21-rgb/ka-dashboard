@@ -4230,7 +4230,7 @@ function renderProductRequests() {
     // Feedback timeline
     let fbHtml = fbs.map(f => {
       const fDate = f.created_at ? f.created_at.substring(5, 10) : '';
-      return `<div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#334155;"><span style="color:#94a3b8;white-space:nowrap;">${fDate}</span><span>${f.content}</span>${f.author ? '<span style="color:#94a3b8;white-space:nowrap;">—— '+f.author+'</span>' : ''}</div>`;
+      return `<div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#334155;"><span style="color:#94a3b8;white-space:nowrap;">${fDate}</span><span>${f.content}</span></div>`;
     }).join('');
 
     return `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
