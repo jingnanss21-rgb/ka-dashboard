@@ -1393,6 +1393,16 @@ async function checkAndWriteStatusSnapshot() {
   }
 }
 
+const SC_TABS = [
+  { key: 'shake_alive', label: '摇优惠存活（1%标准）' },
+  { key: 'shake_achieve', label: '摇优惠达标' },
+  { key: 'cika', label: '次卡' },
+  { key: 'wuyou', label: '无忧会员' },
+  { key: 'box', label: '盒子' },
+];
+let scActiveTab = 'shake_alive';
+let scTrajectories = [];
+
 async function renderStatusChangeNotice() {
   const section = document.getElementById('statusChangeSection');
   if (!section) return;
@@ -1438,46 +1448,79 @@ async function renderStatusChangeNotice() {
       trajectories.push({ brand, project, steps, lastDate: steps[steps.length - 1].date, positive: STATUS_POSITIVE.has(lastStatus) });
     }
 
-    if (trajectories.length === 0) {
-      section.innerHTML = `<div style="padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:12px;color:#94a3b8;text-align:center">近30日无状态变更 ✓</div>`;
-      return;
-    }
+    scTrajectories = trajectories;
+    renderStatusChangeContent();
+  } catch (e) {
+    console.warn('[status-change] 渲染失败:', e.message);
+    section.innerHTML = '';
+  }
+}
 
-    // 分正向/负向
-    const positiveList = trajectories.filter(t => t.positive).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
-    const negativeList = trajectories.filter(t => !t.positive).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+function switchScTab(key) {
+  scActiveTab = key;
+  renderStatusChangeContent();
+}
 
-    function renderTrajectory(t) {
-      const finalColor = t.positive ? '#059669' : '#dc2626';
-      const label = PROJECT_LABELS[t.project] || t.project;
-      const trail = t.steps.map((s, i) => {
-        const dateStr = s.date.slice(5);
-        if (i === 0) return `<span style="color:#64748b">${s.status}</span>`;
-        const isPos = STATUS_POSITIVE.has(s.status);
-        const c = isPos ? '#059669' : '#dc2626';
-        return `<span style="font-weight:600;color:${c}">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${dateStr})</span>`;
-      }).join('<span style="color:#94a3b8;margin:0 2px">→</span>');
+function renderStatusChangeContent() {
+  const section = document.getElementById('statusChangeSection');
+  if (!section) return;
 
-      return `<div style="display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap">
-        <span style="font-size:12px;font-weight:600;color:#1e293b;min-width:50px">${t.brand}</span>
-        <span style="font-size:10px;padding:1px 5px;border-radius:8px;background:${finalColor}12;color:${finalColor};font-weight:600">${label}</span>
-        <span style="font-size:11px;display:flex;align-items:center;flex-wrap:wrap">${trail}</span>
-      </div>`;
-    }
+  const trajectories = scTrajectories;
 
-    let html = `<div style="background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden">`;
-    html += `<div style="display:flex;align-items:center;padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
-      <span style="font-size:13px;font-weight:700;color:#1e293b">🔔 近30日状态变更（${trajectories.length}条）</span>
-      <button onclick="this.closest('#statusChangeSection').querySelector('.sc-list').style.display=this.closest('#statusChangeSection').querySelector('.sc-list').style.display==='none'?'':'none';this.textContent=this.textContent==='收起 ▲'?'展开 ▼':'收起 ▲'" style="margin-left:auto;background:none;border:none;color:#64748b;font-size:11px;cursor:pointer">收起 ▲</button>
+  // 按当前 tab 过滤
+  const filtered = trajectories.filter(t => t.project === scActiveTab);
+  const positiveList = filtered.filter(t => t.positive).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+  const negativeList = filtered.filter(t => !t.positive).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+
+  // 每个 tab 的变更计数
+  const tabCounts = {};
+  SC_TABS.forEach(tab => { tabCounts[tab.key] = trajectories.filter(t => t.project === tab.key).length; });
+
+  function renderTrajectory(t) {
+    const finalColor = t.positive ? '#059669' : '#dc2626';
+    const trail = t.steps.map((s, i) => {
+      const dateStr = s.date.slice(5);
+      if (i === 0) return `<span style="color:#64748b">${s.status}</span>`;
+      const isPos = STATUS_POSITIVE.has(s.status);
+      const c = isPos ? '#059669' : '#dc2626';
+      return `<span style="font-weight:600;color:${c}">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${dateStr})</span>`;
+    }).join('<span style="color:#94a3b8;margin:0 2px">→</span>');
+
+    return `<div style="display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:600;color:#1e293b;min-width:50px">${t.brand}</span>
+      <span style="font-size:11px;display:flex;align-items:center;flex-wrap:wrap">${trail}</span>
     </div>`;
-    html += `<div class="sc-list" style="padding:8px 12px">`;
+  }
 
-    // 双列布局：左正向 右负向
+  let html = `<div style="background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden">`;
+
+  // 标题行
+  html += `<div style="display:flex;align-items:center;padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+    <span style="font-size:13px;font-weight:700;color:#1e293b">🔔 近30日状态变更</span>
+    <button onclick="this.closest('#statusChangeSection').querySelector('.sc-body').style.display=this.closest('#statusChangeSection').querySelector('.sc-body').style.display==='none'?'':'none';this.textContent=this.textContent==='收起 ▲'?'展开 ▼':'收起 ▲'" style="margin-left:auto;background:none;border:none;color:#64748b;font-size:11px;cursor:pointer">收起 ▲</button>
+  </div>`;
+
+  // 子 Tab 栏
+  html += `<div style="display:flex;gap:0;border-bottom:1px solid #e2e8f0;padding:0 12px;overflow-x:auto">`;
+  SC_TABS.forEach(tab => {
+    const active = tab.key === scActiveTab;
+    const count = tabCounts[tab.key] || 0;
+    html += `<button onclick="switchScTab('${tab.key}')" style="padding:8px 14px;font-size:12px;font-weight:${active ? '700' : '500'};color:${active ? '#1e40af' : '#64748b'};border:none;background:none;cursor:pointer;border-bottom:2px solid ${active ? '#2563eb' : 'transparent'};white-space:nowrap">${tab.label}${count > 0 ? `<span style="margin-left:4px;font-size:10px;padding:1px 5px;border-radius:8px;background:${count > 0 ? '#fee2e2' : '#f1f5f9'};color:${count > 0 ? '#dc2626' : '#94a3b8'}">${count}</span>` : ''}</button>`;
+  });
+  html += `</div>`;
+
+  // 内容区
+  html += `<div class="sc-body" style="padding:10px 12px">`;
+
+  if (filtered.length === 0) {
+    html += `<div style="padding:16px;text-align:center;font-size:12px;color:#94a3b8">该项目近30日无状态变更 ✓</div>`;
+  } else {
+    // 双列布局
     html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">`;
 
     // 左列：正向
     html += `<div>`;
-    html += `<div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #d1fae5">🟢 正向变更（${positiveList.length}）</div>`;
+    html += `<div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #d1fae5">🟢 正向（${positiveList.length}）</div>`;
     if (positiveList.length === 0) {
       html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0">无</div>`;
     } else {
@@ -1487,7 +1530,7 @@ async function renderStatusChangeNotice() {
 
     // 右列：负向
     html += `<div>`;
-    html += `<div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #fecaca">🔴 负向变更（${negativeList.length}）</div>`;
+    html += `<div style="font-size:12px;font-weight:700;color:#dc2626;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #fecaca">🔴 负向（${negativeList.length}）</div>`;
     if (negativeList.length === 0) {
       html += `<div style="font-size:11px;color:#94a3b8;padding:8px 0">无</div>`;
     } else {
@@ -1496,12 +1539,10 @@ async function renderStatusChangeNotice() {
     html += `</div>`;
 
     html += `</div>`; // grid end
-    html += `</div></div>`;
-    section.innerHTML = html;
-  } catch (e) {
-    console.warn('[status-change] 渲染失败:', e.message);
-    section.innerHTML = '';
   }
+
+  html += `</div></div>`;
+  section.innerHTML = html;
 }
 
 // 渗透率波动监测模块
