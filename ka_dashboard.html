@@ -1524,14 +1524,13 @@ function renderStatusChangeContent() {
       } else {
         range = `${startDate}起`;
       }
-      if (i === 0) {
-        return `<span style="color:#64748b">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${range})</span>`;
-      }
-      const isPos = STATUS_POSITIVE.has(s.status);
-      const isNewOnline = t.category === 'newOnline';
-      const isNewOffline = t.category === 'newOffline' && s.status === '不在线';
-      const c = isNewOnline ? '#2563eb' : isNewOffline ? '#dc2626' : (isPos ? '#059669' : '#dc2626');
-      return `<span style="font-weight:600;color:${c}">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${range})</span>`;
+      // 颜色: 存活/达标=绿, 未存活/未达标=红, 不在线=灰
+      const c = (s.status === '存活' || s.status === '达标') ? '#059669'
+        : (s.status === '未存活' || s.status === '未达标') ? '#dc2626'
+        : '#64748b';
+      const fw = i === 0 ? 'normal' : '600';
+      return `<span style="font-weight:${fw};color:${c}">${s.status}</span><span style="color:#94a3b8;font-size:10px">(${range})</span>`;
+    }).join('<span style="color:#94a3b8;margin:0 2px">→</span>');
     }).join('<span style="color:#94a3b8;margin:0 2px">→</span>');
 
     return `<div style="display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px solid #f1f5f9;flex-wrap:wrap">
