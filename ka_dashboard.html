@@ -399,6 +399,9 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 <div class="project-panel active" id="panel-overview">
   <div class="overview-grid" id="overviewGrid"></div>
 
+  <!-- 状态变更通知条 -->
+  <div id="statusChangeSection" style="margin:16px 0"></div>
+
   <div class="section">
     <div class="section-title"><div class="icon" style="background:var(--primary)"></div> KA品牌运营明细 <span class="badge" style="background:#e8f0fe;color:var(--primary);" id="brandCountBadge">49个品牌 · 月报数据</span></div>
     <div class="filter-bar">
@@ -1309,6 +1312,172 @@ async function renderOverview() {
     }
   });
   renderAlertMonitor();
+  // 状态变更通知 + 快照写入
+  renderStatusChangeNotice();
+  checkAndWriteStatusSnapshot();
+}
+
+// ========== 状态变更通知条 ==========
+const STATUS_POSITIVE = new Set(['存活', '达标', '已上线']);
+const PROJECT_LABELS = {
+  'shake_alive': '摇优惠·存活',
+  'shake_achieve': '摇优惠·达标',
+  'cika': '次卡',
+  'wuyou': '无忧会员',
+  'box': '盒子'
+};
+
+function getShakeAchieveStatus(brandName) {
+  const snap = gSnapshotBrandsByName[brandName];
+  if (!snap) return '不在线';
+  const alive = snap.isAlive;
+  if (!(alive === true || alive === 1 || alive === '1')) return '不在线';
+  const dr = snap.dailyRedeem;
+  const dp = snap.dailyPayment;
+  const pt = snap.penetrationTarget;
+  if (!dr || !dp || dp <= 0 || !pt || pt <= 0) return '不在线';
+  const ratio = dr / (dp * 10000);
+  return (ratio / pt >= 1.0) ? '达标' : '未达标';
+}
+
+async function checkAndWriteStatusSnapshot() {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    // 检查今天是否已有快照
+    const { count } = await alertSb.from('ka_status_history')
+      .select('id', { count: 'exact', head: true })
+      .eq('snapshot_date', today);
+    if (count > 0) return; // 已有快照，跳过
+
+    const rows = [];
+    // 摇优惠-存活 & 摇优惠-达标
+    for (const [name, snap] of Object.entries(gSnapshotBrandsByName)) {
+      const alive = (snap.isAlive === true || snap.isAlive === 1 || snap.isAlive === '1');
+      rows.push({ snapshot_date: today, brand_name: name, project: 'shake_alive', status: alive ? '存活' : '不存活' });
+      rows.push({ snapshot_date: today, brand_name: name, project: 'shake_achieve', status: getShakeAchieveStatus(name) });
+    }
+    // 次卡
+    for (const [name, status] of Object.entries(cikaStatusOverrides)) {
+      if (status) rows.push({ snapshot_date: today, brand_name: name, project: 'cika', status });
+    }
+    // 无忧会员
+    for (const [name, status] of Object.entries(wuyouStatusOverrides)) {
+      if (status) rows.push({ snapshot_date: today, brand_name: name, project: 'wuyou', status });
+    }
+    // 盒子
+    for (const b of boxBrands) {
+      if (b.brand_name) {
+        rows.push({ snapshot_date: today, brand_name: b.brand_name, project: 'box', status: boxStageToOverview(b.stage || '') });
+      }
+    }
+
+    if (rows.length === 0) return;
+    // 分批 upsert（每批200条）
+    for (let i = 0; i < rows.length; i += 200) {
+      await alertSb.from('ka_status_history').upsert(rows.slice(i, i + 200), { onConflict: 'snapshot_date,brand_name,project' });
+    }
+    console.log(`[status-history] 写入 ${rows.length} 条快照 (${today})`);
+  } catch (e) {
+    console.warn('[status-history] 写入快照失败:', e.message);
+  }
+}
+
+async function renderStatusChangeNotice() {
+  const section = document.getElementById('statusChangeSection');
+  if (!section) return;
+
+  try {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const startDate = sevenDaysAgo.toISOString().slice(0, 10);
+
+    const { data, error } = await alertSb.from('ka_status_history')
+      .select('snapshot_date, brand_name, project, status')
+      .gte('snapshot_date', startDate)
+      .order('snapshot_date', { ascending: true });
+
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      section.innerHTML = `<div style="padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:12px;color:#94a3b8;text-align:center">近7日无状态变更 ✓</div>`;
+      return;
+    }
+
+    // 按 (brand_name, project) 分组，取最早和最新状态
+    const groups = {};
+    data.forEach(r => {
+      const key = r.brand_name + '||' + r.project;
+      if (!groups[key]) groups[key] = { brand: r.brand_name, project: r.project, first: r, last: r };
+      if (r.snapshot_date < groups[key].first.snapshot_date) groups[key].first = r;
+      if (r.snapshot_date >= groups[key].last.snapshot_date) groups[key].last = r;
+    });
+
+    // 找出状态变化的
+    const changes = [];
+    for (const g of Object.values(groups)) {
+      if (g.first.status !== g.last.status) {
+        const isPositive = STATUS_POSITIVE.has(g.last.status);
+        changes.push({
+          brand: g.brand,
+          project: g.project,
+          oldStatus: g.first.status,
+          newStatus: g.last.status,
+          date: g.last.snapshot_date,
+          positive: isPositive
+        });
+      }
+    }
+
+    if (changes.length === 0) {
+      section.innerHTML = `<div style="padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:12px;color:#94a3b8;text-align:center">近7日无状态变更 ✓</div>`;
+      return;
+    }
+
+    // 按日期倒序
+    changes.sort((a, b) => b.date.localeCompare(a.date));
+
+    const maxShow = 10;
+    const showAll = changes.length <= maxShow;
+    const visible = showAll ? changes : changes.slice(0, maxShow);
+
+    let html = `<div style="background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden">`;
+    html += `<div style="display:flex;align-items:center;justify-content:between;padding:12px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+      <span style="font-size:13px;font-weight:700;color:#1e293b">🔔 近7日状态变更（${changes.length}条）</span>
+      <button onclick="this.closest('#statusChangeSection').querySelector('.sc-list').style.display=this.closest('#statusChangeSection').querySelector('.sc-list').style.display==='none'?'':'none';this.textContent=this.textContent==='收起 ▲'?'展开 ▼':'收起 ▲'" style="margin-left:auto;background:none;border:none;color:#64748b;font-size:11px;cursor:pointer">收起 ▲</button>
+    </div>`;
+    html += `<div class="sc-list" style="padding:8px 12px">`;
+
+    function renderItem(c) {
+      const color = c.positive ? '#059669' : '#dc2626';
+      const icon = c.positive ? '🟢' : '🔴';
+      const label = PROJECT_LABELS[c.project] || c.project;
+      const dateStr = c.date.slice(5); // MM-DD
+      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid #f8fafc">
+        <span style="font-size:14px">${icon}</span>
+        <span style="font-size:12px;font-weight:600;color:#1e293b;min-width:80px">${c.brand}</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${color}12;color:${color};font-weight:600">${label}</span>
+        <span style="font-size:12px;color:#64748b">${c.oldStatus}</span>
+        <span style="font-size:11px;color:#94a3b8">→</span>
+        <span style="font-size:12px;font-weight:600;color:${color}">${c.newStatus}</span>
+        <span style="margin-left:auto;font-size:11px;color:#94a3b8">${dateStr}</span>
+      </div>`;
+    }
+
+    visible.forEach(c => { html += renderItem(c); });
+
+    if (!showAll) {
+      html += `<div id="sc-more-items" style="display:none">`;
+      changes.slice(maxShow).forEach(c => { html += renderItem(c); });
+      html += `</div>`;
+      html += `<button onclick="document.getElementById('sc-more-items').style.display='';this.style.display='none'" style="width:100%;padding:8px;background:none;border:none;color:#2563eb;font-size:12px;cursor:pointer;font-weight:600">展开更多（${changes.length - maxShow}条）</button>`;
+    }
+
+    html += `</div></div>`;
+    section.innerHTML = html;
+  } catch (e) {
+    console.warn('[status-change] 渲染失败:', e.message);
+    section.innerHTML = '';
+  }
 }
 
 // 渗透率波动监测模块
