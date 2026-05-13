@@ -1081,13 +1081,20 @@ function trackVisit(page) {
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       lang: navigator.language,
       sessionId: sid,
-      ts: new Date().toISOString()
+      ts: new Date().toISOString(),
+      isWechat: /MicroMessenger/i.test(navigator.userAgent),
+      network: (navigator.connection && navigator.connection.effectiveType) || '',
+      platform: navigator.platform || '',
+      cores: navigator.hardwareConcurrency || '',
+      memory: navigator.deviceMemory || '',
+      touchPoints: navigator.maxTouchPoints || 0
     };
     fetch('https://ipapi.co/json/').then(r=>r.json()).then(geo=>{
       info.ip = geo.ip || '';
       info.city = geo.city || '';
       info.region = geo.region || '';
       info.country = geo.country_name || '';
+      info.isp = geo.org || '';
       sbClient.from('ka_feedbacks').insert({ brand_name: 'visit::' + page, text: JSON.stringify(info) }).then(function(){}).catch(function(){});
     }).catch(()=>{
       sbClient.from('ka_feedbacks').insert({ brand_name: 'visit::' + page, text: JSON.stringify(info) }).then(function(){}).catch(function(){});

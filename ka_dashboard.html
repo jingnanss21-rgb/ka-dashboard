@@ -1140,7 +1140,13 @@ async function init() {
       tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
       lang: navigator.language,
       sessionId: sid,
-      ts: new Date().toISOString()
+      ts: new Date().toISOString(),
+      isWechat: /MicroMessenger/i.test(navigator.userAgent),
+      network: (navigator.connection && navigator.connection.effectiveType) || '',
+      platform: navigator.platform || '',
+      cores: navigator.hardwareConcurrency || '',
+      memory: navigator.deviceMemory || '',
+      touchPoints: navigator.maxTouchPoints || 0
     };
     // 获取 IP + 城市
     fetch('https://ipapi.co/json/').then(r=>r.json()).then(geo=>{
@@ -1148,9 +1154,19 @@ async function init() {
       info.city = geo.city || '';
       info.region = geo.region || '';
       info.country = geo.country_name || '';
+      info.isp = geo.org || '';
       alertSb.from('ka_feedbacks').insert({ brand_name: 'visit::KA整体看板', text: JSON.stringify(info) }).then(function(){}).catch(function(){});
     }).catch(()=>{
       alertSb.from('ka_feedbacks').insert({ brand_name: 'visit::KA整体看板', text: JSON.stringify(info) }).then(function(){}).catch(function(){});
+    });
+    // 停留时长
+    var _visitStart = Date.now();
+    window.addEventListener('beforeunload', function(){
+      var dur = Math.round((Date.now() - _visitStart) / 1000);
+      navigator.sendBeacon && navigator.sendBeacon(
+        'https://imogeucpwfburswopykq.supabase.co/rest/v1/ka_feedbacks',
+        new Blob([JSON.stringify({brand_name:'visit::KA整体看板_duration',text:JSON.stringify({sessionId:sid,duration:dur+'s',page:'KA整体看板',ts:new Date().toISOString()})})],{type:'application/json'})
+      );
     });
   } catch(e) {}
 
