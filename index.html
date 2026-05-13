@@ -1083,10 +1083,15 @@ function trackVisit(page) {
       sessionId: sid,
       ts: new Date().toISOString()
     };
-    sbClient.from('ka_feedbacks').insert({
-      brand_name: 'visit::' + page,
-      text: JSON.stringify(info)
-    }).then(function(){}).catch(function(){});
+    fetch('https://ipapi.co/json/').then(r=>r.json()).then(geo=>{
+      info.ip = geo.ip || '';
+      info.city = geo.city || '';
+      info.region = geo.region || '';
+      info.country = geo.country_name || '';
+      sbClient.from('ka_feedbacks').insert({ brand_name: 'visit::' + page, text: JSON.stringify(info) }).then(function(){}).catch(function(){});
+    }).catch(()=>{
+      sbClient.from('ka_feedbacks').insert({ brand_name: 'visit::' + page, text: JSON.stringify(info) }).then(function(){}).catch(function(){});
+    });
   } catch(e) {}
 }
 

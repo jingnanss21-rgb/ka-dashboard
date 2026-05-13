@@ -1142,10 +1142,16 @@ async function init() {
       sessionId: sid,
       ts: new Date().toISOString()
     };
-    alertSb.from('ka_feedbacks').insert({
-      brand_name: 'visit::KA整体看板',
-      text: JSON.stringify(info)
-    }).then(function(){}).catch(function(){});
+    // 获取 IP + 城市
+    fetch('https://ipapi.co/json/').then(r=>r.json()).then(geo=>{
+      info.ip = geo.ip || '';
+      info.city = geo.city || '';
+      info.region = geo.region || '';
+      info.country = geo.country_name || '';
+      alertSb.from('ka_feedbacks').insert({ brand_name: 'visit::KA整体看板', text: JSON.stringify(info) }).then(function(){}).catch(function(){});
+    }).catch(()=>{
+      alertSb.from('ka_feedbacks').insert({ brand_name: 'visit::KA整体看板', text: JSON.stringify(info) }).then(function(){}).catch(function(){});
+    });
   } catch(e) {}
 
   await refreshKaSnapshotPeriod();
