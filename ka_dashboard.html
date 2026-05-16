@@ -144,6 +144,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .ov-status-sel[data-val="已上线"] { background-color:#dcfce7; color:#15803d; }
 .ov-status-sel[data-val="暂不考虑"] { background-color:#ffedd5; color:#ea580c; }
 .ov-status-sel[data-val="不合适"] { background-color:#fee2e2; color:#dc2626; }
+.ov-status-sel[data-val="测试中"] { background-color:#e0f2fe; color:#0284c7; }
 
 .trend-up { color:var(--success); } .trend-up::before { content:'▲ '; font-size:10px; }
 .trend-down { color:var(--danger); } .trend-down::before { content:'▼ '; font-size:10px; }
@@ -1082,13 +1083,17 @@ function fmtChange(v) {
 }
 function statusTag(s) {
   if (!s) return '<span class="tag tag-gray">未沟通</span>';
-  const map = { '已上线':'tag-green', '有意向':'tag-yellow', '暂不考虑':'tag-red', '待沟通':'tag-blue' };
+  const map = { '已上线':'tag-green', '有意向':'tag-yellow', '暂不考虑':'tag-red', '待沟通':'tag-blue', '测试中':'tag-blue' };
   return `<span class="tag ${map[s]||'tag-gray'}">${s}</span>`;
 }
 function statusTagEditable(s, type, brandEsc) {
   const label = s || '未沟通';
-  const map = { '已上线':'tag-green', '有意向':'tag-yellow', '暂不考虑':'tag-red', '待沟通':'tag-blue' };
+  const map = { '已上线':'tag-green', '有意向':'tag-yellow', '暂不考虑':'tag-red', '待沟通':'tag-blue', '测试中':'tag-blue' };
   const cls = map[s] || 'tag-gray';
+  // 测试中为前端派生状态，不可手动编辑
+  if (s === '测试中') {
+    return `<span class="tag ${cls}" title="已上线但活动曝光较低，暂标为测试中">${label}</span>`;
+  }
   const fn = type === 'cika' ? 'editCikaStatus' : type === 'wuyou' ? 'editWuyouStatus' : 'editBoxStatus';
   return `<span class="tag ${cls} editable-tag" onclick="${fn}(this,'${brandEsc}')" title="点击修改状态">${label}</span>`;
 }
@@ -1244,7 +1249,8 @@ async function renderOverview() {
   const _getWuyou = (name) => (wuyouStatusOverrides[name] && wuyouStatusOverrides[name].trim()) || b.find(r => r['品牌'] === name)?.['无忧会员'] || '待评估';
   const _getBox   = (name) => { const st = _boxStageByName[name]; return st ? boxStageToOverview(st) : '待评估'; };
 
-  const cikaOnline    = b.filter(x => _getCika(x['品牌'])  === '已上线').length;
+  const cikaOnline    = b.filter(x => _getCika(x['品牌'])  === '已上线' && !cikaTestingBrands.has(x['品牌'])).length;
+  const cikaTestingCount = cikaTestingBrands.size;
   const cikaInterest  = b.filter(x => _getCika(x['品牌'])  === '有意向').length;
   const wuyouInterest = b.filter(x => _getWuyou(x['品牌']) === '有意向').length;
   const boxInterest   = b.filter(x => _getBox(x['品牌'])   === '有意向').length;
@@ -1295,6 +1301,7 @@ async function renderOverview() {
       </div>
       <div class="oc-stats">
         <div class="oc-stat"><div class="os-value" style="color:var(--success);">${cikaOnline}</div><div class="os-label">已上线</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:#0284c7;">${cikaTestingCount}</div><div class="os-label">测试中</div></div>
         <div class="oc-stat"><div class="os-value" style="color:var(--warning);">${cikaInterest}</div><div class="os-label">有意向</div></div>
       </div>
     </div>
@@ -1986,7 +1993,7 @@ function renderOverviewTable() {
   });
   
   // 状态列排序映射 (统一: 待评估=0, 有意向=1, 已上线=2, 暂不考虑=3, 不合适=4)
-  const UNIFIED_SORT = {'待评估':0,'有意向':1,'已上线':2,'暂不考虑':3,'不合适':4,'':5};
+  const UNIFIED_SORT = {'待评估':0,'有意向':1,'已上线':2,'测试中':2.5,'暂不考虑':3,'不合适':4,'':5};
   const statusSortMap = {
     '摇优惠': {'存活':0,'未存活':1,'不在线':2,'未在线':2},
     '次卡': UNIFIED_SORT,
@@ -2012,7 +2019,7 @@ function renderOverviewTable() {
       (boxBrands || []).forEach(x => { if (x && x.brand_name) _boxStageByName[x.brand_name] = x.stage || '待评估'; });
       const getV = (b) => {
         if (overviewSortCol === '摇优惠') return getShakeStatusFromSnapshot(b['品牌']);
-        if (overviewSortCol === '次卡') return (cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '待评估';
+        if (overviewSortCol === '次卡') return cikaTestingBrands.has(b['品牌']) ? '测试中' : ((cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '待评估');
         if (overviewSortCol === '无忧会员') return (wuyouStatusOverrides[b['品牌']] && wuyouStatusOverrides[b['品牌']].trim()) || b['无忧会员'] || '待评估';
         if (overviewSortCol === '盒子') {
           const stage = _boxStageByName[b['品牌']] || '';
@@ -2050,13 +2057,17 @@ function renderOverviewTable() {
 
   // 小 util: Tab0 状态 → 彩色 tag (保留原 statusTag 兼容，但自己渲染下拉)
   function ovStatusSelect(project, brandName, currentVal){
+    // 测试中为前端派生状态，显示为静态标签不可编辑
+    if (currentVal === '测试中') {
+      return `<span class="ov-status-sel" data-val="测试中" style="pointer-events:none;cursor:default;" title="已上线但活动曝光较低，暂标为测试中">测试中</span>`;
+    }
     const opts = OV_STATUS_OPTS.map(o => `<option value="${o}" ${o===currentVal?'selected':''}>${o}</option>`).join('');
     return `<select class="ov-status-sel" data-val="${currentVal}" data-project="${project}" data-brand="${brandName.replace(/"/g,'&quot;')}" onchange="ovOnStatusChange(this)">${opts}</select>`;
   }
 
   tbody.innerHTML = data.map((b, idx) => {
-    // 1. 次卡: 优先读 Supabase override, 空则回退 KA_DATA
-    const cikaVal = (cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '待评估';
+    // 1. 次卡: 优先读 Supabase override, 空则回退 KA_DATA; 测试中品牌显示"测试中"
+    const cikaVal = cikaTestingBrands.has(b['品牌']) ? '测试中' : ((cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '待评估');
     // 2. 无忧: 同上
     const wuyouVal = (wuyouStatusOverrides[b['品牌']] && wuyouStatusOverrides[b['品牌']].trim()) || b['无忧会员'] || '待评估';
     // 3. 盒子: 从 boxBrands 的 stage 自动映射
@@ -2325,6 +2336,7 @@ let cikaOnlineSort = { key: 'use_daily', dir: 'desc' };
 let cikaActiveBrand = null;
 let cikaTrendChart = null, cikaDrawerChart = null;
 let cikaOnlineAggCache = null;
+let cikaTestingBrands = new Set();  // 已上线但日均曝光<100的品牌（前端派生"测试中"）
 
 async function loadCikaActivityFromSupabase() {
   // 分两路拉：
@@ -2747,8 +2759,16 @@ function setCikaRange(range) {
   const wrap = document.getElementById('cikaSumToggleWrap');
   if (wrap) wrap.style.display = range > 1 ? 'inline-flex' : 'none';
   cikaOnlineAggCache = aggCikaOnline(cikaCurrentRange);
+  // 同步更新测试中品牌集合
+  const cikaOnlineShown = new Set((cikaOnlineAggCache || []).filter(r => r.exp_daily >= 100).map(r => r.brand_name));
+  cikaTestingBrands = new Set();
+  KA_DATA.brands.forEach(b => {
+    const st = (cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '';
+    if (st === '已上线' && !cikaOnlineShown.has(b['品牌'])) cikaTestingBrands.add(b['品牌']);
+  });
   renderCikaOnlineTable();
   renderCikaTrendChart();
+  renderCikaTable();  // 测试中品牌集合变了，需要刷新区块2
 }
 
 function applyCikaSumColsVisibility() {
@@ -2802,6 +2822,13 @@ async function renderCika() {
 
   // 初始化数据视图
   cikaOnlineAggCache = aggCikaOnline(cikaCurrentRange);
+  // 计算"测试中"品牌：Supabase 状态为已上线，但日均曝光<100（不在区块1展示）
+  const cikaOnlineShown = new Set((cikaOnlineAggCache || []).filter(r => r.exp_daily >= 100).map(r => r.brand_name));
+  cikaTestingBrands = new Set();
+  KA_DATA.brands.forEach(b => {
+    const st = (cikaStatusOverrides[b['品牌']] && cikaStatusOverrides[b['品牌']].trim()) || b['次卡'] || '';
+    if (st === '已上线' && !cikaOnlineShown.has(b['品牌'])) cikaTestingBrands.add(b['品牌']);
+  });
   // 默认 10 日周期，显示累计 toggle
   const wrap = document.getElementById('cikaSumToggleWrap');
   if (wrap) wrap.style.display = cikaCurrentRange > 1 ? 'inline-flex' : 'none';
@@ -2817,41 +2844,46 @@ function renderCikaTable() {
   const owner = document.getElementById('cikaFilterOwner').value;
   const cat = document.getElementById('cikaFilterCat')?.value || '';
 
-  // 已上线品牌已在上方"已上线商户数据"区块独立展示，此处排除
-  // 区块 2 仅显示未上线品牌（有意向 / 待沟通 / 暂不考虑 / 未沟通）
+  // 区块1实际展示的品牌（已上线且曝光>=100）不在此处展示
+  // "测试中"品牌（已上线但曝光<100）回落到此处，显示为"测试中"
+  const cikaOnlineShown = new Set((cikaOnlineAggCache || []).filter(r => r.exp_daily >= 100).map(r => r.brand_name));
   let data = KA_DATA.brands.filter(b => {
-    if (b['次卡'] === '已上线') return false;
+    if (b['次卡'] === '已上线' && cikaOnlineShown.has(b['品牌'])) return false;  // 区块1已展示
     if (owner && b['负责人'] !== owner) return false;
     if (cat && b['品类'] !== cat) return false;
     return true;
   });
 
-  // Sort: 有意向 first, 待沟通, 暂不考虑, 未沟通(空)
-  const statusOrder = {'有意向':0, '待沟通':1, '暂不考虑':2, '':3};
-  const ACTIVE_STATUSES = ['有意向', '待沟通'];
+  // 对测试中品牌，展示时用"测试中"替代"已上线"
+  const getDisplayStatus = (b) => cikaTestingBrands.has(b['品牌']) ? '测试中' : (b['次卡'] || '');
+
+  // Sort: 测试中 first, 有意向, 待沟通, 暂不考虑, 未沟通(空)
+  const statusOrder = {'测试中':-1, '有意向':0, '待沟通':1, '暂不考虑':2, '':3};
+  const ACTIVE_STATUSES = ['测试中', '有意向', '待沟通'];
   if (cikaSortDir) {
     data.sort((a, b) => {
-      const va = statusOrder[a['次卡']]??3;
-      const vb = statusOrder[b['次卡']]??3;
+      const va = statusOrder[getDisplayStatus(a)]??3;
+      const vb = statusOrder[getDisplayStatus(b)]??3;
       return cikaSortDir === 'asc' ? va - vb : vb - va;
     });
   } else {
-    data.sort((a, b) => (statusOrder[a['次卡']]??3) - (statusOrder[b['次卡']]??3));
+    data.sort((a, b) => (statusOrder[getDisplayStatus(a)]??3) - (statusOrder[getDisplayStatus(b)]??3));
   }
 
-  const activeData = data.filter(b => ACTIVE_STATUSES.includes(b['次卡']));
-  const collapsedData = data.filter(b => !ACTIVE_STATUSES.includes(b['次卡']));
+  const activeData = data.filter(b => ACTIVE_STATUSES.includes(getDisplayStatus(b)));
+  const collapsedData = data.filter(b => !ACTIVE_STATUSES.includes(getDisplayStatus(b)));
 
   const tbody = document.getElementById('cikaTbody');
   tbody.innerHTML = activeData.map((b, idx) => {
     const comment = cikaComments[b['品牌']] || '';
     const brandEsc = b['品牌'].replace(/'/g, "\\'");
+    const displayStatus = getDisplayStatus(b);
     return `<tr>
       <td class="sticky-col" style="left:0;text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
       <td class="sticky-col" style="left:36px;">${b['品牌']}</td>
       <td class="sticky-col sticky-col-last" style="left:136px;">${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
-      <td>${statusTagEditable(b['次卡'], 'cika', brandEsc)}</td>
+      <td>${statusTagEditable(displayStatus, 'cika', brandEsc)}</td>
       <td>${launchMonthSelect('cika', brandEsc, cikaExpectedLaunch[b['品牌']])}</td>
       <td class="editable-cell">
         <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'cika','${brandEsc}')">${comment || '点击添加备注...'}</div>
@@ -2862,12 +2894,13 @@ function renderCikaTable() {
   document.getElementById('cikaCollapsedTbody').innerHTML = collapsedData.map((b, idx) => {
     const comment = cikaComments[b['品牌']] || '';
     const brandEsc = b['品牌'].replace(/'/g, "\\'");
+    const displayStatus = getDisplayStatus(b);
     return `<tr>
       <td style="text-align:center;color:#999;font-size:12px;">${idx + 1}</td>
       <td>${b['品牌']}</td>
       <td>${ownerTag(b['负责人'])}</td>
       <td>${b['品类']}</td>
-      <td>${statusTagEditable(b['次卡'], 'cika', brandEsc)}</td>
+      <td>${statusTagEditable(displayStatus, 'cika', brandEsc)}</td>
       <td>${launchMonthSelect('cika', brandEsc, cikaExpectedLaunch[b['品牌']])}</td>
       <td class="editable-cell">
         <div class="cell-text ${comment?'':'empty'}" onclick="editComment(this,'cika','${brandEsc}')">${comment || '点击添加备注...'}</div>
@@ -3064,7 +3097,7 @@ function renderCikaGantt() {
   const option = _buildGanttOption(brands, cikaExpectedLaunch, cikaStatusOverrides, '次卡');
   // 已上线数量以实际有活动数据且日均曝光>=100的品牌为准（排除测试品牌）
   const cikaOnlineNum = (cikaOnlineAggCache || []).filter(r => r.exp_daily >= 100).length;
-  option._headerText = `已上线 ${cikaOnlineNum} 个`;
+  option._headerText = `已上线 ${cikaOnlineNum} 个` + (cikaTestingBrands.size > 0 ? ` · 测试中 ${cikaTestingBrands.size} 个` : '');
 
   if (option.yAxis.data.length === 0) {
     el.innerHTML = `<div style="padding:16px;text-align:center;">
