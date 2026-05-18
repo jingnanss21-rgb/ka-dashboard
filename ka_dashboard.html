@@ -2344,14 +2344,25 @@ async function loadCikaActivityFromSupabase() {
   //   2) 全量活动（PV 字段）→ 用于占比分母
   // 活动量级：~9500 行，需分页（Supabase 默认 1000 上限）
   try {
-    // Route 1: 次卡活动
-    const { data: cikaRows, error: e1 } = await alertSb
-      .from('ka_activity_daily')
-      .select('date,brand_id,brand_name,category,activity_id,activity_name,coupon_type,exp_pv,claim_pv,use_pv')
-      .eq('coupon_type', '次卡')
-      .order('date', { ascending: true });
-    if (e1) throw e1;
-    CIKA_ACTIVITY_ROWS = cikaRows || [];
+    // Route 1: 次卡活动（分页拉取，避免 Supabase 默认 1000 行截断）
+    const cikaAllRows = [];
+    let cikaOffset = 0;
+    const cikaPageSize = 1000;
+    while (true) {
+      const { data: pageRows, error: e1 } = await alertSb
+        .from('ka_activity_daily')
+        .select('date,brand_id,brand_name,category,activity_id,activity_name,coupon_type,exp_pv,claim_pv,use_pv')
+        .eq('coupon_type', '次卡')
+        .order('date', { ascending: true })
+        .range(cikaOffset, cikaOffset + cikaPageSize - 1);
+      if (e1) throw e1;
+      if (!pageRows || !pageRows.length) break;
+      cikaAllRows.push(...pageRows);
+      if (pageRows.length < cikaPageSize) break;
+      cikaOffset += cikaPageSize;
+      if (cikaOffset > 50000) break;  // 保险
+    }
+    CIKA_ACTIVITY_ROWS = cikaAllRows;
     const setD = new Set(CIKA_ACTIVITY_ROWS.map(r => r.date));
     CIKA_DATES = Array.from(setD).sort();
 
