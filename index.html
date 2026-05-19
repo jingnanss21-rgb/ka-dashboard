@@ -352,8 +352,8 @@ table thead th:has(.formula-tip:hover) { z-index:6 !important; }
   <div style="font-size:15px;color:var(--text-secondary);">正在加载数据...</div>
 </div>
 
-<!-- 身份选择弹窗 -->
-<div class="identity-overlay" id="identityOverlay" style="display:none;">
+<!-- 身份选择弹窗（已禁用） -->
+<div class="identity-overlay" id="identityOverlay" style="display:none !important;">
   <div class="identity-modal">
     <h3>👋 请选择您的身份</h3>
     <p>选择后将显示对应视角的看板内容</p>
@@ -1151,19 +1151,11 @@ async function runDashboardInit() {
   document.getElementById('dataDate').textContent = '数据周期: ' + displayDate;
 
   if(!currentIdentity) {
-    document.getElementById('identityOverlay').style.display = 'flex';
-    await new Promise(resolve => {
-      const observer = new MutationObserver(() => {
-        if(document.getElementById('identityOverlay').style.display === 'none') {
-          observer.disconnect();
-          resolve();
-        }
-      });
-      observer.observe(document.getElementById('identityOverlay'), { attributes: true });
-    });
-  } else {
-    document.getElementById('identityBadge').textContent = '👤 ' + currentIdentity;
+    currentIdentity = '老板';
+    localStorage.setItem(IDENTITY_KEY, '老板');
   }
+  document.getElementById('identityBadge').style.display = 'none';
+  updateTabVisibility();
 
   buildAllPanels();
   bindTabs();
