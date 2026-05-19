@@ -1901,6 +1901,10 @@ function getAssignmentsForView(ownerFilter) {
 
 // === 明细表刷新 ===
 function refreshTable(viewId, ownerFilter) {
+  // 如果没传 ownerFilter，从 viewId 解析（owner-xxx → xxx）
+  if (ownerFilter === undefined && viewId && viewId.startsWith('owner-')) {
+    ownerFilter = viewId.replace('owner-', '');
+  }
   const search = (document.getElementById('search-'+viewId)?.value||'').toLowerCase();
   const filter = document.getElementById('filter-'+viewId)?.value||'all';
   const categoryFilter = document.getElementById('categoryFilter-'+viewId)?.value||'all';
