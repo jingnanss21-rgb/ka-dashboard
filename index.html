@@ -513,7 +513,12 @@ function rebuildOwnersFromAssignments() {
     seen[o] = true;
     list.push(o);
   });
-  if(list.length) OWNERS = list;
+  if(list.length) {
+    // 固定排序：按预设顺序排，新增的负责人排最后
+    var ORDER = ['jancie','小雪','warm','振哥','鲸鱼'];
+    list.sort(function(a,b){ var ia=ORDER.indexOf(a); var ib=ORDER.indexOf(b); if(ia<0)ia=999; if(ib<0)ib=999; return ia-ib; });
+    OWNERS = list;
+  }
 }
 
 function rebuildNavTabsDOM() {
