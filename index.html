@@ -380,9 +380,9 @@ table thead th:has(.formula-tip:hover) { z-index:6 !important; }
   <div class="nav-tab active" data-view="overall">整体视图</div>
   <div class="nav-tab owner-tab" data-view="owner-jancie" data-owner="jancie">jancie</div>
   <div class="nav-tab owner-tab" data-view="owner-小雪" data-owner="小雪">小雪</div>
+  <div class="nav-tab owner-tab" data-view="owner-鲸鱼" data-owner="鲸鱼">鲸鱼</div>
   <div class="nav-tab owner-tab" data-view="owner-warm" data-owner="warm">warm</div>
   <div class="nav-tab owner-tab" data-view="owner-振哥" data-owner="振哥">振哥</div>
-  <div class="nav-tab owner-tab" data-view="owner-鲸鱼" data-owner="鲸鱼">鲸鱼</div>
 </div>
 
 <div class="container" id="mainContainer">
@@ -530,7 +530,7 @@ let DATA = null;
 // 品牌名别名映射：文档名 → assignments 标准名。双向查询，确保 surprise_goods 与 assignments 品牌名一定能匹配。
 const BRAND_ALIAS = {"奈雪的茶":"奈雪茶","奈雪茶":"奈雪的茶","绝味鸭脖":"绝味","绝味":"绝味鸭脖"};
 let feedbacks = window.__EMBEDDED_FEEDBACKS__ || {};
-let OWNERS = ['jancie','小雪','warm','振哥','鲸鱼'];
+let OWNERS = ['jancie','小雪','鲸鱼','warm','振哥'];
 const OWNER_COLORS = {'jancie':'#e91e63','小雪':'#9c27b0','warm':'#ff9800','振哥':'#009688','鲸鱼':'#3b82f6'};
 // 列头排序状态：{ viewId: { field, dir } }
 const colSortState = {};
@@ -589,6 +589,7 @@ function mapAssignmentRow(r) {
 function findBrandRowForAssignment(a) {
   if(!DATA || !DATA.brands || !a) return {};
   return DATA.brands.find(br => br.name === a.brand)
+    || DATA.brands.find(br => br.name === BRAND_ALIAS[a.brand])
     || DATA.brands.find(br => br.assignmentBrand === a.brand)
     || {};
 }
@@ -1891,7 +1892,7 @@ function buildCaseCard(b, a, brandActs, analysis, fb, isGood, viewId) {
 function getBrandsForView(ownerFilter) {
   if(!ownerFilter) return DATA.brands;
   const ownerBrandNames = DATA.assignments.filter(a=>a.owner===ownerFilter).map(a=>a.brand);
-  return DATA.brands.filter(b=>ownerBrandNames.includes(b.name));
+  return DATA.brands.filter(b=>ownerBrandNames.includes(b.name) || ownerBrandNames.includes(BRAND_ALIAS[b.name]));
 }
 
 function getAssignmentsForView(ownerFilter) {
