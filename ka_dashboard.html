@@ -419,8 +419,8 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th rowspan="2" class="sticky-col" style="left:146px;min-width:60px;">负责人</th>
             <th rowspan="2" class="sticky-col sticky-col-last" style="left:206px;min-width:50px;">品类</th>
             <th colspan="5" class="group-header">项目状态</th>
-            <th colspan="2" class="group-header">日均整体交易(万)</th>
-            <th colspan="2" class="group-header">日均小程序交易(万)</th>
+            <th colspan="6" class="group-header">日均整体交易(万)</th>
+            <th colspan="6" class="group-header">日均小程序交易(万)</th>
             <th colspan="3" class="group-header">小程序笔数渗透率</th>
           </tr>
           <tr>
@@ -430,9 +430,17 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th class="sortable" data-col="无忧会员">无忧会员</th>
             <th class="sortable" data-col="盒子">盒子</th>
             <th class="sortable" data-col="m04_bs_all">笔数</th>
+            <th class="sortable" data-col="bs_all_hb">环比</th>
+            <th class="sortable" data-col="bs_all_tb">同比</th>
             <th class="sortable" data-col="m04_je_all">金额</th>
+            <th class="sortable" data-col="je_all_hb">环比</th>
+            <th class="sortable" data-col="je_all_tb">同比</th>
             <th class="sortable" data-col="m04_bs_xcx">笔数</th>
+            <th class="sortable" data-col="bs_xcx_hb">环比</th>
+            <th class="sortable" data-col="bs_xcx_tb">同比</th>
             <th class="sortable" data-col="m04_je_xcx">金额</th>
+            <th class="sortable" data-col="je_xcx_hb">环比</th>
+            <th class="sortable" data-col="je_xcx_tb">同比</th>
             <th class="sortable" data-col="bs_rate_04">渗透率</th>
             <th class="sortable" data-col="bs_rate_hb">环比</th>
             <th class="sortable" data-col="bs_rate_tb">同比</th>
@@ -443,13 +451,22 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     </div>
   </div>
 
-  <!-- 渗透率波动监测 -->
+  <!-- 波动监测 -->
   <div class="section" id="alertMonitorSection" style="display:none;">
-    <div class="section-title"><div class="icon" style="background:var(--warning)"></div> 📡 小程序渗透率波动监测 <span class="badge" style="background:#fef3c7;color:#d97706;">变化幅度 &gt;5pp</span></div>
-    <p style="margin:0 0 14px 0;font-size:12px;color:var(--text-secondary);">自动筛选环比或同比波动超过5个百分点的品牌，便于及时跟进。反馈内容自动保存在浏览器本地。</p>
+    <div class="section-title"><div class="icon" style="background:var(--warning)"></div> 📡 波动监测 <span class="badge" style="background:#fef3c7;color:#d97706;">交易&gt;20% · 渗透率&gt;5pp</span></div>
+    <p style="margin:0 0 10px 0;font-size:12px;color:var(--text-secondary);">自动筛选同比/环比波动超过阈值的品牌（同比优先展示）。反馈内容自动保存。</p>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+      <select id="alertFilterOwner" onchange="refreshAlertTab()" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;">
+        <option value="">全部负责人</option>
+      </select>
+      <select id="alertFilterCat" onchange="refreshAlertTab()" style="padding:4px 8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;">
+        <option value="">全部品类</option>
+      </select>
+    </div>
     <div class="alert-tabs" style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;">
-      <button class="alert-tab active" data-alert-type="bs" onclick="switchAlertTab('bs')">📊 笔数渗透率</button>
-      <button class="alert-tab" data-alert-type="je" onclick="switchAlertTab('je')">💰 金额渗透率</button>
+      <button class="alert-tab active" data-alert-type="trade_all" onclick="switchAlertTab('trade_all')">📈 整体交易</button>
+      <button class="alert-tab" data-alert-type="trade_xcx" onclick="switchAlertTab('trade_xcx')">📱 小程序交易</button>
+      <button class="alert-tab" data-alert-type="penetration" onclick="switchAlertTab('penetration')">📊 小程序渗透率</button>
     </div>
     <div id="alertMonitorContent"></div>
   </div>
@@ -1071,6 +1088,12 @@ async function refreshKaSnapshotPeriod() {
 function fmt(v, d=1) { return v != null ? v.toFixed(d) : '-'; }
 function fmtInt(v) { return v != null ? Math.round(v).toLocaleString() : '-'; }
 function fmtPct(v, d=2) { return v != null ? v.toFixed(d) + '%' : '-'; }
+function fmtChg(cur, base) {
+  if (!cur || !base) return '-';
+  const pct = ((cur - base) / base * 100).toFixed(1);
+  const color = pct > 0 ? '#059669' : pct < 0 ? '#dc2626' : '#666';
+  return `<span style="color:${color};font-size:12px;">${pct > 0 ? '+' : ''}${pct}%</span>`;
+}
 function fmtPP(v) {
   if (v == null) return '-';
   const cls = v > 0 ? 'trend-up' : v < 0 ? 'trend-down' : '';
@@ -1648,7 +1671,7 @@ function renderStatusChangeContent() {
 }
 
 // 渗透率波动监测模块
-let currentAlertType = 'bs';
+let currentAlertType = 'trade_all';
 
 let _feedbackCache = {};  // 本地缓存，格式: { "品牌_cmpType": "反馈文字" }
 
@@ -1701,84 +1724,229 @@ function saveAlertFeedback(brand, cmpType, text) {
 }
 
 async function renderAlertMonitor() {
-  const alerts = KA_DATA.alerts || [];
-  if (alerts.length === 0) return;
-  
   const section = document.getElementById('alertMonitorSection');
   section.style.display = '';
-  
-  // 先从服务器加载反馈
+
+  // 初始化筛选器选项
+  const ownerSel = document.getElementById('alertFilterOwner');
+  const catSel = document.getElementById('alertFilterCat');
+  if (ownerSel.options.length <= 1) {
+    OWNERS.forEach(o => { ownerSel.add(new Option(o, o)); });
+    const cats = [...new Set(KA_DATA.brands.map(b => b['品类']))].sort();
+    cats.forEach(c => { catSel.add(new Option(c, c)); });
+  }
+
   await loadAlertFeedbackFromServer();
-  renderAlertContent(currentAlertType);
+  refreshAlertTab();
+}
+
+function refreshAlertTab() {
+  switchAlertTab(currentAlertType);
 }
 
 function switchAlertTab(type) {
   currentAlertType = type;
   document.querySelectorAll('.alert-tab').forEach(t => t.classList.toggle('active', t.dataset.alertType === type));
-  renderAlertContent(type);
+
+  if (type === 'trade_all') {
+    renderTradeAlert('_all');
+  } else if (type === 'trade_xcx') {
+    renderTradeAlert('_xcx');
+  } else if (type === 'penetration') {
+    renderPenetrationAlert();
+  }
 }
 
-function renderAlertContent(type) {
-  const alerts = KA_DATA.alerts || [];
-  const prefix = type === 'bs' ? 'bs' : 'je';
-  const label = type === 'bs' ? '笔数' : '金额';
+function getAlertFilters() {
+  const owner = document.getElementById('alertFilterOwner').value;
+  const cat = document.getElementById('alertFilterCat').value;
+  return { owner, cat };
+}
+
+function filterBrands(brands) {
+  const { owner, cat } = getAlertFilters();
+  return brands.filter(b => {
+    if (owner && b['负责人'] !== owner) return false;
+    if (cat && b['品类'] !== cat) return false;
+    return true;
+  });
+}
+
+// ========== 交易波动（整体/小程序）==========
+function renderTradeAlert(suffix) {
+  const label = suffix === '_all' ? '整体' : '小程序';
+  const THRESHOLD = 20;
   const fb = loadAlertFeedback();
-  
-  // ========== 环比异常 ==========
-  const momRelevant = alerts.filter(a => {
-    const hb = a[`${prefix}_rate_hb`];
-    return hb !== null && hb !== undefined && Math.abs(hb) > 5;
-  }).sort((a, b) => Math.abs(b[`${prefix}_rate_hb`]) - Math.abs(a[`${prefix}_rate_hb`]));
-  
-  const momUp = momRelevant.filter(a => a[`${prefix}_rate_hb`] > 0);
-  const momDown = momRelevant.filter(a => a[`${prefix}_rate_hb`] < 0);
-  
-  // ========== 同比异常 ==========
-  const yoyRelevant = alerts.filter(a => {
-    const tb = a[`${prefix}_rate_tb`];
-    return tb !== null && tb !== undefined && Math.abs(tb) > 5;
-  }).sort((a, b) => Math.abs(b[`${prefix}_rate_tb`]) - Math.abs(a[`${prefix}_rate_tb`]));
-  
-  const yoyUp = yoyRelevant.filter(a => a[`${prefix}_rate_tb`] > 0);
-  const yoyDown = yoyRelevant.filter(a => a[`${prefix}_rate_tb`] < 0);
-  
+  const filtered = filterBrands(KA_DATA.brands);
+
+  const tradeData = filtered.map(b => {
+    const bs_cur = b[`m04_bs${suffix}`] || 0;
+    const bs_last = b[`m03_bs${suffix}`] || 0;
+    const bs_yago = b[`y04_bs${suffix}`] || 0;
+    const je_cur = b[`m04_je${suffix}`] || 0;
+    const je_last = b[`m03_je${suffix}`] || 0;
+    const je_yago = b[`y04_je${suffix}`] || 0;
+    const bs_hb = bs_last ? (bs_cur - bs_last) / bs_last * 100 : null;
+    const bs_tb = bs_yago ? (bs_cur - bs_yago) / bs_yago * 100 : null;
+    const je_hb = je_last ? (je_cur - je_last) / je_last * 100 : null;
+    const je_tb = je_yago ? (je_cur - je_yago) / je_yago * 100 : null;
+    return { brand: b['品牌'], owner: b['负责人'], cat: b['品类'], bs_cur, bs_last, bs_yago, je_cur, je_last, je_yago, bs_hb, bs_tb, je_hb, je_tb };
+  });
+
+  // 同比异常（优先展示）
+  const yoyAlerts = tradeData.filter(a =>
+    (a.bs_tb !== null && Math.abs(a.bs_tb) > THRESHOLD) ||
+    (a.je_tb !== null && Math.abs(a.je_tb) > THRESHOLD)
+  ).sort((a, b) => Math.max(Math.abs(b.bs_tb||0), Math.abs(b.je_tb||0)) - Math.max(Math.abs(a.bs_tb||0), Math.abs(a.je_tb||0)));
+
+  // 环比异常
+  const momAlerts = tradeData.filter(a =>
+    (a.bs_hb !== null && Math.abs(a.bs_hb) > THRESHOLD) ||
+    (a.je_hb !== null && Math.abs(a.je_hb) > THRESHOLD)
+  ).sort((a, b) => Math.max(Math.abs(b.bs_hb||0), Math.abs(b.je_hb||0)) - Math.max(Math.abs(a.bs_hb||0), Math.abs(a.je_hb||0)));
+
+  function tradeRow(a, type) {
+    const bs_val = type === 'tb' ? a.bs_tb : a.bs_hb;
+    const je_val = type === 'tb' ? a.je_tb : a.je_hb;
+    const bs_prev = type === 'tb' ? a.bs_yago : a.bs_last;
+    const je_prev = type === 'tb' ? a.je_yago : a.je_last;
+    const cmpKey = `trade${suffix}_${type}`;
+    const fbVal = fb[a.brand + '_' + cmpKey] || '';
+    const fV = (v) => { if(v==null)return'-'; const c=v>0?'#059669':v<0?'#dc2626':'#666'; return `<span style="color:${c};font-weight:600">${v>0?'+':''}${v.toFixed(1)}%</span>`; };
+    const isHot = (v) => v !== null && Math.abs(v) > THRESHOLD;
+    return `<div class="alert-bar-row" style="align-items:center;">
+      <div class="alert-bar-brand">${a.brand}</div>
+      <div class="alert-bar-owner">${a.owner}</div>
+      <div style="flex:1;display:flex;gap:14px;align-items:center;font-size:12px;">
+        <div style="${isHot(bs_val)?'background:#fef2f2;padding:2px 6px;border-radius:4px':''}">笔数 ${fV(bs_val)} <span style="color:#999;font-size:11px">(${a.bs_cur.toFixed(1)}←${bs_prev.toFixed(1)})</span></div>
+        <div style="${isHot(je_val)?'background:#fef2f2;padding:2px 6px;border-radius:4px':''}">金额 ${fV(je_val)} <span style="color:#999;font-size:11px">(${a.je_cur.toFixed(1)}←${je_prev.toFixed(1)})</span></div>
+      </div>
+      <div class="alert-bar-feedback"><input class="alert-feedback-input" data-brand="${a.brand}" data-cmptype="${cmpKey}" placeholder="反馈..." value="${escAlertHtml(fbVal)}"/></div>
+    </div>`;
+  }
+
   let html = '';
-  
-  // ====== 环比 Block ======
+
+  // 同比 block（优先）
+  const yoyUp = yoyAlerts.filter(a => (a.bs_tb||0) > 0 || (a.je_tb||0) > 0);
+  const yoyDown = yoyAlerts.filter(a => !yoyUp.includes(a));
   html += '<div class="alert-block">';
-  html += `<div class="alert-block-header mom-hdr">
-    <span>📊 环比波动</span>
-    <span class="period-tag mom">2026年4月 vs 2026年3月</span>
-    <span class="count-tag">${momRelevant.length} 个品牌触发</span>
-  </div>`;
-  if (momRelevant.length === 0) {
-    html += `<div class="alert-no-data" style="border:1px solid #dbeafe;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}渗透率环比波动均 ≤ 5pp，无异常</div>`;
+  html += `<div class="alert-block-header yoy-hdr"><span>📊 同比波动（优先关注）</span><span class="period-tag yoy">2026年4月 vs 2025年4月</span><span class="count-tag">${yoyAlerts.length} 个品牌 · 阈值>${THRESHOLD}%</span></div>`;
+  if (yoyAlerts.length === 0) {
+    html += `<div class="alert-no-data" style="border:1px solid #f3e8ff;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}交易同比波动均 ≤ ${THRESHOLD}%，无异常</div>`;
   } else {
     html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
-    html += renderAlertGroup(momUp, momDown, prefix, 'hb', '04', '03', '4月', '3月', 'mom', fb, label);
+    if (yoyDown.length > 0) { html += `<div class="alert-sub-header down-hdr">📉 同比下降（${yoyDown.length}）</div>`; yoyDown.forEach(a => { html += tradeRow(a, 'tb'); }); }
+    if (yoyUp.length > 0) { html += `<div class="alert-sub-header up-hdr">📈 同比上升（${yoyUp.length}）</div>`; yoyUp.forEach(a => { html += tradeRow(a, 'tb'); }); }
     html += '</div>';
   }
   html += '</div>';
 
-  // ====== 同比 Block ======
+  // 环比 block
+  const momUp = momAlerts.filter(a => (a.bs_hb||0) > 0 || (a.je_hb||0) > 0);
+  const momDown = momAlerts.filter(a => !momUp.includes(a));
   html += '<div class="alert-block">';
-  html += `<div class="alert-block-header yoy-hdr">
-    <span>📊 同比波动</span>
-    <span class="period-tag yoy">2026年4月 vs 2025年4月</span>
-    <span class="count-tag">${yoyRelevant.length} 个品牌触发</span>
-  </div>`;
-  if (yoyRelevant.length === 0) {
-    html += `<div class="alert-no-data" style="border:1px solid #f3e8ff;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}渗透率同比波动均 ≤ 5pp，无异常</div>`;
+  html += `<div class="alert-block-header mom-hdr"><span>📊 环比波动（参考）</span><span class="period-tag mom">2026年4月 vs 2026年3月</span><span class="count-tag">${momAlerts.length} 个品牌 · 阈值>${THRESHOLD}%</span></div>`;
+  if (momAlerts.length === 0) {
+    html += `<div class="alert-no-data" style="border:1px solid #dbeafe;border-top:none;border-radius:0 0 10px 10px;">✅ ${label}交易环比波动均 ≤ ${THRESHOLD}%，无异常</div>`;
   } else {
     html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
-    html += renderAlertGroup(yoyUp, yoyDown, prefix, 'tb', '04', 'y04', '26年4月', '25年4月', 'yoy', fb, label);
+    if (momDown.length > 0) { html += `<div class="alert-sub-header down-hdr">📉 环比下降（${momDown.length}）</div>`; momDown.forEach(a => { html += tradeRow(a, 'hb'); }); }
+    if (momUp.length > 0) { html += `<div class="alert-sub-header up-hdr">📈 环比上升（${momUp.length}）</div>`; momUp.forEach(a => { html += tradeRow(a, 'hb'); }); }
     html += '</div>';
   }
   html += '</div>';
-  
+
   document.getElementById('alertMonitorContent').innerHTML = html;
-  
-  // 绑定反馈输入事件
+  bindAlertFeedbackEvents();
+}
+
+// ========== 渗透率波动 ==========
+function renderPenetrationAlert() {
+  const THRESHOLD = 5; // 5pp
+  const fb = loadAlertFeedback();
+  const filtered = filterBrands(KA_DATA.brands);
+
+  // 从品牌数据实时计算渗透率波动
+  const penData = filtered.map(b => ({
+    brand: b['品牌'], owner: b['负责人'], cat: b['品类'],
+    bs_rate_04: b.bs_rate_04, bs_rate_03: b.bs_rate_03, bs_rate_y04: b.bs_rate_y04,
+    je_rate_04: b.je_rate_04, je_rate_03: b.je_rate_03, je_rate_y04: b.je_rate_y04,
+    bs_hb: b.bs_rate_hb, bs_tb: b.bs_rate_tb,
+    je_hb: b.je_rate_hb, je_tb: b.je_rate_tb,
+  }));
+
+  // 同比异常
+  const yoyAlerts = penData.filter(a =>
+    (a.bs_tb !== null && a.bs_tb !== undefined && Math.abs(a.bs_tb) > THRESHOLD) ||
+    (a.je_tb !== null && a.je_tb !== undefined && Math.abs(a.je_tb) > THRESHOLD)
+  ).sort((a, b) => Math.max(Math.abs(b.bs_tb||0), Math.abs(b.je_tb||0)) - Math.max(Math.abs(a.bs_tb||0), Math.abs(a.je_tb||0)));
+
+  // 环比异常
+  const momAlerts = penData.filter(a =>
+    (a.bs_hb !== null && a.bs_hb !== undefined && Math.abs(a.bs_hb) > THRESHOLD) ||
+    (a.je_hb !== null && a.je_hb !== undefined && Math.abs(a.je_hb) > THRESHOLD)
+  ).sort((a, b) => Math.max(Math.abs(b.bs_hb||0), Math.abs(b.je_hb||0)) - Math.max(Math.abs(a.bs_hb||0), Math.abs(a.je_hb||0)));
+
+  function penRow(a, type) {
+    const bs_val = type === 'tb' ? a.bs_tb : a.bs_hb;
+    const je_val = type === 'tb' ? a.je_tb : a.je_hb;
+    const bs_cur = a.bs_rate_04, je_cur = a.je_rate_04;
+    const bs_prev = type === 'tb' ? a.bs_rate_y04 : a.bs_rate_03;
+    const je_prev = type === 'tb' ? a.je_rate_y04 : a.je_rate_03;
+    const cmpKey = `pen_${type}`;
+    const fbVal = fb[a.brand + '_' + cmpKey] || '';
+    const fPP = (v) => { if(v==null)return'-'; const c=v>0?'#059669':v<0?'#dc2626':'#666'; return `<span style="color:${c};font-weight:600">${v>0?'+':''}${v.toFixed(1)}pp</span>`; };
+    const isHot = (v) => v !== null && v !== undefined && Math.abs(v) > THRESHOLD;
+    const fR = (v) => v != null ? v.toFixed(1) + '%' : '-';
+    return `<div class="alert-bar-row" style="align-items:center;">
+      <div class="alert-bar-brand">${a.brand}</div>
+      <div class="alert-bar-owner">${a.owner}</div>
+      <div style="flex:1;display:flex;gap:14px;align-items:center;font-size:12px;">
+        <div style="${isHot(bs_val)?'background:#fef2f2;padding:2px 6px;border-radius:4px':''}">笔数渗透率 ${fPP(bs_val)} <span style="color:#999;font-size:11px">(${fR(bs_cur)}←${fR(bs_prev)})</span></div>
+        <div style="${isHot(je_val)?'background:#fef2f2;padding:2px 6px;border-radius:4px':''}">金额渗透率 ${fPP(je_val)} <span style="color:#999;font-size:11px">(${fR(je_cur)}←${fR(je_prev)})</span></div>
+      </div>
+      <div class="alert-bar-feedback"><input class="alert-feedback-input" data-brand="${a.brand}" data-cmptype="${cmpKey}" placeholder="反馈..." value="${escAlertHtml(fbVal)}"/></div>
+    </div>`;
+  }
+
+  let html = '';
+
+  // 同比
+  const yoyUp = yoyAlerts.filter(a => (a.bs_tb||0) > 0 || (a.je_tb||0) > 0);
+  const yoyDown = yoyAlerts.filter(a => !yoyUp.includes(a));
+  html += '<div class="alert-block">';
+  html += `<div class="alert-block-header yoy-hdr"><span>📊 同比波动（优先关注）</span><span class="period-tag yoy">2026年4月 vs 2025年4月</span><span class="count-tag">${yoyAlerts.length} 个品牌 · 阈值>${THRESHOLD}pp</span></div>`;
+  if (yoyAlerts.length === 0) {
+    html += `<div class="alert-no-data" style="border:1px solid #f3e8ff;border-top:none;border-radius:0 0 10px 10px;">✅ 渗透率同比波动均 ≤ ${THRESHOLD}pp，无异常</div>`;
+  } else {
+    html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
+    if (yoyDown.length > 0) { html += `<div class="alert-sub-header down-hdr">📉 同比下降（${yoyDown.length}）</div>`; yoyDown.forEach(a => { html += penRow(a, 'tb'); }); }
+    if (yoyUp.length > 0) { html += `<div class="alert-sub-header up-hdr">📈 同比上升（${yoyUp.length}）</div>`; yoyUp.forEach(a => { html += penRow(a, 'tb'); }); }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // 环比
+  const momUp = momAlerts.filter(a => (a.bs_hb||0) > 0 || (a.je_hb||0) > 0);
+  const momDown = momAlerts.filter(a => !momUp.includes(a));
+  html += '<div class="alert-block">';
+  html += `<div class="alert-block-header mom-hdr"><span>📊 环比波动（参考）</span><span class="period-tag mom">2026年4月 vs 2026年3月</span><span class="count-tag">${momAlerts.length} 个品牌 · 阈值>${THRESHOLD}pp</span></div>`;
+  if (momAlerts.length === 0) {
+    html += `<div class="alert-no-data" style="border:1px solid #dbeafe;border-top:none;border-radius:0 0 10px 10px;">✅ 渗透率环比波动均 ≤ ${THRESHOLD}pp，无异常</div>`;
+  } else {
+    html += '<div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;">';
+    if (momDown.length > 0) { html += `<div class="alert-sub-header down-hdr">📉 环比下降（${momDown.length}）</div>`; momDown.forEach(a => { html += penRow(a, 'hb'); }); }
+    if (momUp.length > 0) { html += `<div class="alert-sub-header up-hdr">📈 环比上升（${momUp.length}）</div>`; momUp.forEach(a => { html += penRow(a, 'hb'); }); }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  document.getElementById('alertMonitorContent').innerHTML = html;
+  bindAlertFeedbackEvents();
+}
+
+function bindAlertFeedbackEvents() {
   document.querySelectorAll('#alertMonitorContent .alert-feedback-input').forEach(input => {
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
@@ -1792,98 +1960,6 @@ function renderAlertContent(type) {
       saveAlertFeedback(this.dataset.brand, this.dataset.cmptype, this.value.trim());
     });
   });
-}
-
-function renderAlertGroup(upList, downList, prefix, suffix, curPeriod, prevPeriod, curLabel, prevLabel, cmpType, fb, label) {
-  const all = [...upList, ...downList];
-  const maxAbs = Math.max(...all.map(a => Math.abs(a[`${prefix}_rate_${suffix}`] || 0)), 10);
-  const barGradientUp = 'linear-gradient(90deg, #86efac, #22c55e)';
-  const barGradientDown = 'linear-gradient(90deg, #fca5a5, #ef4444)';
-  // 从 KA_DATA.brands 补齐 alert 中缺失的同比字段
-  const _brandsMap = {};
-  (KA_DATA.brands || []).forEach(b => { _brandsMap[b['品牌']] = b; });
-  const _getRate = (a, period) => {
-    const key = `${prefix}_rate_${period}`;
-    if (a[key] != null) return a[key];
-    const brandRow = _brandsMap[a.brand];
-    return brandRow ? brandRow[key] : null;
-  };
-  let html = '';
-  
-  // 列标题行
-  html += `<div class="alert-bar-row" style="background:#f9fafb;border-bottom:2px solid #e5e7eb;font-size:11px;font-weight:600;color:var(--text-secondary);padding:8px 14px;">
-    <div class="alert-bar-brand">品牌</div>
-    <div class="alert-bar-owner">负责人</div>
-    <div class="alert-bar-chart">变化幅度</div>
-    <div class="alert-bar-values" style="justify-content:center;">${curLabel} ← ${prevLabel}</div>
-    <div class="alert-bar-feedback" style="text-align:center;">反馈说明</div>
-  </div>`;
-  
-  // 上升品牌
-  if (upList.length > 0) {
-    html += `<div class="alert-sub-header up-hdr">📈 ${label}渗透率上升（${upList.length}个品牌）</div>`;
-    upList.forEach(a => {
-      const pp = a[`${prefix}_rate_${suffix}`];
-      const absHb = Math.abs(pp);
-      const barPct = Math.min((absHb / maxAbs) * 100, 100);
-      const curRate = _getRate(a, curPeriod);
-      const prevRate = _getRate(a, prevPeriod);
-      const fbKey = a.brand + '_' + cmpType;
-      const fbVal = fb[fbKey] || '';
-      html += `<div class="alert-bar-row">
-        <div class="alert-bar-brand">${a.brand}</div>
-        <div class="alert-bar-owner">${a.owner}</div>
-        <div class="alert-bar-chart">
-          <div class="alert-bar-track">
-            <div class="alert-bar-fill" style="width:${barPct}%;background:${barGradientUp};">
-              ${absHb >= 3 ? `↑${absHb.toFixed(1)}pp` : ''}
-            </div>
-          </div>
-          ${absHb < 3 ? `<span style="font-size:11px;font-weight:600;color:#15803d;">↑${absHb.toFixed(1)}pp</span>` : ''}
-        </div>
-        <div class="alert-bar-values">
-          <span title="${curLabel}渗透率"><b style="color:var(--primary)">${curRate != null ? curRate.toFixed(1) + '%' : '-'}</b></span>
-          <span style="color:#a3a3a3">←</span>
-          <span title="${prevLabel}渗透率" style="color:var(--text-secondary)">${prevRate != null ? prevRate.toFixed(1) + '%' : '-'}</span>
-        </div>
-        <div class="alert-bar-feedback"><input class="alert-feedback-input" data-brand="${a.brand}" data-cmptype="${cmpType}" placeholder="输入反馈..." value="${escAlertHtml(fbVal)}"/></div>
-      </div>`;
-    });
-  }
-  
-  // 下降品牌
-  if (downList.length > 0) {
-    html += `<div class="alert-sub-header down-hdr">📉 ${label}渗透率下降（${downList.length}个品牌）</div>`;
-    downList.forEach(a => {
-      const pp = a[`${prefix}_rate_${suffix}`];
-      const absHb = Math.abs(pp);
-      const barPct = Math.min((absHb / maxAbs) * 100, 100);
-      const curRate = _getRate(a, curPeriod);
-      const prevRate = _getRate(a, prevPeriod);
-      const fbKey = a.brand + '_' + cmpType;
-      const fbVal = fb[fbKey] || '';
-      html += `<div class="alert-bar-row">
-        <div class="alert-bar-brand">${a.brand}</div>
-        <div class="alert-bar-owner">${a.owner}</div>
-        <div class="alert-bar-chart">
-          <div class="alert-bar-track">
-            <div class="alert-bar-fill" style="width:${barPct}%;background:${barGradientDown};">
-              ${absHb >= 3 ? `↓${absHb.toFixed(1)}pp` : ''}
-            </div>
-          </div>
-          ${absHb < 3 ? `<span style="font-size:11px;font-weight:600;color:#dc2626;">↓${absHb.toFixed(1)}pp</span>` : ''}
-        </div>
-        <div class="alert-bar-values">
-          <span title="${curLabel}渗透率"><b style="color:var(--primary)">${curRate != null ? curRate.toFixed(1) + '%' : '-'}</b></span>
-          <span style="color:#a3a3a3">←</span>
-          <span title="${prevLabel}渗透率" style="color:var(--text-secondary)">${prevRate != null ? prevRate.toFixed(1) + '%' : '-'}</span>
-        </div>
-        <div class="alert-bar-feedback"><input class="alert-feedback-input" data-brand="${a.brand}" data-cmptype="${cmpType}" placeholder="输入反馈..." value="${escAlertHtml(fbVal)}"/></div>
-      </div>`;
-    });
-  }
-  
-  return html;
 }
 
 function escAlertHtml(s) {
@@ -2033,11 +2109,27 @@ function renderOverviewTable() {
         return overviewSortDir === 'asc' ? va - vb : vb - va;
       });
     } else {
-      data.sort((a, b) => {
-        const va = a[overviewSortCol] ?? -Infinity;
-        const vb = b[overviewSortCol] ?? -Infinity;
-        return overviewSortDir === 'asc' ? va - vb : vb - va;
-      });
+      // 计算列排序 (环比/同比)
+      const computedCols = {
+        'bs_all_hb': b => (b.m04_bs_all && b.m03_bs_all) ? (b.m04_bs_all - b.m03_bs_all) / b.m03_bs_all : -Infinity,
+        'bs_all_tb': b => (b.m04_bs_all && b.y04_bs_all) ? (b.m04_bs_all - b.y04_bs_all) / b.y04_bs_all : -Infinity,
+        'je_all_hb': b => (b.m04_je_all && b.m03_je_all) ? (b.m04_je_all - b.m03_je_all) / b.m03_je_all : -Infinity,
+        'je_all_tb': b => (b.m04_je_all && b.y04_je_all) ? (b.m04_je_all - b.y04_je_all) / b.y04_je_all : -Infinity,
+        'bs_xcx_hb': b => (b.m04_bs_xcx && b.m03_bs_xcx) ? (b.m04_bs_xcx - b.m03_bs_xcx) / b.m03_bs_xcx : -Infinity,
+        'bs_xcx_tb': b => (b.m04_bs_xcx && b.y04_bs_xcx) ? (b.m04_bs_xcx - b.y04_bs_xcx) / b.y04_bs_xcx : -Infinity,
+        'je_xcx_hb': b => (b.m04_je_xcx && b.m03_je_xcx) ? (b.m04_je_xcx - b.m03_je_xcx) / b.m03_je_xcx : -Infinity,
+        'je_xcx_tb': b => (b.m04_je_xcx && b.y04_je_xcx) ? (b.m04_je_xcx - b.y04_je_xcx) / b.y04_je_xcx : -Infinity,
+      };
+      if (computedCols[overviewSortCol]) {
+        const fn = computedCols[overviewSortCol];
+        data.sort((a, b) => overviewSortDir === 'asc' ? fn(a) - fn(b) : fn(b) - fn(a));
+      } else {
+        data.sort((a, b) => {
+          const va = a[overviewSortCol] ?? -Infinity;
+          const vb = b[overviewSortCol] ?? -Infinity;
+          return overviewSortDir === 'asc' ? va - vb : vb - va;
+        });
+      }
     }
   } else {
     data.sort((a, b) => (b.m04_bs_all || 0) - (a.m04_bs_all || 0));
@@ -2084,9 +2176,17 @@ function renderOverviewTable() {
     <td>${ovStatusSelect('wuyou', b['品牌'], wuyouVal)}</td>
     <td>${ovStatusSelect('box', b['品牌'], boxVal)}</td>
     <td>${b.m04_bs_all ? fmt(b.m04_bs_all,1) : '-'}</td>
+    <td>${fmtChg(b.m04_bs_all, b.m03_bs_all)}</td>
+    <td>${fmtChg(b.m04_bs_all, b.y04_bs_all)}</td>
     <td>${b.m04_je_all ? fmt(b.m04_je_all,1) : '-'}</td>
+    <td>${fmtChg(b.m04_je_all, b.m03_je_all)}</td>
+    <td>${fmtChg(b.m04_je_all, b.y04_je_all)}</td>
     <td>${b.m04_bs_xcx ? fmt(b.m04_bs_xcx,1) : '-'}</td>
+    <td>${fmtChg(b.m04_bs_xcx, b.m03_bs_xcx)}</td>
+    <td>${fmtChg(b.m04_bs_xcx, b.y04_bs_xcx)}</td>
     <td>${b.m04_je_xcx ? fmt(b.m04_je_xcx,1) : '-'}</td>
+    <td>${fmtChg(b.m04_je_xcx, b.m03_je_xcx)}</td>
+    <td>${fmtChg(b.m04_je_xcx, b.y04_je_xcx)}</td>
     <td style="font-weight:700;${b.bs_rate_04>50?'color:var(--success)':''}">${b.bs_rate_04 != null ? fmtPct(b.bs_rate_04) : '-'}</td>
     <td>${fmtPP(b.bs_rate_hb)}</td>
     <td>${fmtPP(b.bs_rate_tb)}</td>
