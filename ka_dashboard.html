@@ -1276,7 +1276,10 @@ async function renderOverview() {
   const cikaTestingCount = cikaTestingBrands.size;
   const cikaInterest  = b.filter(x => _getCika(x['品牌'])  === '有意向').length;
   const wuyouInterest = b.filter(x => _getWuyou(x['品牌']) === '有意向').length;
-  const boxInterest   = b.filter(x => _getBox(x['品牌'])   === '有意向').length;
+  // 盒子：直接从 boxBrands (Supabase) 计算，排除测试数据
+  const _boxActive = (boxBrands || []).filter(x => x.brand_name && !x.brand_name.startsWith('__test'));
+  const boxOnline    = _boxActive.filter(x => boxStageToOverview(x.stage || '') === '已上线').length;
+  const boxInterest  = _boxActive.filter(x => boxStageToOverview(x.stage || '') === '有意向').length;
   const hasTradeData = b.filter(x => x.has_data !== false && x.m04_bs_all).length;
   // 统一从快照计算在线/存活/达标 (不再用静态 KA_DATA.brands 的 '摇优惠' 字段)
   var _snapBrands = Object.values(gSnapshotBrandsByName);
@@ -1343,7 +1346,8 @@ async function renderOverview() {
         <div><div class="oc-title">盒子</div><div class="oc-subtitle">推进中</div></div>
       </div>
       <div class="oc-stats">
-        <div class="oc-stat"><div class="os-value" style="color:var(--success);">${boxInterest}</div><div class="os-label">有意向</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:var(--success);">${boxOnline}</div><div class="os-label">已上线</div></div>
+        <div class="oc-stat"><div class="os-value" style="color:var(--warning);">${boxInterest}</div><div class="os-label">有意向</div></div>
       </div>
     </div>
   `;
