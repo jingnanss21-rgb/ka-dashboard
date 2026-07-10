@@ -1309,11 +1309,15 @@ async function init() {
 
   populateFilters();
 
-  renderOverview();
-  await renderCika();
-  await renderWuyou();
-  // renderBox 改为懒加载：首次点击盒子 tab 时再拉数据，避免阻塞首屏
-  renderOverview();
+  // renderOverview 内部已并行加载 cika/wuyou/box 数据。
+  // 加载完成后并行渲染 cika/wuyou 面板（不再重复拉数据）。
+  // renderBox 改为懒加载：首次点击盒子 tab 时再拉数据，避免阻塞首屏。
+  await renderOverview();
+  // cika/wuyou 面板可并行渲染，因为数据已在 renderOverview 里加载好
+  Promise.all([
+    renderCika().catch(e => console.warn('[init] renderCika:', e)),
+    renderWuyou().catch(e => console.warn('[init] renderWuyou:', e)),
+  ]);
 }
 
 function populateFilters() {
@@ -1478,9 +1482,17 @@ async function renderOverview() {
     }
   });
   renderAlertMonitor();
-  // 状态变更通知 + 快照写入
-  renderStatusChangeNotice();
-  checkAndWriteStatusSnapshot();
+  // 状态变更通知 + 快照写入 —— 延迟异步执行，避免阻塞首屏
+  // renderStatusChangeNotice 会分页拉近30天 ka_status_history (4000+ 行, 5 页)
+  // checkAndWriteStatusSnapshot 会 upsert 全部品牌状态
+  // 首屏渲染完再执行这两个耗时操作
+  if (!window._statusChangeScheduled) {
+    window._statusChangeScheduled = true;
+    setTimeout(() => {
+      renderStatusChangeNotice().catch(e => console.warn('[Overview] renderStatusChangeNotice:', e));
+      checkAndWriteStatusSnapshot().catch(e => console.warn('[Overview] checkAndWriteStatusSnapshot:', e));
+    }, 500);
+  }
 }
 
 // ========== 状态变更通知条 ==========
