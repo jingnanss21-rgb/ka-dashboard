@@ -1284,17 +1284,8 @@ async function init() {
       memory: navigator.deviceMemory || '',
       touchPoints: navigator.maxTouchPoints || 0
     };
-    // 获取 IP + 城市
-    fetch('https://ipapi.co/json/').then(r=>r.json()).then(geo=>{
-      info.ip = geo.ip || '';
-      info.city = geo.city || '';
-      info.region = geo.region || '';
-      info.country = geo.country_name || '';
-      info.isp = geo.org || '';
-      alertSb.from('ka_feedbacks').insert({ brand_name: 'visit::KA整体看板', text: JSON.stringify(info) }).then(function(){}).catch(function(){});
-    }).catch(()=>{
-      alertSb.from('ka_feedbacks').insert({ brand_name: 'visit::KA整体看板', text: JSON.stringify(info) }).then(function(){}).catch(function(){});
-    });
+    // 内网环境不调 ipapi.co（CORS 限制），直接写访问记录
+    alertSb.from('ka_feedbacks').insert({ brand_name: 'visit::KA整体看板', text: JSON.stringify(info) }).then(function(){}).catch(function(){});
     // 停留时长
     var _visitStart = Date.now();
     window.addEventListener('beforeunload', function(){
