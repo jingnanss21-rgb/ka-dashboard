@@ -920,6 +920,35 @@ async function loadDataForDate(dateStr) {
   snapshotDateLabel = row.data_date_label || "";
   currentReportDate = dateStr;
   calcSurpriseGoodsFromActivities(activities);
+
+  // 用 ka_activity_daily 的当日到店核销率（visit_use_rate）按曝光 PV 加权聚合，
+  // 覆盖 ka_daily_snapshot.brands[i].storeRedeemRate（其源字段"近7日_到店核销率UV"已长期缺失）
+  try {
+    const { data: actRows, error: eAgg } = await sbClient
+      .from('ka_activity_daily')
+      .select('brand_id,brand_name,exp_pv,visit_use_rate')
+      .eq('date', dateStr);
+    if (!eAgg && actRows && actRows.length) {
+      const _agg = {}; // key: brand_name
+      actRows.forEach(a => {
+        const key = a.brand_name; if (!key) return;
+        const rate = a.visit_use_rate;
+        const w = Number(a.exp_pv);
+        if (rate == null || !Number.isFinite(rate) || !Number.isFinite(w) || w <= 0) return;
+        if (!_agg[key]) _agg[key] = { sum: 0, w: 0 };
+        _agg[key].sum += rate * w;
+        _agg[key].w += w;
+      });
+      (brands || []).forEach(b => {
+        const g = _agg[b.name];
+        if (g && g.w > 0) b.storeRedeemRate = g.sum / g.w; // 小数（pct() 内部 ×100 展示）
+      });
+      clearExpAdequacyMedianCache();
+    }
+  } catch (aggErr) {
+    console.warn('到店核销率聚合失败，保留原值:', aggErr.message);
+  }
+
   DATA = {
     brands,
     activities,
@@ -1049,6 +1078,26 @@ async function switchDate(dateStr) {
 // ============================================================
 // 实时订阅：监听反馈表变化，自动刷新
 // ============================================================
+// 反馈变化后安全重渲染：正在输入时不打断
+function isEditingFeedback() {
+  var a = document.activeElement;
+  if(!a || !a.closest) return false;
+  return !!(a.closest('.feedback-input-row') || a.closest('.td-feedback') ||
+            (a.classList && (a.classList.contains('card-fb-inp') || a.classList.contains('feedback-input'))));
+}
+function maybeRefreshFeedbackView() {
+  if(isEditingFeedback()) return;   // 别打断正在填写反馈的用户
+  try { rebuildCurrentView(); } catch(e) {}
+}
+function feedbackSignature() {
+  try {
+    return Object.keys(feedbacks).sort().map(function(b){
+      var arr = feedbacks[b] || [];
+      return b + ':' + arr.length + ':' + (arr.length ? (arr[arr.length-1].rawTime||'') : '');
+    }).join('|');
+  } catch(e) { return ''; }
+}
+
 function subscribeRealtime() {
   if(!sbClient) return;
   try {
@@ -1064,9 +1113,21 @@ function subscribeRealtime() {
               feedbacks[r.brand_name].push({ id: r.id, text: r.text, owner: r.owner||'', time: new Date(r.created_at).toLocaleDateString('zh-CN'), rawTime: r.created_at });
             });
             if(DATA) DATA.feedbacks = feedbacks;
+            maybeRefreshFeedbackView();   // 修复：实时事件到达后重渲染 DOM（原来只更新了数据、页面不刷新）
           }
         } catch(e) {}
       }).subscribe();
+  } catch(e) {}
+
+  // 轮询兜底：不依赖 Realtime 是否启用，每 25s 拉一次，有变化且未在输入时才重渲染
+  try {
+    setInterval(function() {
+      if(!sbClient || isEditingFeedback()) return;
+      var before = feedbackSignature();
+      mergeFeedbacksFromSupabase().then(function() {
+        if(feedbackSignature() !== before) maybeRefreshFeedbackView();
+      }).catch(function(){});
+    }, 25000);
   } catch(e) {}
 }
 
