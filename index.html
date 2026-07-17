@@ -1102,19 +1102,33 @@ function subscribeRealtime() {
   if(!sbClient) return;
   try {
     sbClient.channel('ka_feedbacks_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'ka_feedbacks' }, async () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ka_feedbacks' }, function(payload) {
+        // 增量应用事件负载（不整表重读，避免与刚提交、尚未可见的行竞态把乐观条目冲掉）
         try {
-          const { data: fbRows } = await sbClient.from('ka_feedbacks').select('*').order('created_at', { ascending: true });
-          if(fbRows) {
-            feedbacks = {};
-            fbRows.forEach(function(r) {
-              if(r.brand_name && (r.brand_name.startsWith('visit::') || r.brand_name.indexOf('::') > -1)) return;
-              if(!feedbacks[r.brand_name]) feedbacks[r.brand_name] = [];
-              feedbacks[r.brand_name].push({ id: r.id, text: r.text, owner: r.owner||'', time: new Date(r.created_at).toLocaleDateString('zh-CN'), rawTime: r.created_at });
+          var ev = payload.eventType || payload.event;
+          var row = (payload.new && Object.keys(payload.new).length) ? payload.new : payload.old;
+          if(!row) return;
+          var bn = row.brand_name || '';
+          if(bn.indexOf('::') > -1) return;   // 跳过 visit:: 埋点行
+          if(ev === 'DELETE') {
+            var oid = (payload.old || {}).id;
+            if(oid != null && feedbacks[bn]) {
+              feedbacks[bn] = feedbacks[bn].filter(function(f){ return String(f.id) !== String(oid); });
+            }
+          } else { // INSERT / UPDATE
+            if(!feedbacks[bn]) feedbacks[bn] = [];
+            var isTmp = function(id){ id = String(id); return id.indexOf('local-') === 0 || /^\d{12,}$/.test(id); };
+            // 去重：同 id，或(同文本且旧条目是本地乐观临时 id) —— 把乐观条目替换成服务端行，避免重复/被吞
+            feedbacks[bn] = feedbacks[bn].filter(function(f){
+              if(String(f.id) === String(row.id)) return false;
+              if(f.text === row.text && isTmp(f.id)) return false;
+              return true;
             });
-            if(DATA) DATA.feedbacks = feedbacks;
-            maybeRefreshFeedbackView();   // 修复：实时事件到达后重渲染 DOM（原来只更新了数据、页面不刷新）
+            feedbacks[bn].push({ id: row.id, text: row.text, owner: row.owner || '', time: new Date(row.created_at).toLocaleDateString('zh-CN'), rawTime: row.created_at });
+            feedbacks[bn].sort(function(a,b){ return (a.rawTime||'') < (b.rawTime||'') ? -1 : 1; });
           }
+          if(DATA) DATA.feedbacks = feedbacks;
+          maybeRefreshFeedbackView();   // 增量更新后重渲染 DOM
         } catch(e) {}
       }).subscribe();
   } catch(e) {}
