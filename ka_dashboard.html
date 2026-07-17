@@ -816,7 +816,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:12px;">
       <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
         <div style="font-size:18px;font-weight:700;color:#0f172a;">🎯 全年铺设目标</div>
-        <div style="font-size:13px;color:#64748b;">目标 <b style="color:#0f172a;">110,000</b> 台</div>
+        <div style="font-size:13px;color:#64748b;">目标 <b style="color:#0f172a;">50,000</b> 台</div>
       </div>
       <button class="btn" id="btnAddBoxBrand" style="background:#16a34a;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">+ 新增品牌</button>
     </div>
@@ -826,7 +826,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
       <div style="background:#fff;border:1px solid #e2e8f0;border-left:4px solid #2563eb;border-radius:8px;padding:14px 18px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <div style="font-size:13px;color:#475569;font-weight:600;">📦 已发货</div>
-          <div style="font-size:11px;color:#94a3b8;">目标 110,000 台</div>
+          <div style="font-size:11px;color:#94a3b8;">目标 50,000 台</div>
         </div>
         <div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 8px;">
           <div style="font-size:28px;font-weight:800;color:#2563eb;"><span id="boxShipped">0</span></div>
@@ -841,7 +841,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
       <div style="background:#fff;border:1px solid #e2e8f0;border-left:4px solid #16a34a;border-radius:8px;padding:14px 18px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;">
           <div style="font-size:13px;color:#475569;font-weight:600;">✅ 已激活</div>
-          <div style="font-size:11px;color:#94a3b8;">目标 110,000 台</div>
+          <div style="font-size:11px;color:#94a3b8;">目标 50,000 台</div>
         </div>
         <div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 8px;">
           <div style="font-size:28px;font-weight:800;color:#16a34a;"><span id="boxActivated">0</span></div>
@@ -854,7 +854,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
         </div>
       </div>
     </div>
-    <div style="font-size:12px;color:#94a3b8;margin-top:10px;">📌 顶部目标写死 110,000 台；发货/激活数据由 byKA 明细汇总</div>
+    <div style="font-size:12px;color:#94a3b8;margin-top:10px;">📌 顶部目标=BOX_ANNUAL_TARGET=50,000 台（单一数据源）；发货/激活数据由 byKA 明细汇总</div>
   </div>
 
   <!-- 明细表 -->
@@ -1413,7 +1413,7 @@ async function renderOverview() {
     <div class="overview-card" onclick="switchToTab('box')">
       <div class="oc-header">
         <div class="oc-icon" style="background:#dcfce7;">🟩</div>
-        <div><div class="oc-title">盒子</div><div class="oc-subtitle">目标 110,000 台</div></div>
+        <div><div class="oc-title">盒子</div><div class="oc-subtitle">目标 50,000 台</div></div>
       </div>
       <div class="oc-stats" style="grid-template-columns:repeat(3,1fr);">
         <div class="oc-stat"><div class="os-value" style="color:#0f172a;">${boxDeployableEst.toLocaleString()}</div><div class="os-label">预估</div></div>
@@ -1421,10 +1421,10 @@ async function renderOverview() {
         <div class="oc-stat"><div class="os-value" style="color:#16a34a;">${boxActivatedTotal.toLocaleString()}</div><div class="os-label">激活</div></div>
       </div>
       <div class="oc-target">
-        <div class="oc-target-head"><span>📦 发货进度 · 目标 11 万</span><span><b>${boxShippedTotal.toLocaleString()}</b> / <span style="color:#2563eb;">${(boxShippedTotal/110000*100).toFixed(1)}%</span></span></div>
-        <div class="oc-target-bar"><div style="width:${Math.min(100, boxShippedTotal/110000*100)}%;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div>
-        <div class="oc-target-head" style="margin-top:8px;"><span>✅ 激活进度 · 目标 11 万</span><span><b>${boxActivatedTotal.toLocaleString()}</b> / <span style="color:#16a34a;">${(boxActivatedTotal/110000*100).toFixed(1)}%</span></span></div>
-        <div class="oc-target-bar"><div style="width:${Math.min(100, boxActivatedTotal/110000*100)}%;background:linear-gradient(90deg,#16a34a,#22c55e);"></div></div>
+        <div class="oc-target-head"><span>📦 发货进度 · 目标 5 万</span><span><b>${boxShippedTotal.toLocaleString()}</b> / <span style="color:#2563eb;">${(boxShippedTotal/BOX_ANNUAL_TARGET*100).toFixed(1)}%</span></span></div>
+        <div class="oc-target-bar"><div style="width:${Math.min(100, boxShippedTotal/BOX_ANNUAL_TARGET*100)}%;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div>
+        <div class="oc-target-head" style="margin-top:8px;"><span>✅ 激活进度 · 目标 5 万</span><span><b>${boxActivatedTotal.toLocaleString()}</b> / <span style="color:#16a34a;">${(boxActivatedTotal/BOX_ANNUAL_TARGET*100).toFixed(1)}%</span></span></div>
+        <div class="oc-target-bar"><div style="width:${Math.min(100, boxActivatedTotal/BOX_ANNUAL_TARGET*100)}%;background:linear-gradient(90deg,#16a34a,#22c55e);"></div></div>
       </div>
     </div>
     <div class="overview-card" onclick="switchToTab('shake')">
@@ -3886,7 +3886,7 @@ function toggleCollapsed(type) {
 let boxComments = {};
 let boxStatusOverrides = {};
 
-const BOX_ANNUAL_TARGET = 110000;
+const BOX_ANNUAL_TARGET = 50000;
 const BOX_STAGES = [
   '待评估',
   '阶段一-铺设主体确认','阶段一-邮件报备',
