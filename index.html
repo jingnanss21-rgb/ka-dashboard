@@ -976,14 +976,29 @@ async function loadDataForDate(dateStr) {
 }
 
 async function mergeFeedbacksFromSupabase() {
-  // 不再重置为嵌入数据，直接从 Supabase 拉取最新，避免异步间隙丢失本地新增反馈
+  // 直接从 Supabase 拉取最新反馈。
+  // 修复：ka_feedbacks 含大量 visit:: 埋点行（占多数，总行数已过千），且 PostgREST 单次最多返回 1000 行。
+  //   原来 select('*') 无过滤、无分页、created_at 升序 → 只拿到“最旧的 1000 行”（多为埋点）→
+  //   较新的/刚提交的真实反馈在 1000 行之外，永远拉不到 → 页面看不到、提交后被“吞”。
+  //   现改为：服务端排除 visit:: 埋点行 + 分页拉全量。
   if(!sbClient) return;
   try {
-    const { data: fbRows } = await sbClient.from("ka_feedbacks").select("*").order("created_at", { ascending: true });
-    if(fbRows && fbRows.length > 0) {
+    var all = [], offset = 0, limit = 1000;
+    while(true) {
+      const { data, error } = await sbClient.from("ka_feedbacks")
+        .select("*")
+        .not("brand_name", "like", "visit::*")   // 服务端排除埋点行（bulk），减小体积
+        .order("created_at", { ascending: true })
+        .range(offset, offset + limit - 1);
+      if(error) throw error;
+      all = all.concat(data || []);
+      if(!data || data.length < limit) break;    // 分页兜底：真实反馈将来超过 1000 也能拉全
+      offset += limit;
+    }
+    if(all.length > 0) {
       feedbacks = {};
-      fbRows.forEach(function(r) {
-        if(r.brand_name && (r.brand_name.startsWith("visit::") || r.brand_name.indexOf("::") > -1)) return;
+      all.forEach(function(r) {
+        if(r.brand_name && r.brand_name.indexOf("::") > -1) return;  // 客户端再兜底过滤任何 :: 行
         if(!feedbacks[r.brand_name]) feedbacks[r.brand_name] = [];
         feedbacks[r.brand_name].push({ id: r.id, text: r.text, owner: r.owner || "", time: new Date(r.created_at).toLocaleDateString("zh-CN"), rawTime: r.created_at });
       });
