@@ -579,6 +579,9 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
             <th class="sum-col sortable-header" data-sort="exp_pv" style="text-align:right;display:none;">累计曝光</th>
             <th class="sum-col sortable-header" data-sort="claim_pv" style="text-align:right;display:none;">累计领取</th>
             <th class="sum-col sortable-header" data-sort="use_pv" style="text-align:right;display:none;">累计核销</th>
+            <th class="sortable-header" data-sort="hb_exp" style="text-align:right;color:#7c3aed;">曝光环比</th>
+            <th class="sortable-header" data-sort="hb_claim" style="text-align:right;color:#7c3aed;">领取环比</th>
+            <th class="sortable-header" data-sort="hb_use" style="text-align:right;color:#7c3aed;">核销环比</th>
             <th style="text-align:right;">曝光→领取</th>
             <th style="text-align:right;">领取→核销</th>
             <th style="text-align:right;">曝光→核销</th>
@@ -2675,6 +2678,10 @@ function aggCikaOnline(range) {
   const kaBrandsSet = new Set(Object.keys(CIKA_BRAND_DAILY_PV));
   const dates = getCikaDateWindow(range);
   const dateSet = new Set(dates);
+  // 向前滚动的上一等长窗口（用于环比）：紧邻当前窗口之前、长度相同的区间
+  const _prevStart = Math.max(0, CIKA_DATES.length - 2 * range);
+  const _prevEnd = Math.max(0, CIKA_DATES.length - range);
+  const prevSet = new Set(CIKA_DATES.slice(_prevStart, _prevEnd));
   // 先算分母：同窗口内每个品牌的"全活动 PV 合计"（活动表同源）
   const brandTotal = {};  // brand_name → {exp_total, use_total}
   for (const r of CIKA_BRAND_TOTAL_ROWS) {
@@ -2685,25 +2692,36 @@ function aggCikaOnline(range) {
     brandTotal[bn].exp_total += (r.exp_pv || 0);
     brandTotal[bn].use_total += (r.use_pv || 0);
   }
-  // 再算分子：次卡聚合
+  // 再算分子：次卡聚合（同时累计“当前窗口”与“上一窗口”，用于环比）
   const map = {};  // brand_name → {activities:Set, exp_pv, claim_pv, use_pv, ...}
   for (const r of CIKA_ACTIVITY_ROWS) {
-    if (!dateSet.has(r.date)) continue;
     const bn = r.brand_name;
     if (!bn) continue;
     if (!kaBrandsSet.has(bn)) continue;  // 过滤非 KA 品牌
+    const inCur = dateSet.has(r.date);
+    const inPrev = prevSet.has(r.date);
+    if (!inCur && !inPrev) continue;
     if (!map[bn]) {
       map[bn] = {
         brand_name: bn, brand_id: r.brand_id, category: r.category,
-        activities: new Set(), exp_pv: 0, claim_pv: 0, use_pv: 0,
+        activities: new Set(),
+        exp_pv: 0, claim_pv: 0, use_pv: 0,
+        exp_pv_prev: 0, claim_pv_prev: 0, use_pv_prev: 0,
         rows: []
       };
     }
     map[bn].activities.add(r.activity_id);
-    map[bn].exp_pv += (r.exp_pv || 0);
-    map[bn].claim_pv += (r.claim_pv || 0);
-    map[bn].use_pv += (r.use_pv || 0);
     map[bn].rows.push(r);
+    if (inCur) {
+      map[bn].exp_pv += (r.exp_pv || 0);
+      map[bn].claim_pv += (r.claim_pv || 0);
+      map[bn].use_pv += (r.use_pv || 0);
+    }
+    if (inPrev) {
+      map[bn].exp_pv_prev += (r.exp_pv || 0);
+      map[bn].claim_pv_prev += (r.claim_pv || 0);
+      map[bn].use_pv_prev += (r.use_pv || 0);
+    }
   }
 
   const rows = Object.values(map).map(x => {
@@ -2720,6 +2738,10 @@ function aggCikaOnline(range) {
       exp_use_rate: x.exp_pv > 0 ? x.use_pv / x.exp_pv : null,
       exp_share: bt.exp_total > 0 ? x.exp_pv / bt.exp_total : null,
       use_share: bt.use_total > 0 ? x.use_pv / bt.use_total : null,
+      // 环比：当前窗口 vs 上一等长窗口（null=无对照数据）
+      hb_exp:   (!x.exp_pv_prev)   ? null : (x.exp_pv   - x.exp_pv_prev)   / x.exp_pv_prev,
+      hb_claim: (!x.claim_pv_prev) ? null : (x.claim_pv - x.claim_pv_prev) / x.claim_pv_prev,
+      hb_use:   (!x.use_pv_prev)   ? null : (x.use_pv   - x.use_pv_prev)   / x.use_pv_prev,
     };
   });
   return rows;
@@ -2737,6 +2759,13 @@ function fmtShare(v) {
   const pct = (v * 100);
   const color = pct > 30 ? '#d97706' : pct > 10 ? '#059669' : '#0369a1';
   return `<span class="share-bar" style="color:${color};background:${color}1a;">${pct.toFixed(2)}%</span>`;
+}
+function fmtHb(v) {
+  if (v == null || !isFinite(v)) return '<span style="color:#94a3b8;">-</span>';
+  const p = v * 100;
+  const color = v > 0 ? '#16a34a' : v < 0 ? '#dc2626' : '#64748b';
+  const arrow = v > 0 ? '▲' : v < 0 ? '▼' : '–';
+  return `<span style="color:${color};font-weight:600;">${arrow} ${p>0?'+':''}${p.toFixed(1)}%</span>`;
 }
 
 function renderCikaTrendChart() {
@@ -2758,9 +2787,16 @@ function renderCikaTrendChart() {
   } else {
     cikaTrendChart.resize();
   }
-  const dates = getCikaDateWindow(cikaCurrentRange);
+  // 趋势图固定展示最近 N 天，与表格聚合窗口解耦；当前所选窗口用高亮带标出
+  const TREND_DAYS = 30;
+  const _allDates = CIKA_DATES;
+  const dates = _allDates.slice(Math.max(0, _allDates.length - TREND_DAYS));
   const dateSet = new Set(dates);
   const kaBrandsSet = new Set(Object.keys(CIKA_BRAND_DAILY_PV));
+  // 当前所选窗口（用于高亮带，x 轴值为 MM-DD）
+  const _curWin = getCikaDateWindow(cikaCurrentRange);
+  const _curStartM = _curWin.length ? _curWin[0].slice(5) : null;
+  const _curEndM = _curWin.length ? _curWin[_curWin.length - 1].slice(5) : null;
 
   // 按日聚合：如果聚焦品牌，只用该品牌；否则全部次卡（非 KA 品牌过滤）
   const sumByDate = {};
@@ -2777,8 +2813,8 @@ function renderCikaTrendChart() {
   const useArr = dates.map(d => sumByDate[d].use);
 
   const title = cikaActiveBrand
-    ? `📈 当前聚焦：${cikaActiveBrand} · 近 ${dates.length} 日趋势`
-    : `📈 全部次卡品牌汇总趋势 · 近 ${dates.length} 日（点下方品牌行可聚焦单品牌）`;
+    ? `📈 当前聚焦：${cikaActiveBrand} · 近 ${dates.length} 日趋势（高亮=所选窗口）`
+    : `📈 全部次卡品牌汇总趋势 · 近 ${dates.length} 日（高亮=所选窗口，点品牌行可聚焦）`;
   const titleEl = document.getElementById('cikaChartTitle');
   if (titleEl) titleEl.textContent = title;
   // 切换"回到全部"按钮显隐
@@ -2805,7 +2841,7 @@ function renderCikaTrendChart() {
       type: 'category',
       data: xDates,
       boundaryGap: false,
-      axisLabel: { fontSize: 11, interval: 0 },
+      axisLabel: { fontSize: 11, interval: Math.max(0, Math.floor(dates.length / 10)) },
     },
     yAxis: [
       { type: 'value', name: '曝光', nameTextStyle: { fontSize: 11 }, position: 'left',
@@ -2827,7 +2863,12 @@ function renderCikaTrendChart() {
       { name: '核销 PV', type: 'line', yAxisIndex: 1, data: useArr, smooth: true,
         showSymbol: true, symbolSize: 6,
         itemStyle: { color: '#ef4444' },
-        lineStyle: { width: 2 }
+        lineStyle: { width: 2 },
+        markArea: {
+          silent: true,
+          itemStyle: { color: 'rgba(124,58,237,0.10)' },
+          data: (_curStartM && _curEndM) ? [[{ xAxis: _curStartM }, { xAxis: _curEndM }]] : []
+        }
       },
     ],
   }, true);  // true = 不合并，重置 option 避免图例遗留
@@ -2886,6 +2927,9 @@ function renderCikaOnlineTable() {
       <td class="sum-col" style="text-align:right;color:#64748b;display:none;">${fmtPV(r.exp_pv)}</td>
       <td class="sum-col" style="text-align:right;color:#64748b;display:none;">${fmtPV(r.claim_pv)}</td>
       <td class="sum-col" style="text-align:right;color:#64748b;display:none;">${fmtPV(r.use_pv)}</td>
+      <td style="text-align:right;">${fmtHb(r.hb_exp)}</td>
+      <td style="text-align:right;">${fmtHb(r.hb_claim)}</td>
+      <td style="text-align:right;">${fmtHb(r.hb_use)}</td>
       <td style="text-align:right;color:#64748b;">${fmtPct6(r.exp_claim_rate)}</td>
       <td style="text-align:right;color:#64748b;">${fmtPct6(r.claim_use_rate)}</td>
       <td style="text-align:right;color:#64748b;">${fmtPct6(r.exp_use_rate)}</td>
@@ -4859,12 +4903,13 @@ async function renderCikaKpi() {
       }
       return out;
     }
-    var qsCika = 'select=date,use_pv&coupon_type=eq.' + encodeURIComponent('次卡') + '&date=gte.' + startStr + '&date=lte.' + endStr;
-    var qsAll  = 'select=date,use_pv&date=gte.' + startStr + '&date=lte.' + endStr;
-    var [cikaRows, allRows] = await Promise.all([fetchAll(qsCika), fetchAll(qsAll)]);
+    // 改用页面初始化已加载的全局数据（次卡明细 + 次卡品牌全活动分母 + KA白名单）
+    var kaSet = new Set(Object.keys(CIKA_BRAND_DAILY_PV || {}));
+    var cikaRows = CIKA_ACTIVITY_ROWS || [];   // 次卡活动明细（分子来源）
+    var allRows  = CIKA_BRAND_TOTAL_ROWS || []; // 次卡品牌全活动（分母来源）
     var byDateCika = {}, byDateAll = {};
-    cikaRows.forEach(function (r) { byDateCika[r.date] = (byDateCika[r.date]||0) + (Number(r.use_pv)||0); });
-    allRows.forEach (function (r) { byDateAll[r.date]  = (byDateAll[r.date] ||0) + (Number(r.use_pv)||0); });
+    cikaRows.forEach(function (r) { if (!kaSet.has(r.brand_name)) return; byDateCika[r.date] = (byDateCika[r.date]||0) + (Number(r.use_pv)||0); });
+    allRows.forEach (function (r) { if (!kaSet.has(r.brand_name)) return; byDateAll[r.date]  = (byDateAll[r.date] ||0) + (Number(r.use_pv)||0); });
     var dates = Object.keys(byDateCika).sort();
     var latestDate = dates[dates.length - 1];
     if (!latestDate) return;
@@ -4898,7 +4943,7 @@ async function renderCikaKpi() {
     setText('cikaKpiWowBase', 'vs ' + lastWeekDate + '（' + fmtNum(lwCika) + '）');
     var share = todayAll > 0 ? (todayCika / todayAll * 100) : null;
     setText('cikaKpiShare', share == null ? '-' : share.toFixed(1) + '%');
-    setText('cikaKpiShareDetail', '次卡 ' + fmtNum(todayCika) + ' / KA整体 ' + fmtNum(todayAll));
+    setText('cikaKpiShareDetail', '次卡 ' + fmtNum(todayCika) + ' / 次卡上线品牌整体 ' + fmtNum(todayAll));
   } catch (e) { console.warn('[cika kpi] ', e); }
 }
 
