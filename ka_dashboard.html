@@ -667,8 +667,8 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
         <span>📅 私域次卡上线时间线</span>
         <span style="font-size:11px;color:#94a3b8;font-weight:400;">按预计上线月份聚合（茶饮咖啡）</span>
       </div>
+      <div id="cikaPrivateTimeline" style="margin-bottom:12px;"></div>
       <div id="cikaPrivateGantt" style="width:100%;height:260px;"></div>
-      <div id="cikaPrivateTimeline" style="margin-top:12px;border-top:2px solid #e2e8f0;padding-top:12px;"></div>
     </div>
     <!-- 商户明细 -->
     <div class="section" style="margin-top:16px;">
@@ -741,6 +741,10 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 #panel-gouquan .gq-cum-bar .ci{font-size:12px;color:#64748b;}
 #panel-gouquan .gq-cum-bar .ci b{font-size:16px;display:block;margin-top:2px;color:#0f172a;font-weight:700;}
 #panel-gouquan .gq-note{margin-top:12px;background:#fff7e8;border:1px solid #ffe2b8;color:#a85d00;font-size:12px;border-radius:8px;padding:8px 12px;display:flex;gap:6px;align-items:flex-start;line-height:1.5;}
+#cika-subpanel-private .gq-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+#cika-subpanel-private .gq-kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;}
+#cika-subpanel-private .gq-kpi .label{color:#64748b;font-size:12px;}
+#cika-subpanel-private .gq-kpi .val{font-size:26px;font-weight:800;margin:6px 0 8px;letter-spacing:.5px;color:#0f172a;}
 #panel-gouquan .gq-range-switcher{display:inline-flex;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:12px;gap:2px;}
 #panel-gouquan .gq-table-wrap{margin-top:6px;overflow-x:auto;}
 #panel-gouquan .gq-table{width:100%;border-collapse:collapse;font-size:12.5px;}
@@ -839,6 +843,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
         </table>
       </div>
   </div>
+</div>
 
 <!-- ============ PANEL: 无忧会员 ============ -->
 <div class="project-panel" id="panel-wuyou">
@@ -5053,11 +5058,11 @@ function _cikaPrivateBaseBrands() {
 let PRIVATE_CIKA = {name:'',discount:'',cum:{claimPV:0,claimUV:0,redeemPV:0,redeemUV:0,pvRate:0,uvRate:0},batches:[]};
 async function loadPrivateCikaData(){
   try{
-    var c=await alertSb.from('ka_cika_private_coupon').select('*').limit(1).single();
-    if(!c.error&&c.data){
-      PRIVATE_CIKA.name=c.data.coupon_name;
-      PRIVATE_CIKA.discount=c.data.discount_desc;
-      PRIVATE_CIKA.cum={claimPV:c.data.cum_claim_pv||0,claimUV:c.data.cum_claim_uv||0,redeemPV:c.data.cum_redeem_pv||0,redeemUV:c.data.cum_redeem_uv||0,pvRate:c.data.cum_pv_rate||0,uvRate:c.data.cum_uv_rate||0};
+    var c=await alertSb.from('ka_cika_private_coupon').select('*').limit(1);
+    if(!c.error&&c.data&&c.data.length){
+      PRIVATE_CIKA.name=c.data[0].coupon_name;
+      PRIVATE_CIKA.discount=c.data[0].discount_desc;
+      PRIVATE_CIKA.cum={claimPV:c.data[0].cum_claim_pv||0,claimUV:c.data[0].cum_claim_uv||0,redeemPV:c.data[0].cum_redeem_pv||0,redeemUV:c.data[0].cum_redeem_uv||0,pvRate:c.data[0].cum_pv_rate||0,uvRate:c.data[0].cum_uv_rate||0};
     }
     var b=await alertSb.from('ka_cika_private_batches').select('*');
     if(!b.error&&b.data)PRIVATE_CIKA.batches=b.data.map(function(r){return{id:r.batch_id,round:r.batch_round,discount:r.discount,claimPV:r.claim_pv||0,claimUV:r.claim_uv||0,redeemPV:r.redeem_pv||0,redeemUV:r.redeem_uv||0,pvRate:r.pv_rate||0,uvRate:r.uv_rate||0}});
@@ -5087,7 +5092,7 @@ function renderPrivateCikaBatch(){
     legend:{top:4,data:['PV核销率','UV核销率']},
     grid:{left:60,right:40,top:40,bottom:50},
     xAxis:{type:'category',data:d.map(r=>r.round+'\n'+r.discount),axisLabel:{fontSize:11}},
-    yAxis:{type:'value',name:'核销率',min:0,max:1,axisLabel:{formatter:v=>(v*100).toFixed(0)+'%',fontSize:12}},
+    yAxis:{type:'value',name:'核销率',min:0,max:100,axisLabel:{formatter:v=>v.toFixed(0)+'%',fontSize:12}},
     series:[
       {name:'PV核销率',type:'line',data:d.map(r=>+(r.pvRate*100).toFixed(1)),smooth:true,
         symbol:'circle',symbolSize:10,lineStyle:{width:2,color:'#2f54eb'},itemStyle:{color:'#2f54eb'},
@@ -5103,19 +5108,17 @@ function renderPrivateCikaBatch(){
 function renderCikaPrivateTimeline() {
   var el = document.getElementById('cikaPrivateTimeline');
   if (!el) return;
-  // 默认内容（后期从 Supabase 读取）
-  var now = new Date();
-  var month = now.getMonth() + 1;
-  el.innerHTML =
-    '<div style="display:flex;gap:20px;font-size:12px;color:#475569;">'
-    + '<div style="flex:1;"><b style="color:#2563eb;">7月</b><br>'
-    + '<span>私域次卡平台塞券接口已同步，仅支持商品券2.0</span></div>'
-    + '<div style="width:1px;background:#e2e8f0;"></div>'
-    + '<div style="flex:1;"><b style="color:#d97706;">8-9月</b><br>'
-    + '<span class="cika-anno-edit" contenteditable="true" style="cursor:pointer;padding:2px 6px;border-radius:4px;display:inline-block;" data-month="8-9"'
-    + ' onblur="saveCikaAnno(this)"'
-    + ' title="点击编辑">进一步分析次卡领券组件测试效果，同步沟通2.0适用塞券次卡商户（建议优先通过智慧经营政策推动企迈开发）</span></div>'
-    + '</div>';
+  el.innerHTML=
+    '<div style="font-size:12px;color:#475569;line-height:1.8;">'
+    +'<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">'
+    +'<span style="background:#2563eb;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">\u5f53\u524d\u8fdb\u5c55</span>'
+    +'<span>\u79c1\u57df\u6b21\u5361\u5e73\u53f0\u585e\u5238\u63a5\u53e3\u5df2\u540c\u6b65\uff0c\u4ec5\u652f\u6301\u5546\u54c1\u52382.0</span>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;align-items:flex-start;">'
+    +'<span style="background:#d97706;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;">\u540e\u7eed\u89c4\u5212</span>'
+    +'<span class="cika-anno-edit" contenteditable="true" style="cursor:pointer;padding:2px 4px;border-radius:4px;" data-month="8-9" onblur="saveCikaAnno(this)" title="\u70b9\u51fb\u7f16\u8f91">\u8fdb\u4e00\u6b65\u5206\u6790\u6b21\u5361\u9886\u5238\u7ec4\u4ef6\u6d4b\u8bd5\u6548\u679c\uff0c\u540c\u6b65\u6c9f\u901a2.0\u9002\u7528\u585e\u5238\u6b21\u5361\u5546\u6237\uff08\u5efa\u8bae\u4f18\u5148\u901a\u8fc7\u667a\u6167\u7ecf\u8425\u653f\u7b56\u63a8\u52a8\u4f01\u8fc8\u5f00\u53d1\uff09</span>'
+    +'</div>'
+    +'</div>';
 }
 
 async function saveCikaAnno(el) {
@@ -5130,6 +5133,7 @@ async function saveCikaAnno(el) {
 }
 async function loadCikaPrivate() {
   try {
+    var gqEl=document.getElementById('gqKpiToday');if(gqEl)gqEl.innerHTML='<div style="text-align:center;padding:20px;color:#94a3b8;">⏳ 加载数据中...<\/div>';
     await loadPrivateCikaData();
     renderPrivateCikaKpi();
     renderPrivateCikaBatch();
@@ -5174,7 +5178,7 @@ function renderCikaPrivateTable() {
       '<\/div>';
     var monthSel = '<select data-brand="'+esc(r.brand_name)+'" data-fld="planned_month" class="cika-priv-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">'+
       '<option value="">\u2014<\/option>'+
-      PLAN_MONTHS.map(function(m){return '<option value="'+m+'"'+(m===r.planned_month?' selected':'')+'>'+MONTH_LABELS[m]+'<\/option>'}).join('')+'<\/select>';
+      PLAN_MONTHS.map(function(m, idx){return '<option value="'+m+'"'+(m===r.planned_month?' selected':'')+'>'+MONTH_LABELS[m]+'<\/option>'}).join('')+'<\/select>';
     var remarkInp = '<input type="text" data-brand="'+esc(r.brand_name)+'" data-fld="remark" class="cika-priv-input" value="'+esc(r.remark)+'" placeholder="\u5907\u6ce8..." style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">';
     var upd = r.updated_at ? new Date(r.updated_at).toLocaleString('zh-CN',{hour12:false}).slice(0,16) : '<span style="color:#cbd5e1;">\u2014<\/span>';
     return '<tr>'+
@@ -5270,15 +5274,16 @@ function renderCikaPrivateGantt() {
   var el = document.getElementById('cikaPrivateGantt');
   if (!el || !window.echarts) return;
   var chart = echarts.getInstanceByDom(el) || echarts.init(el);
-  var seq = _monthCounts(_cikaPrivateData, function (r) { return r.cika_scheme && r.cika_scheme.indexOf('\u585e\u5238')>=0 && r.intent !== '\u5df2\u62d2\u7edd'; });
-  var comp = _monthCounts(_cikaPrivateData, function (r) { return r.cika_scheme && r.cika_scheme.indexOf('\u9886\u5238\u7ec4\u4ef6')>=0 && r.intent !== '\u5df2\u62d2\u7edd'; });
-  var other = _monthCounts(_cikaPrivateData, function (r) { return (!r.cika_scheme || (r.cika_scheme.indexOf('\u585e\u5238')<0 && r.cika_scheme.indexOf('\u9886\u5238\u7ec4\u4ef6')<0)) && r.intent !== '\u5df2\u62d2\u7edd' && r.planned_month; });
+  var total = _monthCounts(_cikaPrivateData, function (r) { return r.intent !== '\u5df2\u62d2\u7edd'; });
   var xLabels = PLAN_MONTHS.map(function (m) { return MONTH_LABELS[m]; });
-  function brandList(monthIdx, schemeCheck, intentCheck){
-    return _cikaPrivateData.filter(function(r){
-      return r.planned_month===PLAN_MONTHS[monthIdx] && schemeCheck(r) && intentCheck(r);
-    }).map(function(r){return r.brand_name}).join(', ');
+  // 每月品牌名列表
+  function brandNames(m){
+    return _cikaPrivateData.filter(function(r){return r.planned_month===m&&r.intent!=='\u5df2\u62d2\u7edd'}).map(function(r){return r.brand_name}).join('\u3001');
   }
+  var subLabels = PLAN_MONTHS.map(function(m, idx){
+    var b = _cikaPrivateData.filter(function(r){return r.planned_month===m&&r.intent!=='\u5df2\u62d2\u7edd'});
+    return b.length ? (PLAN_MONTHS[idx]<='2026-07'?'\u5df2\u4e0a\u7ebf':'\u9884\u8ba1'+b.length+'\u5bb6\u4e0a\u7ebf')+'\uff1a'+b.map(function(r){return r.brand_name}).join('\u3001') : '';
+  });
   chart.setOption({
     tooltip: {
       trigger: 'axis', axisPointer: { type: 'shadow' },
@@ -5286,32 +5291,35 @@ function renderCikaPrivateGantt() {
         var idx = params[0].dataIndex;
         var m = PLAN_MONTHS[idx];
         var txt = '<b>'+MONTH_LABELS[m]+'</b><br/>';
-        var seqBrands = _cikaPrivateData.filter(function(r){return r.planned_month===m && r.cika_scheme&&r.cika_scheme.indexOf('\u585e\u5238')>=0&&r.intent!=='\u5df2\u62d2\u7edd'}).map(function(r){return r.brand_name});
-        var compBrands = _cikaPrivateData.filter(function(r){return r.planned_month===m && r.cika_scheme&&r.cika_scheme.indexOf('\u9886\u5238\u7ec4\u4ef6')>=0&&r.intent!=='\u5df2\u62d2\u7edd'}).map(function(r){return r.brand_name});
-        var oBrands = _cikaPrivateData.filter(function(r){return r.planned_month===m && (!r.cika_scheme||(r.cika_scheme.indexOf('\u585e\u5238')<0&&r.cika_scheme.indexOf('\u9886\u5238\u7ec4\u4ef6')<0))&&r.intent!=='\u5df2\u62d2\u7edd'&&r.planned_month}).map(function(r){return r.brand_name});
-        if(seqBrands.length) txt += '\u585e\u5238\uff1a'+seqBrands.join(', ')+' ('+seqBrands.length+'\u5bb6)<br/>';
-        if(compBrands.length) txt += '\u9886\u5238\u7ec4\u4ef6\uff1a'+compBrands.join(', ')+' ('+compBrands.length+'\u5bb6)<br/>';
-        if(oBrands.length) txt += '\u672a\u5b9a\u65b9\u6848\uff1a'+oBrands.join(', ')+' ('+oBrands.length+'\u5bb6)';
+        var brands = _cikaPrivateData.filter(function(r){return r.planned_month===m&&r.intent!=='\u5df2\u62d2\u7edd'}).map(function(r){return r.brand_name});
+        if(brands.length) txt += brands.join('\u3001')+' ('+brands.length+'\u5bb6)';
         return txt;
       }
     },
-    legend: { top: 24, data: ['\u585e\u5238','\u9886\u5238\u7ec4\u4ef6','\u672a\u5b9a\u65b9\u6848'] },
-    grid: { top: 90, left: 50, right: 30, bottom: 40 },
-    xAxis: { type: 'category', data: xLabels, axisLabel: { fontSize: 12 } },
+    grid: { top: 40, left: 50, right: 30, bottom: 100 },
+    xAxis: {
+      type: 'category', data: xLabels, axisLabel: { interval:0, fontSize: 12,
+        formatter: function(val, idx){
+          var s = subLabels[idx];
+          return s ? '{month|'+val+'}\n{label|'+s+'}':'{month|'+val+'}';
+        },
+        rich: {
+          month: { fontSize: 12, fontWeight: 600, color: '#0f172a' },
+          label: { fontSize: 10, color: '#475569', lineHeight: 18, padding: [2,0,0,0] }
+        }
+      }
+    },
     yAxis: { type: 'value', minInterval: 1, name: '\u54c1\u724c\u6570', nameTextStyle: { fontSize: 11 } },
-    series: [
-      { name: '\u585e\u5238', type: 'bar', stack: 's', color: '#7c3aed', data: seq, barMaxWidth: 40,
-        label: { show: true, position: 'inside', color: '#fff', fontSize: 11, formatter: function(p){ return p.value>0?p.value:''; } },
-        markLine: { silent:true, symbol:['none','none'], lineStyle:{color:'#dc2626',width:2,type:'solid'},
-          label:{show:true,position:'end',formatter:'\u23f0 7/10 \u585e\u5238\u63a5\u53e3\u5c31\u7eea',color:'#dc2626',fontWeight:700,fontSize:11,backgroundColor:'#fee2e2',padding:[3,6],borderRadius:3,rotate:0,distance:6},
-          data:[{xAxis:'7\u6708'}] },
-        markArea: { silent:true, itemStyle:{color:'rgba(220,38,38,0.06)'}, data:[[{xAxis:'7\u6708',name:'\u63a5\u53e3\u5c31\u7eea\u7a97\u53e3'},{xAxis:'8\u6708'}]] }
-      },
-      { name: '\u9886\u5238\u7ec4\u4ef6', type: 'bar', stack: 's', color: '#3b82f6', data: comp, barMaxWidth: 40,
-        label: { show: true, position: 'inside', color: '#fff', fontSize: 11, formatter: function(p){ return p.value>0?p.value:''; } } },
-      { name: '\u672a\u5b9a\u65b9\u6848', type: 'bar', stack: 's', color: '#94a3b8', data: other, barMaxWidth: 40,
-        label: { show: true, position: 'top', color: '#0f172a', fontSize: 11, formatter: function(p){ var total = seq[p.dataIndex]+comp[p.dataIndex]+other[p.dataIndex]; return total>0?('\u603b '+total):''; } } }
-    ]
+    series: [{
+      name: '\u5546\u6237\u6570', type: 'bar', color: '#3b82f6', data: total, barMaxWidth: 40,
+      label: { show: true, position: 'top', color: '#0f172a', fontSize: 12, fontWeight: 700, formatter: function(p){ return p.value>0?p.value+'\u5bb6':''; } },
+      markLine: {
+        silent: true, symbol: ['none','none'],
+        lineStyle: { color: '#dc2626', width: 2, type: 'dashed' },
+        label: { show: true, position: 'end', color: '#dc2626', fontSize: 11, formatter: '\u25b6 \u5f53\u524d\u65e5\u671f' },
+        data: [{ xAxis: '7\u6708' }]
+      }
+    }]
   }, true);
   setTimeout(function () { chart.resize(); }, 30);
 }
@@ -5723,10 +5731,13 @@ async function fetchGouquanFromSupabase() {
   const URL = ALERT_SUPABASE_URL, KEY = ALERT_SUPABASE_KEY;
   const api = (t,q) => fetch(URL+'/rest/v1/'+t+'?'+q,{headers:{apikey:KEY,Accept:'application/json'}}).then(r=>{if(!r.ok)throw Error(t+' '+r.status);return r.json()});
   try {
-    const actRows=await api('ka_activity_daily','activity_id=in.(57973,57976)&select=date,activity_id,activity_name,exp_pv,claim_pv,use_pv&order=date.asc');
-    const subRows=await api('ka_gouquan_subsidy','select=date,trade_cnt,trade_amt,redeem_amt&order=date.asc');
-    const chRows=await api('ka_channel_daily','brand_id=eq.1743&select=date,act_id,act_name,channel,exp_pv,claim_pv,use_pv&order=date.asc');
-    const lyRows=await api('ka_user_layer','select=act_id,layer,bg_uv,bg_pv,lq_uv,lq_pv,hx_uv,hx_pv,as_of_date');
+    var gqEl=document.getElementById('gqKpiToday');if(gqEl)gqEl.innerHTML='<div style="text-align:center;padding:20px;color:#94a3b8;">⏳ 加载数据中...<\/div>';
+    var [actRows,subRows,chRows,lyRows]=await Promise.all([
+      api('ka_activity_daily','activity_id=in.(57973,57976)&select=date,activity_id,activity_name,exp_pv,claim_pv,use_pv&order=date.asc'),
+      api('ka_gouquan_subsidy','select=date,trade_cnt,trade_amt,redeem_amt&order=date.asc'),
+      api('ka_channel_daily','brand_id=eq.1743&select=date,act_id,act_name,channel,exp_pv,claim_pv,use_pv&order=date.asc'),
+      api('ka_user_layer','select=act_id,layer,bg_uv,bg_pv,lq_uv,lq_pv,hx_uv,hx_pv,as_of_date')
+    ]);
     const D={},dates=[],actMap={},trend=[],detail_raw={};
     for(const r of actRows){const d=r.date.slice(5).replace('-','');if(!D[d]){D[d]=true;dates.push(d)}if(!detail_raw[d])detail_raw[d]={};detail_raw[d][String(r.activity_id)]={exp:r.exp_pv,claim:r.claim_pv,use:r.use_pv,name:r.activity_name};actMap[r.activity_id]=r.activity_name}
     dates.sort();for(const d of dates){let e=0,c=0,u=0;for(const k in detail_raw[d]||{}){e+=detail_raw[d][k].exp||0;c+=detail_raw[d][k].claim||0;u+=detail_raw[d][k].use||0}trend.push({date:d,exp:e||null,claim:c||null,use:u||null})}
