@@ -668,6 +668,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
         <span style="font-size:11px;color:#94a3b8;font-weight:400;">按预计上线月份聚合（茶饮咖啡）</span>
       </div>
       <div id="cikaPrivateGantt" style="width:100%;height:260px;"></div>
+      <div id="cikaPrivateTimeline" style="margin-top:12px;border-top:2px solid #e2e8f0;padding-top:12px;"></div>
     </div>
     <!-- 商户明细 -->
     <div class="section" style="margin-top:16px;">
@@ -5048,64 +5049,91 @@ function _cikaPrivateBaseBrands() {
   return (KA_DATA.brands || []).filter(function (b) { return b['品类'] === '饮品' || b['品类'] === '茶饮咖啡'; });
 }
 
-async // ============ 私域次卡商品券数据 ============
-const PRIVATE_CIKA = {
-  name: '\u745e\u5e78\u5496\u5561\u8d85\u503c5\u6b21\u5361',
-  discount: '\u7b2c\u4e00\u7b146.3\u6298 / \u7b2c\u4e8c\u7b146.2\u6298 / \u7b2c\u4e09\u7b145.8\u6298 / \u7b2c\u56db\u7b145.5\u6298 / \u7b2c\u4e94\u7b145.3\u6298',
-  cum: { claimPV: 80863, claimUV: 64579, redeemPV: 27310, redeemUV: 17178, pvRate: 0.3377, uvRate: 0.2659 },
-  batches: [
-    { id: '1216010000003302', round: '\u7b2c\u4e00\u7b14', discount: '6.3\u6298', claimPV: 55695, claimUV: 55695, redeemPV: 17178, redeemUV: 17178, pvRate: 0.3084, uvRate: 0.3084 },
-    { id: '1216010000003303', round: '\u7b2c\u4e8c\u7b14', discount: '6.2\u6298', claimPV: 15945, claimUV: 15945, redeemPV: 7386, redeemUV: 7386, pvRate: 0.4632, uvRate: 0.4632 },
-    { id: '1216010000003304', round: '\u7b2c\u4e09\u7b14', discount: '5.8\u6298', claimPV: 7164, claimUV: 7164, redeemPV: 1520, redeemUV: 1520, pvRate: 0.2122, uvRate: 0.2122 },
-    { id: '1216010000003305', round: '\u7b2c\u56db\u7b14', discount: '5.5\u6298', claimPV: 1376, claimUV: 1376, redeemPV: 769, redeemUV: 769, pvRate: 0.5589, uvRate: 0.5589 },
-    { id: '1216010000003306', round: '\u7b2c\u4e94\u7b14', discount: '5.3\u6298', claimPV: 683, claimUV: 683, redeemPV: 457, redeemUV: 457, pvRate: 0.6691, uvRate: 0.6691 },
-  ]
-};
+// ============ 私域次卡商品券数据 ============
+let PRIVATE_CIKA = {name:'',discount:'',cum:{claimPV:0,claimUV:0,redeemPV:0,redeemUV:0,pvRate:0,uvRate:0},batches:[]};
+async function loadPrivateCikaData(){
+  try{
+    var c=await alertSb.from('ka_cika_private_coupon').select('*').limit(1).single();
+    if(!c.error&&c.data){
+      PRIVATE_CIKA.name=c.data.coupon_name;
+      PRIVATE_CIKA.discount=c.data.discount_desc;
+      PRIVATE_CIKA.cum={claimPV:c.data.cum_claim_pv||0,claimUV:c.data.cum_claim_uv||0,redeemPV:c.data.cum_redeem_pv||0,redeemUV:c.data.cum_redeem_uv||0,pvRate:c.data.cum_pv_rate||0,uvRate:c.data.cum_uv_rate||0};
+    }
+    var b=await alertSb.from('ka_cika_private_batches').select('*');
+    if(!b.error&&b.data)PRIVATE_CIKA.batches=b.data.map(function(r){return{id:r.batch_id,round:r.batch_round,discount:r.discount,claimPV:r.claim_pv||0,claimUV:r.claim_uv||0,redeemPV:r.redeem_pv||0,redeemUV:r.redeem_uv||0,pvRate:r.pv_rate||0,uvRate:r.uv_rate||0}});
+    console.log('[cika private] Supabase数据加载完成',PRIVATE_CIKA.name,PRIVATE_CIKA.batches.length+'批次');
+  }catch(e){console.error('[cika private]',e)}
+}
 function renderPrivateCikaKpi() {
   const d=PRIVATE_CIKA; const c=d.cum;
   function fmt(n){return n.toLocaleString()}
   function pct(r){return (r*100).toFixed(2)+'%'}
-  const html=
+  document.getElementById('privateCikaKpi').innerHTML=
     '<div style="margin-bottom:12px;font-size:13px;color:#0f172a;background:#f1f5f9;border-radius:8px;padding:10px 14px;line-height:1.6;">'
     +'<b>'+d.name+'</b> &nbsp;|&nbsp; 折扣力度：'+d.discount
     +'</div>'
     +'<div class="gq-kpi-row">'
-    +'<div class="gq-kpi"><div class="label">\u7d2f\u8ba1\u9886\u53d6PV</div><div class="val">'+fmt(c.claimPV)+'</div><div class="gq-cmp">\u7d2f\u8ba1\u9886\u53d6UV <b>'+fmt(c.claimUV)+'</b></div></div>'
-    +'<div class="gq-kpi"><div class="label">\u7d2f\u8ba1\u6838\u9500PV</div><div class="val">'+fmt(c.redeemPV)+'</div><div class="gq-cmp">\u7d2f\u8ba1\u6838\u9500UV <b>'+fmt(c.redeemUV)+'</b></div></div>'
-    +'<div class="gq-kpi"><div class="label">PV\u6838\u9500\u7387</div><div class="val" style="color:#2563eb;">'+pct(c.pvRate)+'</div><div class="gq-cmp">UV\u6838\u9500\u7387 <b style="color:#2563eb;">'+pct(c.uvRate)+'</b></div></div>'
+    +'<div class="gq-kpi"><div class="label">累计领取 <span style="font-size:11px;color:#94a3b8;">· UV '+fmt(c.claimUV)+'</span></div><div class="val">'+fmt(c.claimPV)+'</div></div>'
+    +'<div class="gq-kpi"><div class="label">累计核销 <span style="font-size:11px;color:#94a3b8;">· UV '+fmt(c.redeemUV)+'</span></div><div class="val">'+fmt(c.redeemPV)+'</div></div>'
+    +'<div class="gq-kpi"><div class="label">领取核销率 <span style="font-size:11px;color:#94a3b8;">· UV '+pct(c.uvRate)+'</span></div><div class="val" style="color:#2563eb;">'+pct(c.pvRate)+'</div></div>'
     +'</div>';
-  document.getElementById('privateCikaKpi').innerHTML=html;
 }
 function renderPrivateCikaBatch(){
   const d=PRIVATE_CIKA.batches; const el=document.getElementById('privateCikaBatchChart');
   if(!el||typeof echarts==='undefined')return;
   const ch=echarts.getInstanceByDom(el)||echarts.init(el);
   ch.setOption({
-    tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
-    legend:{top:4,data:['\u9886\u53d6PV','PV\u6838\u9500\u7387','UV\u6838\u9500\u7387']},
-    grid:{left:60,right:80,top:40,bottom:40},
+    tooltip:{trigger:'axis'},
+    legend:{top:4,data:['PV核销率','UV核销率']},
+    grid:{left:60,right:40,top:40,bottom:50},
     xAxis:{type:'category',data:d.map(r=>r.round+'\n'+r.discount),axisLabel:{fontSize:11}},
-    yAxis:[
-      {type:'value',name:'\u9886\u53d6PV',nameTextStyle:{fontSize:11,color:'#7c8cff'},axisLabel:{fontSize:11}},
-      {type:'value',name:'\u6838\u9500\u7387',nameTextStyle:{fontSize:11,color:'#2f54eb'},min:0,max:1,axisLabel:{formatter:v=>(v*100).toFixed(0)+'%',fontSize:11}}
-    ],
+    yAxis:{type:'value',name:'核销率',min:0,max:1,axisLabel:{formatter:v=>(v*100).toFixed(0)+'%',fontSize:12}},
     series:[
-      {name:'\u9886\u53d6PV',type:'bar',yAxisIndex:0,data:d.map(r=>r.claimPV),itemStyle:{color:'#7c8cff'},barMaxWidth:50,
-        label:{show:true,position:'top',fontSize:10,formatter:p=>p.value?p.value.toLocaleString():''}},
-      {name:'PV\u6838\u9500\u7387',type:'line',yAxisIndex:1,data:d.map(r=>+(r.pvRate*100).toFixed(1)),smooth:true,
-        symbol:'circle',symbolSize:8,lineStyle:{width:2,color:'#2f54eb'},itemStyle:{color:'#2f54eb'},
-        label:{show:true,position:'bottom',fontSize:11,formatter:p=>p.value?p.value+'%':'',color:'#2f54eb'}},
-      {name:'UV\u6838\u9500\u7387',type:'line',yAxisIndex:1,data:d.map(r=>+(r.uvRate*100).toFixed(1)),smooth:true,
-        symbol:'diamond',symbolSize:8,lineStyle:{width:2,type:'dashed',color:'#f59e0b'},itemStyle:{color:'#f59e0b'},
-        label:{show:true,position:'top',fontSize:11,formatter:p=>p.value?p.value+'%':'',color:'#f59e0b'}}
+      {name:'PV核销率',type:'line',data:d.map(r=>+(r.pvRate*100).toFixed(1)),smooth:true,
+        symbol:'circle',symbolSize:10,lineStyle:{width:2,color:'#2f54eb'},itemStyle:{color:'#2f54eb'},
+        label:{show:true,position:'bottom',fontSize:12,formatter:p=>p.value?p.value+'%':'',color:'#2f54eb'}},
+      {name:'UV核销率',type:'line',data:d.map(r=>+(r.uvRate*100).toFixed(1)),smooth:true,
+        symbol:'diamond',symbolSize:10,lineStyle:{width:2,type:'dashed',color:'#f59e0b'},itemStyle:{color:'#f59e0b'},
+        label:{show:true,position:'top',fontSize:12,formatter:p=>p.value?p.value+'%':'',color:'#f59e0b'}}
     ]
   },true);
   if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>ch.resize()).observe(el);
 }
+
+function renderCikaPrivateTimeline() {
+  var el = document.getElementById('cikaPrivateTimeline');
+  if (!el) return;
+  // 默认内容（后期从 Supabase 读取）
+  var now = new Date();
+  var month = now.getMonth() + 1;
+  el.innerHTML =
+    '<div style="display:flex;gap:20px;font-size:12px;color:#475569;">'
+    + '<div style="flex:1;"><b style="color:#2563eb;">7月</b><br>'
+    + '<span>私域次卡平台塞券接口已同步，仅支持商品券2.0</span></div>'
+    + '<div style="width:1px;background:#e2e8f0;"></div>'
+    + '<div style="flex:1;"><b style="color:#d97706;">8-9月</b><br>'
+    + '<span class="cika-anno-edit" contenteditable="true" style="cursor:pointer;padding:2px 6px;border-radius:4px;display:inline-block;" data-month="8-9"'
+    + ' onblur="saveCikaAnno(this)"'
+    + ' title="点击编辑">进一步分析次卡领券组件测试效果，同步沟通2.0适用塞券次卡商户（建议优先通过智慧经营政策推动企迈开发）</span></div>'
+    + '</div>';
+}
+
+async function saveCikaAnno(el) {
+  var content = el.textContent.trim();
+  if (!content) return;
+  try {
+    await alertSb.from('ka_cika_private_annotations').upsert(
+      { month_label: el.dataset.month, content: content, editable: true },
+      { onConflict: 'month_label' }
+    );
+  } catch(e) { console.error('[cika anno]', e); }
+}
 async function loadCikaPrivate() {
   try {
+    await loadPrivateCikaData();
     renderPrivateCikaKpi();
     renderPrivateCikaBatch();
+    renderCikaPrivateTimeline();
     var rows = await alertSb.from('ka_cika_private_brands').select('*').eq('is_active', true);
     if (rows.error) throw rows.error;
     _cikaPrivateData = rows.data || [];
@@ -5124,54 +5152,69 @@ function renderCikaPrivateTable() {
   var byName = {};
   _cikaPrivateData.forEach(function (r) { byName[r.brand_name] = r; });
   var rows = base.map(function (b) {
-    var rec = byName[b['品牌']] || {};
+    var rec = byName[b['\u54c1\u724c']] || {};
     return {
-      brand_name: b['品牌'],
-      brand_id: b['品牌id'] || '',
-      owner: b['负责人'] || '',
-      category: b['品类'],
-      intent: rec.intent || '',
-      cika_scheme: rec.cika_scheme || '',
-      planned_month: rec.planned_month || '',
-      remark: rec.remark || '',
-      updated_at: rec.updated_at || '',
-      db_id: rec.id || null
+      brand_name: b['\u54c1\u724c'], brand_id: b['\u54c1\u724cid'] || '', owner: b['\u8d1f\u8d23\u4eba'] || '',
+      intent: rec.intent || '', cika_scheme: rec.cika_scheme || '',
+      planned_month: rec.planned_month || '', remark: rec.remark || '', updated_at: rec.updated_at || ''
     };
   });
-  document.getElementById('cikaPrivateCount').textContent = rows.length + ' 家';
-  var esc = function (s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); };
-  tbody.innerHTML = rows.map(function (r, i) {
-    var intentBadge = r.intent
-      ? ('<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:' +
-        (r.intent === '有意愿' ? '#dcfce7' : r.intent === '评估中' ? '#fef3c7' : '#fee2e2') + ';color:' +
-        (r.intent === '有意愿' ? '#15803d' : r.intent === '评估中' ? '#92400e' : '#b91c1c') + ';">' + r.intent + '</span>')
-      : '<span style="color:#cbd5e1;">—</span>';
-    var intentSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="intent" class="cika-priv-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
-      '<option value="">—</option>' +
-      CIKA_INTENT_OPTS.map(function (o) { return '<option value="' + o + '"' + (o === r.intent ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>';
-    var schemeSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="cika_scheme" class="cika-priv-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
-      '<option value="">—</option>' +
-      CIKA_SCHEME_OPTS.map(function (o) { return '<option value="' + o + '"' + (o === r.cika_scheme ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>';
-    var monthSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="planned_month" class="cika-priv-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
-      '<option value="">—</option>' +
-      PLAN_MONTHS.map(function (m) { return '<option value="' + m + '"' + (m === r.planned_month ? ' selected' : '') + '>' + MONTH_LABELS[m] + '</option>'; }).join('') + '</select>';
-    var remarkInp = '<input type="text" data-brand="' + esc(r.brand_name) + '" data-fld="remark" class="cika-priv-input" value="' + esc(r.remark) + '" placeholder="备注..." style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">';
-    var upd = r.updated_at ? new Date(r.updated_at).toLocaleString('zh-CN', { hour12: false }).slice(0, 16) : '<span style="color:#cbd5e1;">—</span>';
-    return '<tr>' +
-      '<td style="text-align:center;color:#94a3b8;font-size:12px;">' + (i + 1) + '</td>' +
-      '<td style="font-weight:600;color:#0f172a;">' + esc(r.brand_name) + '</td>' +
-      '<td style="color:#64748b;font-size:12px;">' + esc(r.brand_id) + '</td>' +
-      '<td style="color:#475569;font-size:12px;">' + esc(r.owner) + '</td>' +
-      '<td>' + intentSel + '</td>' +
-      '<td>' + schemeSel + '</td>' +
-      '<td>' + monthSel + '</td>' +
-      '<td>' + remarkInp + '</td>' +
-      '<td style="color:#94a3b8;font-size:11px;">' + upd + '</td>' +
-      '</tr>';
-  }).join('');
-  tbody.querySelectorAll('.cika-priv-input').forEach(function (el) {
-    el.addEventListener('change', function () { saveCikaPrivate(el.dataset.brand); });
-    el.addEventListener('blur',   function () { if (el.dataset.fld === 'remark') saveCikaPrivate(el.dataset.brand); });
+  var willing = rows.filter(function(r){return r.intent==='\u6709\u610f\u613f'});
+  var others = rows.filter(function(r){return r.intent!=='\u6709\u610f\u613f'});
+  document.getElementById('cikaPrivateCount').textContent = willing.length+' / '+rows.length+' \u5bb6\u6709\u610f\u613f';
+  var esc = function(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;')};
+  function renderRow(r,i){
+    var intentSel = '<select data-brand="'+esc(r.brand_name)+'" data-fld="intent" class="cika-priv-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">'+
+      '<option value="">\u2014<\/option>'+
+      CIKA_INTENT_OPTS.map(function(o){return '<option value="'+o+'"'+(o===r.intent?' selected':'')+'>'+o+'<\/option>'}).join('')+'<\/select>';
+    var schemeOpts = r.cika_scheme ? r.cika_scheme.split(',') : [];
+    var schemeHtml = '<div style="white-space:nowrap;">'+
+      '<label style="margin-right:8px;font-size:12px;"><input type="checkbox" class="cika-priv-input" data-brand="'+esc(r.brand_name)+'" data-fld="cika_scheme" value="\u9886\u5238\u7ec4\u4ef6"'+(schemeOpts.indexOf('\u9886\u5238\u7ec4\u4ef6')>=0?' checked':'')+'> \u9886\u5238\u7ec4\u4ef6<\/label>'+
+      '<label style="font-size:12px;"><input type="checkbox" class="cika-priv-input" data-brand="'+esc(r.brand_name)+'" data-fld="cika_scheme" value="\u585e\u5238"'+(schemeOpts.indexOf('\u585e\u5238')>=0?' checked':'')+'> \u585e\u5238<\/label>'+
+      '<\/div>';
+    var monthSel = '<select data-brand="'+esc(r.brand_name)+'" data-fld="planned_month" class="cika-priv-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">'+
+      '<option value="">\u2014<\/option>'+
+      PLAN_MONTHS.map(function(m){return '<option value="'+m+'"'+(m===r.planned_month?' selected':'')+'>'+MONTH_LABELS[m]+'<\/option>'}).join('')+'<\/select>';
+    var remarkInp = '<input type="text" data-brand="'+esc(r.brand_name)+'" data-fld="remark" class="cika-priv-input" value="'+esc(r.remark)+'" placeholder="\u5907\u6ce8..." style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">';
+    var upd = r.updated_at ? new Date(r.updated_at).toLocaleString('zh-CN',{hour12:false}).slice(0,16) : '<span style="color:#cbd5e1;">\u2014<\/span>';
+    return '<tr>'+
+      '<td style="text-align:center;color:#94a3b8;font-size:12px;">'+(i+1)+'<\/td>'+
+      '<td style="font-weight:600;color:#0f172a;">'+esc(r.brand_name)+'<\/td>'+
+      '<td style="color:#64748b;font-size:12px;">'+esc(r.brand_id)+'<\/td>'+
+      '<td style="color:#475569;font-size:12px;">'+esc(r.owner)+'<\/td>'+
+      '<td>'+intentSel+'<\/td>'+
+      '<td>'+schemeHtml+'<\/td>'+
+      '<td>'+monthSel+'<\/td>'+
+      '<td>'+remarkInp+'<\/td>'+
+      '<td style="color:#94a3b8;font-size:11px;">'+upd+'<\/td>'+
+      '<\/tr>';
+  }
+  var html = willing.map(function(r,i){return renderRow(r,i)}).join('');
+  if(others.length>0){
+    var ot = 'cikaOtherToggle';
+    html += '<tr class="cika-toggle-row" style="background:#f8fafc;cursor:pointer;">'+
+      '<td colspan="9" style="text-align:center;font-size:13px;color:#3b82f6;padding:8px;">\u25b6 \u663e\u793a\u5176\u4ed6\u54c1\u724c ('+others.length+'\u5bb6)<\/td><\/tr>'+
+      others.map(function(r,i){return renderRow(r,i).replace(/<tr/g,'<tr class="cika-other" style="display:none;"')}).join('');
+  }
+  tbody.innerHTML = html;
+  var toggleRow = tbody.querySelector('.cika-toggle-row');
+  if(toggleRow){
+    toggleRow.onclick = function(){
+      var rows = tbody.querySelectorAll('.cika-other');
+      var h = rows.length>0 && rows[0].style.display==='none';
+      rows.forEach(function(r){r.style.display = h ? '' : 'none'});
+      toggleRow.querySelector('td').innerHTML = h
+        ? '\u25bc \u6536\u8d77\u5176\u4ed6\u54c1\u724c ('+others.length+'\u5bb6)'
+        : '\u25b6 \u663e\u793a\u5176\u4ed6\u54c1\u724c ('+others.length+'\u5bb6)';
+    };
+  }
+  tbody.querySelectorAll('.cika-priv-input').forEach(function(el){
+    if(el.tagName==='INPUT'&&el.type==='checkbox'){
+      el.addEventListener('change',function(){saveCikaPrivate(el.dataset.brand)});
+    }else{
+      el.addEventListener('change',function(){saveCikaPrivate(el.dataset.brand)});
+      el.addEventListener('blur',function(){if(el.dataset.fld==='remark')saveCikaPrivate(el.dataset.brand)});
+    }
   });
 }
 
@@ -5184,7 +5227,7 @@ async function saveCikaPrivate(brandName) {
   payload.brand_id = b['品牌id'] ? Number(b['品牌id']) : null;
   payload.category = b['品类'] || null;
   payload.owner = b['负责人'] || null;
-  inputs.forEach(function (el) { payload[el.dataset.fld] = el.value.trim() || null; });
+  var chk={};inputs.forEach(function(el){if(el.type==='checkbox'){var f=el.dataset.fld;if(!chk[f])chk[f]=[];if(el.checked)chk[f].push(el.value)}else{var v=el.value.trim();if(v)payload[el.dataset.fld]=v}});Object.keys(chk).forEach(function(k){if(chk[k].length)payload[k]=chk[k].join(',')});
   try {
     var existing = _cikaPrivateData.find(function (r) { return r.brand_name === brandName; });
     if (existing) {
@@ -5227,38 +5270,47 @@ function renderCikaPrivateGantt() {
   var el = document.getElementById('cikaPrivateGantt');
   if (!el || !window.echarts) return;
   var chart = echarts.getInstanceByDom(el) || echarts.init(el);
-  // 按方案（塞券/领券组件）分组
-  var seq = _monthCounts(_cikaPrivateData, function (r) { return r.cika_scheme === '塞券' && r.intent !== '已拒绝'; });
-  var comp = _monthCounts(_cikaPrivateData, function (r) { return r.cika_scheme === '领券组件' && r.intent !== '已拒绝'; });
-  var other = _monthCounts(_cikaPrivateData, function (r) { return (!r.cika_scheme || (r.cika_scheme !== '塞券' && r.cika_scheme !== '领券组件')) && r.intent !== '已拒绝' && r.planned_month; });
+  var seq = _monthCounts(_cikaPrivateData, function (r) { return r.cika_scheme && r.cika_scheme.indexOf('\u585e\u5238')>=0 && r.intent !== '\u5df2\u62d2\u7edd'; });
+  var comp = _monthCounts(_cikaPrivateData, function (r) { return r.cika_scheme && r.cika_scheme.indexOf('\u9886\u5238\u7ec4\u4ef6')>=0 && r.intent !== '\u5df2\u62d2\u7edd'; });
+  var other = _monthCounts(_cikaPrivateData, function (r) { return (!r.cika_scheme || (r.cika_scheme.indexOf('\u585e\u5238')<0 && r.cika_scheme.indexOf('\u9886\u5238\u7ec4\u4ef6')<0)) && r.intent !== '\u5df2\u62d2\u7edd' && r.planned_month; });
   var xLabels = PLAN_MONTHS.map(function (m) { return MONTH_LABELS[m]; });
+  function brandList(monthIdx, schemeCheck, intentCheck){
+    return _cikaPrivateData.filter(function(r){
+      return r.planned_month===PLAN_MONTHS[monthIdx] && schemeCheck(r) && intentCheck(r);
+    }).map(function(r){return r.brand_name}).join(', ');
+  }
   chart.setOption({
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: { top: 24, data: ['塞券','领券组件','未定方案'] },
+    tooltip: {
+      trigger: 'axis', axisPointer: { type: 'shadow' },
+      formatter: function(params){
+        var idx = params[0].dataIndex;
+        var m = PLAN_MONTHS[idx];
+        var txt = '<b>'+MONTH_LABELS[m]+'</b><br/>';
+        var seqBrands = _cikaPrivateData.filter(function(r){return r.planned_month===m && r.cika_scheme&&r.cika_scheme.indexOf('\u585e\u5238')>=0&&r.intent!=='\u5df2\u62d2\u7edd'}).map(function(r){return r.brand_name});
+        var compBrands = _cikaPrivateData.filter(function(r){return r.planned_month===m && r.cika_scheme&&r.cika_scheme.indexOf('\u9886\u5238\u7ec4\u4ef6')>=0&&r.intent!=='\u5df2\u62d2\u7edd'}).map(function(r){return r.brand_name});
+        var oBrands = _cikaPrivateData.filter(function(r){return r.planned_month===m && (!r.cika_scheme||(r.cika_scheme.indexOf('\u585e\u5238')<0&&r.cika_scheme.indexOf('\u9886\u5238\u7ec4\u4ef6')<0))&&r.intent!=='\u5df2\u62d2\u7edd'&&r.planned_month}).map(function(r){return r.brand_name});
+        if(seqBrands.length) txt += '\u585e\u5238\uff1a'+seqBrands.join(', ')+' ('+seqBrands.length+'\u5bb6)<br/>';
+        if(compBrands.length) txt += '\u9886\u5238\u7ec4\u4ef6\uff1a'+compBrands.join(', ')+' ('+compBrands.length+'\u5bb6)<br/>';
+        if(oBrands.length) txt += '\u672a\u5b9a\u65b9\u6848\uff1a'+oBrands.join(', ')+' ('+oBrands.length+'\u5bb6)';
+        return txt;
+      }
+    },
+    legend: { top: 24, data: ['\u585e\u5238','\u9886\u5238\u7ec4\u4ef6','\u672a\u5b9a\u65b9\u6848'] },
     grid: { top: 90, left: 50, right: 30, bottom: 40 },
     xAxis: { type: 'category', data: xLabels, axisLabel: { fontSize: 12 } },
-    yAxis: { type: 'value', minInterval: 1, name: '品牌数', nameTextStyle: { fontSize: 11 } },
+    yAxis: { type: 'value', minInterval: 1, name: '\u54c1\u724c\u6570', nameTextStyle: { fontSize: 11 } },
     series: [
-      { name: '塞券',   type: 'bar', stack: 's', color: '#7c3aed', data: seq, barMaxWidth: 40,
+      { name: '\u585e\u5238', type: 'bar', stack: 's', color: '#7c3aed', data: seq, barMaxWidth: 40,
         label: { show: true, position: 'inside', color: '#fff', fontSize: 11, formatter: function(p){ return p.value>0?p.value:''; } },
-        // 节点带：markLine on category '7月'
-        markLine: {
-          silent: true,
-          symbol: ['none','none'],
-          lineStyle: { color: '#dc2626', width: 2, type: 'solid' },
-          label: { show: true, position: 'end', formatter: '⏰ 7/10 塞券接口就绪', color: '#dc2626', fontWeight: 700, fontSize: 11, backgroundColor: '#fee2e2', padding: [3,6], borderRadius: 3, rotate: 0, distance: 6 },
-          data: [{ xAxis: '7月' }]
-        },
-        markArea: {
-          silent: true,
-          itemStyle: { color: 'rgba(220,38,38,0.06)' },
-          data: [[{ xAxis: '7月', name: '接口就绪窗口' }, { xAxis: '8月' }]]
-        }
+        markLine: { silent:true, symbol:['none','none'], lineStyle:{color:'#dc2626',width:2,type:'solid'},
+          label:{show:true,position:'end',formatter:'\u23f0 7/10 \u585e\u5238\u63a5\u53e3\u5c31\u7eea',color:'#dc2626',fontWeight:700,fontSize:11,backgroundColor:'#fee2e2',padding:[3,6],borderRadius:3,rotate:0,distance:6},
+          data:[{xAxis:'7\u6708'}] },
+        markArea: { silent:true, itemStyle:{color:'rgba(220,38,38,0.06)'}, data:[[{xAxis:'7\u6708',name:'\u63a5\u53e3\u5c31\u7eea\u7a97\u53e3'},{xAxis:'8\u6708'}]] }
       },
-      { name: '领券组件', type: 'bar', stack: 's', color: '#3b82f6', data: comp, barMaxWidth: 40,
+      { name: '\u9886\u5238\u7ec4\u4ef6', type: 'bar', stack: 's', color: '#3b82f6', data: comp, barMaxWidth: 40,
         label: { show: true, position: 'inside', color: '#fff', fontSize: 11, formatter: function(p){ return p.value>0?p.value:''; } } },
-      { name: '未定方案', type: 'bar', stack: 's', color: '#94a3b8', data: other, barMaxWidth: 40,
-        label: { show: true, position: 'top', color: '#0f172a', fontSize: 11, formatter: function(p){ var total = seq[p.dataIndex]+comp[p.dataIndex]+other[p.dataIndex]; return total>0?('总 '+total):''; } } }
+      { name: '\u672a\u5b9a\u65b9\u6848', type: 'bar', stack: 's', color: '#94a3b8', data: other, barMaxWidth: 40,
+        label: { show: true, position: 'top', color: '#0f172a', fontSize: 11, formatter: function(p){ var total = seq[p.dataIndex]+comp[p.dataIndex]+other[p.dataIndex]; return total>0?('\u603b '+total):''; } } }
     ]
   }, true);
   setTimeout(function () { chart.resize(); }, 30);
@@ -5359,7 +5411,7 @@ async function saveGouquan(brandName) {
   payload.brand_id = b['品牌id'] ? Number(b['品牌id']) : null;
   payload.category = b['品类'] || null;
   payload.owner = b['负责人'] || null;
-  inputs.forEach(function (el) { payload[el.dataset.fld] = el.value.trim() || null; });
+  var chk={};inputs.forEach(function(el){if(el.type==='checkbox'){var f=el.dataset.fld;if(!chk[f])chk[f]=[];if(el.checked)chk[f].push(el.value)}else{var v=el.value.trim();if(v)payload[el.dataset.fld]=v}});Object.keys(chk).forEach(function(k){if(chk[k].length)payload[k]=chk[k].join(',')});
   try {
     var existing = _gouquanData.find(function (r) { return r.brand_name === brandName; });
     if (existing) {
