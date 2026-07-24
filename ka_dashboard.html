@@ -720,38 +720,112 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 </div>
 
 <!-- ============ PANEL: 购券 ============ -->
+<style>
+#panel-gouquan .gq-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+#panel-gouquan .gq-kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;}
+#panel-gouquan .gq-kpi .label{color:#64748b;font-size:12px;}
+#panel-gouquan .gq-kpi .val{font-size:26px;font-weight:800;margin:6px 0 8px;letter-spacing:.5px;color:#0f172a;}
+#panel-gouquan .gq-cmp{display:flex;gap:16px;font-size:12px;margin-top:2px;}
+#panel-gouquan .gq-cum-bar{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:14px;padding-top:14px;border-top:1px dashed #e2e8f0;}
+#panel-gouquan .gq-cum-bar .ci{font-size:12px;color:#64748b;}
+#panel-gouquan .gq-cum-bar .ci b{font-size:16px;display:block;margin-top:2px;color:#0f172a;font-weight:700;}
+#panel-gouquan .gq-note{margin-top:12px;background:#fff7e8;border:1px solid #ffe2b8;color:#a85d00;font-size:12px;border-radius:8px;padding:8px 12px;display:flex;gap:6px;align-items:flex-start;line-height:1.5;}
+#panel-gouquan .gq-range-switcher{display:inline-flex;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:12px;gap:2px;}
+#panel-gouquan .gq-table-wrap{margin-top:6px;overflow-x:auto;}
+#panel-gouquan .gq-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+#panel-gouquan .gq-table th{background:#f8fafc;color:#64748b;font-weight:600;padding:9px 10px;text-align:right;border-bottom:1px solid #e2e8f0;white-space:nowrap;cursor:default;}
+#panel-gouquan .gq-table th.sortable{cursor:pointer;user-select:none;}
+#panel-gouquan .gq-table th.sortable:hover{color:#2563eb;}
+#panel-gouquan .gq-table th:first-child,#panel-gouquan .gq-table td:first-child{text-align:left;}
+#panel-gouquan .gq-table td{padding:9px 10px;text-align:right;border-bottom:1px solid #eef0f3;white-space:nowrap;}
+#panel-gouquan .gq-table tbody tr:hover{background:#f7f9ff;}
+#panel-gouquan .gq-bar-cell{position:relative;}
+#panel-gouquan .gq-bar-in{position:absolute;left:0;top:50%;transform:translateY(-50%);height:16px;background:#eff6ff;border-radius:3px;z-index:0;}
+#panel-gouquan .gq-bar-cell span{position:relative;z-index:1;}
+#panel-gouquan .gq-stack{height:14px;border-radius:3px;background:linear-gradient(90deg,#2f54eb,#36c5a8);opacity:.85;}
+#panel-gouquan .gq-up{color:#f53f3f;font-weight:600;}
+#panel-gouquan .gq-down{color:#00b42a;font-weight:600;}
+#panel-gouquan .gq-na{color:#94a3b8;}
+#panel-gouquan .gq-mult{font-weight:700;}
+#panel-gouquan .gq-info{display:inline-block;width:14px;height:14px;border-radius:50%;background:#94a3b8;color:#fff;font-size:10px;text-align:center;line-height:14px;cursor:help;margin-left:3px;}
+#panel-gouquan .gq-collapse .gq-collapse-head{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;font-size:14px;color:#475569;}
+#panel-gouquan .gq-collapse .gq-arrow{transition:.2s;color:#94a3b8;font-size:11px;}
+#panel-gouquan .gq-collapse.open .gq-arrow{transform:rotate(90deg);}
+#panel-gouquan .gq-collapse .gq-collapse-body{display:none;margin-top:12px;}
+#panel-gouquan .gq-collapse.open .gq-collapse-body{display:block;}
+</style>
 <div class="project-panel" id="panel-gouquan">
+  <!-- ① 活动转化 -->
   <div class="section">
-    <div class="section-title" style="display:flex;align-items:center;gap:12px;">
-      <div class="icon" style="background:#3b82f6"></div>
-      <span>📅 购券上线时间线</span>
-      <span style="font-size:11px;color:#94a3b8;font-weight:400;">按预计上线月份聚合（茶饮咖啡）</span>
-    </div>
-    <div id="gouquanGantt" style="width:100%;height:260px;"></div>
+    <div class="section-title"><div class="icon" style="background:#3b82f6"></div> ① 活动转化 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">目标活动 57973 / 57976 · 瑞幸咖啡爆品</span></div>
+    <div class="gq-kpi-row" id="gqKpiRow"></div>
+    <div class="gq-cum-bar" id="gqCumBar"></div>
+    <div class="gq-note"><span>⚠️</span><span>补贴数据自 <b>2026-07-05</b> 起才有量，且两活动合并统计不拆分；上表"累计单笔补贴"实际为 7/5 起的累计口径。</span></div>
   </div>
-  <div class="section" style="margin-top:16px;">
-    <div class="section-title" style="display:flex;align-items:center;gap:12px;">
-      <div class="icon" style="background:#0ea5e9"></div>
-      <span>🛒 购券商户明细</span>
-      <span id="gouquanCount" class="badge" style="background:#e0f2fe;color:#0369a1;">0 家</span>
-      <div style="margin-left:auto;font-size:12px;color:#94a3b8;">仅茶饮咖啡 · 前端可编辑意愿/上线时间</div>
+
+  <!-- ② 购券转化 -->
+  <div class="section">
+    <div class="section-title"><div class="icon" style="background:#2563eb"></div> ② 购券转化 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">双 Y 轴趋势（曝光走左轴，购券/核销走右轴）· 所选窗口高亮</span></div>
+    <div class="gq-range-switcher" id="gqWin2">
+      <button class="range-btn" data-win="当日">当日</button>
+      <button class="range-btn active" data-win="近7天">近7天</button>
+      <button class="range-btn" data-win="近14天">近14天</button>
+      <button class="range-btn" data-win="上线至今">上线至今</button>
     </div>
-    <div class="scroll-table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th style="min-width:36px;text-align:center;">#</th>
-            <th style="min-width:120px;">品牌</th>
-            <th style="min-width:80px;">品牌ID</th>
-            <th style="min-width:70px;">负责人</th>
-            <th style="min-width:110px;">意愿</th>
-            <th style="min-width:120px;">预计上线</th>
-            <th style="min-width:200px;">备注</th>
-            <th style="min-width:110px;">更新时间</th>
-          </tr>
-        </thead>
-        <tbody id="gouquanTbody"></tbody>
-      </table>
+    <div id="gqTrendChart" style="width:100%;height:320px;"></div>
+    <div class="gq-table-wrap" id="gqDetailWrap"></div>
+  </div>
+
+  <!-- ③ 购券 vs 领券 -->
+  <div class="section">
+    <div class="section-title"><div class="icon" style="background:#7c3aed"></div> ③ 购券 vs 领券 数据对比 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">口径统一取周边渠道(myfavor)</span></div>
+    <div class="gq-range-switcher" id="gqWin3">
+      <button class="range-btn" data-win="当日">当日</button>
+      <button class="range-btn active" data-win="近7天">近7天</button>
+      <button class="range-btn" data-win="近14天">近14天</button>
+      <button class="range-btn" data-win="上线至今">上线至今</button>
+    </div>
+    <div class="gq-table-wrap" id="gqCmpWrap"></div>
+  </div>
+
+  <!-- ④ 用户分层 -->
+  <div class="section">
+    <div class="section-title"><div class="icon" style="background:#0891b2"></div> ④ 用户分层 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">活动投放至今累计(57973+57976) · 点击表头排序</span></div>
+    <div class="gq-table-wrap" id="gqLayerWrap"></div>
+  </div>
+
+  <!-- ⑤ 原有模块下沉折叠 -->
+  <div class="section gq-collapse" id="gqOldMod">
+    <div class="gq-collapse-head" onclick="var m=document.getElementById('gqOldMod');m.classList.toggle('open');if(m.classList.contains('open')&&window.echarts){var c=echarts.getInstanceByDom(document.getElementById('gouquanGantt'));if(c){c.resize();}else if(typeof renderGouquanGantt==='function'){renderGouquanGantt();}}">
+      <span class="gq-arrow">▶</span>
+      <span>上线时间线 + 商户明细（原有模块，改造后下沉）</span>
+    </div>
+    <div class="gq-collapse-body">
+      <div class="section-title" style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+        <div class="icon" style="background:#3b82f6"></div>
+        <span>📅 购券上线时间线</span>
+      </div>
+      <div id="gouquanGantt" style="width:100%;height:260px;"></div>
+      <div class="section-title" style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+        <div class="icon" style="background:#0ea5e9"></div>
+        <span>🛒 购券商户明细</span>
+        <span id="gouquanCount" class="badge" style="background:#e0f2fe;color:#0369a1;">0 家</span>
+        <div style="margin-left:auto;font-size:12px;color:#94a3b8;">仅茶饮咖啡 · 前端可编辑意愿/上线时间</div>
+      </div>
+      <div class="scroll-table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:36px;text-align:center;">#</th>
+              <th style="min-width:120px;">品牌</th>
+              <th style="min-width:80px;">品牌ID</th>
+              <th style="min-width:70px;">负责人</th>
+              <th style="color:#94a3b8;font-size:11px;font-weight:400;text-align:right;" colspan="4">点击展开详情 ▼</th>
+            </tr>
+          </thead>
+          <tbody id="gouquanTbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -1015,6 +1089,8 @@ let gSnapshotBrandsByName = {};
 
 const ALERT_SUPABASE_URL = 'https://imogeucpwfburswopykq.supabase.co';
 const ALERT_SUPABASE_KEY = 'sb_publishable_U48YNneEPZUDFAyLc-eEcw_6F553GsJ';
+const GOUQUAN_DATA = {"meta": {"brand": "luckin coffee", "brand_id": 1743, "act_start": "20260626", "act_end": "20260731", "acts": [{"id": "57973", "name": "瑞幸咖啡爆品23选1"}, {"id": "57976", "name": "瑞幸咖啡爆品30选1"}], "today": "0723", "last_update": "2026-07-23"}, "dates": ["0626", "0627", "0628", "0629", "0630", "0701", "0702", "0703", "0704", "0705", "0706", "0707", "0708", "0709", "0710", "0711", "0712", "0713", "0714", "0715", "0716", "0717", "0718", "0719", "0720", "0721", "0722", "0723"], "trend": [{"date": "0626", "exp": null, "claim": null, "use": null}, {"date": "0627", "exp": null, "claim": null, "use": null}, {"date": "0628", "exp": null, "claim": null, "use": null}, {"date": "0629", "exp": null, "claim": null, "use": null}, {"date": "0630", "exp": null, "claim": null, "use": null}, {"date": "0701", "exp": 3, "claim": 1, "use": 0}, {"date": "0702", "exp": 546, "claim": 12, "use": 0}, {"date": "0703", "exp": 28471, "claim": 606, "use": 47}, {"date": "0704", "exp": 88873, "claim": 1781, "use": 309}, {"date": "0705", "exp": 82105, "claim": 1674, "use": 398}, {"date": "0706", "exp": 121284, "claim": 2489, "use": 637}, {"date": "0707", "exp": 77326, "claim": 1606, "use": 616}, {"date": "0708", "exp": 54395, "claim": 1000, "use": 710}, {"date": "0709", "exp": 182746, "claim": 2661, "use": 837}, {"date": "0710", "exp": 162428, "claim": 3313, "use": 1264}, {"date": "0711", "exp": 499070, "claim": 9493, "use": 2069}, {"date": "0712", "exp": 263322, "claim": 3840, "use": 2061}, {"date": "0713", "exp": 237495, "claim": 3923, "use": 2366}, {"date": "0714", "exp": 194447, "claim": 3016, "use": 2146}, {"date": "0715", "exp": 287455, "claim": 4931, "use": 2366}, {"date": "0716", "exp": 398217, "claim": 12574, "use": 3831}, {"date": "0717", "exp": 370413, "claim": 7982, "use": 3967}, {"date": "0718", "exp": 328137, "claim": 9934, "use": 4635}, {"date": "0719", "exp": 204594, "claim": 4201, "use": 3365}, {"date": "0720", "exp": 189662, "claim": 3262, "use": 3607}, {"date": "0721", "exp": 233134, "claim": 5469, "use": 3670}, {"date": "0722", "exp": 270479, "claim": 8379, "use": 4388}, {"date": "0723", "exp": 256359, "claim": 4935, "use": 4419}], "detail_raw": {"0703": {"57976": {"exp": 27585, "claim": 575, "use": 46, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 886, "claim": 31, "use": 1, "name": "瑞幸咖啡爆品23选1"}}, "0714": {"57976": {"exp": 191025, "claim": 2884, "use": 2055, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 3422, "claim": 132, "use": 91, "name": "瑞幸咖啡爆品23选1"}}, "0712": {"57976": {"exp": 259608, "claim": 3707, "use": 2016, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 3714, "claim": 133, "use": 45, "name": "瑞幸咖啡爆品23选1"}}, "0720": {"57976": {"exp": 185965, "claim": 3137, "use": 3453, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 3697, "claim": 125, "use": 154, "name": "瑞幸咖啡爆品23选1"}}, "0717": {"57976": {"exp": 361913, "claim": 7634, "use": 3786, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 8500, "claim": 348, "use": 181, "name": "瑞幸咖啡爆品23选1"}}, "0715": {"57976": {"exp": 282426, "claim": 4741, "use": 2269, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 5029, "claim": 190, "use": 97, "name": "瑞幸咖啡爆品23选1"}}, "0710": {"57976": {"exp": 159166, "claim": 3180, "use": 1207, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 3262, "claim": 133, "use": 57, "name": "瑞幸咖啡爆品23选1"}}, "0709": {"57976": {"exp": 179388, "claim": 2587, "use": 798, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 3358, "claim": 74, "use": 39, "name": "瑞幸咖啡爆品23选1"}}, "0704": {"57976": {"exp": 85600, "claim": 1687, "use": 301, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 3273, "claim": 94, "use": 8, "name": "瑞幸咖啡爆品23选1"}}, "0718": {"57976": {"exp": 319027, "claim": 9481, "use": 4461, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 9110, "claim": 453, "use": 174, "name": "瑞幸咖啡爆品23选1"}}, "0716": {"57976": {"exp": 390514, "claim": 12065, "use": 3681, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 7703, "claim": 509, "use": 150, "name": "瑞幸咖啡爆品23选1"}}, "0707": {"57976": {"exp": 75379, "claim": 1551, "use": 568, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 1947, "claim": 55, "use": 48, "name": "瑞幸咖啡爆品23选1"}}, "0713": {"57976": {"exp": 233896, "claim": 3772, "use": 2282, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 3599, "claim": 151, "use": 84, "name": "瑞幸咖啡爆品23选1"}}, "0708": {"57976": {"exp": 53169, "claim": 964, "use": 676, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 1226, "claim": 36, "use": 34, "name": "瑞幸咖啡爆品23选1"}}, "0721": {"57976": {"exp": 228236, "claim": 5234, "use": 3531, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 4898, "claim": 235, "use": 139, "name": "瑞幸咖啡爆品23选1"}}, "0723": {"57976": {"exp": 249534, "claim": 4783, "use": 4223, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 6825, "claim": 152, "use": 196, "name": "瑞幸咖啡爆品23选1"}}, "0705": {"57976": {"exp": 79494, "claim": 1594, "use": 377, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 2611, "claim": 80, "use": 21, "name": "瑞幸咖啡爆品23选1"}}, "0719": {"57976": {"exp": 199721, "claim": 3995, "use": 3252, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 4873, "claim": 206, "use": 113, "name": "瑞幸咖啡爆品23选1"}}, "0711": {"57976": {"exp": 491306, "claim": 9201, "use": 2003, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 7764, "claim": 292, "use": 66, "name": "瑞幸咖啡爆品23选1"}}, "0701": {"57976": {"exp": 3, "claim": 1, "use": 0, "name": "瑞幸咖啡爆品30选1"}}, "0702": {"57976": {"exp": 546, "claim": 12, "use": 0, "name": "瑞幸咖啡爆品30选1"}}, "0706": {"57976": {"exp": 117879, "claim": 2372, "use": 603, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 3405, "claim": 117, "use": 34, "name": "瑞幸咖啡爆品23选1"}}, "0722": {"57976": {"exp": 264714, "claim": 8049, "use": 4187, "name": "瑞幸咖啡爆品30选1"}, "57973": {"exp": 5765, "claim": 330, "use": 201, "name": "瑞幸咖啡爆品23选1"}}}, "channel_raw": {"0715": {"gouquan": {"exp": 287455, "claim": 4931, "use": 2366}, "lingquan": {"exp": 1658200, "claim": 69683, "use": 7682}}, "0701": {"gouquan": {"exp": 3, "claim": 1, "use": 0}, "lingquan": {"exp": 1380968, "claim": 52060, "use": 6688}}, "0714": {"gouquan": {"exp": 194447, "claim": 3016, "use": 2146}, "lingquan": {"exp": 1547669, "claim": 69556, "use": 7709}}, "0702": {"gouquan": {"exp": 555, "claim": 12, "use": 0}, "lingquan": {"exp": 1328767, "claim": 48840, "use": 6725}}, "0716": {"gouquan": {"exp": 398216, "claim": 12573, "use": 3831}, "lingquan": {"exp": 1627291, "claim": 70592, "use": 7910}}, "0717": {"gouquan": {"exp": 370412, "claim": 7980, "use": 3967}, "lingquan": {"exp": 1521873, "claim": 68838, "use": 7621}}, "0703": {"gouquan": {"exp": 28471, "claim": 606, "use": 47}, "lingquan": {"exp": 1332075, "claim": 44374, "use": 6242}}, "0707": {"gouquan": {"exp": 77326, "claim": 1606, "use": 616}, "lingquan": {"exp": 1754870, "claim": 69309, "use": 6479}}, "0713": {"gouquan": {"exp": 237495, "claim": 3923, "use": 2366}, "lingquan": {"exp": 1661266, "claim": 67838, "use": 7287}}, "0712": {"gouquan": {"exp": 263322, "claim": 3840, "use": 2061}, "lingquan": {"exp": 1675557, "claim": 69674, "use": 6746}}, "0706": {"gouquan": {"exp": 121284, "claim": 2489, "use": 637}, "lingquan": {"exp": 1371852, "claim": 50966, "use": 5936}}, "0710": {"gouquan": {"exp": 162428, "claim": 3313, "use": 1264}, "lingquan": {"exp": 1722277, "claim": 65902, "use": 7108}}, "0704": {"gouquan": {"exp": 88873, "claim": 1781, "use": 309}, "lingquan": {"exp": 1281954, "claim": 44108, "use": 5445}}, "0705": {"gouquan": {"exp": 82105, "claim": 1674, "use": 398}, "lingquan": {"exp": 1271136, "claim": 41574, "use": 5417}}, "0711": {"gouquan": {"exp": 499070, "claim": 9493, "use": 2069}, "lingquan": {"exp": 1357624, "claim": 59370, "use": 6769}}, "0629": {"gouquan": {"exp": 0, "claim": 0, "use": 0}, "lingquan": {"exp": 1291792, "claim": 51267, "use": 6673}}, "0628": {"gouquan": {"exp": 0, "claim": 0, "use": 0}, "lingquan": {"exp": 1289799, "claim": 38659, "use": 5961}}, "0630": {"gouquan": {"exp": 0, "claim": 0, "use": 0}, "lingquan": {"exp": 1288240, "claim": 49725, "use": 6414}}, "0626": {"gouquan": {"exp": 0, "claim": 0, "use": 0}, "lingquan": {"exp": 1247295, "claim": 41644, "use": 6696}}, "0627": {"gouquan": {"exp": 0, "claim": 0, "use": 0}, "lingquan": {"exp": 1257504, "claim": 41207, "use": 6800}}, "0720": {"gouquan": {"exp": 189613, "claim": 3260, "use": 3607}, "lingquan": {"exp": 1512744, "claim": 70945, "use": 7572}}, "0708": {"gouquan": {"exp": 54395, "claim": 1000, "use": 710}, "lingquan": {"exp": 1670411, "claim": 66639, "use": 7161}}, "0709": {"gouquan": {"exp": 182746, "claim": 2661, "use": 837}, "lingquan": {"exp": 1693389, "claim": 66653, "use": 7627}}, "0721": {"gouquan": {"exp": 232860, "claim": 5463, "use": 3668}, "lingquan": {"exp": 1398313, "claim": 70865, "use": 8119}}, "0723": {"gouquan": {"exp": 254811, "claim": 4834, "use": 4393}, "lingquan": {"exp": 1555936, "claim": 74811, "use": 8500}}, "0722": {"gouquan": {"exp": 269991, "claim": 8363, "use": 4382}, "lingquan": {"exp": 1464938, "claim": 71868, "use": 8166}}, "0719": {"gouquan": {"exp": 204594, "claim": 4201, "use": 3365}, "lingquan": {"exp": 1514459, "claim": 69547, "use": 7069}}, "0718": {"gouquan": {"exp": 328137, "claim": 9934, "use": 4635}, "lingquan": {"exp": 1567324, "claim": 70232, "use": 7423}}}, "subsidy": {"daily": [{"date": "0705", "trade_cnt": 33, "trade_amt": 326.7, "redeem_amt": 90.0, "per": 2.73}, {"date": "0706", "trade_cnt": 2276, "trade_amt": 22532.4, "redeem_amt": 5704.3, "per": 2.51}, {"date": "0707", "trade_cnt": 1465, "trade_amt": 14503.5, "redeem_amt": 3644.2, "per": 2.49}, {"date": "0708", "trade_cnt": 918, "trade_amt": 9088.2, "redeem_amt": 2325.0, "per": 2.53}, {"date": "0709", "trade_cnt": 2476, "trade_amt": 24512.4, "redeem_amt": 9173.0, "per": 3.7}, {"date": "0710", "trade_cnt": 3126, "trade_amt": 30947.4, "redeem_amt": 13806.0, "per": 4.42}, {"date": "0711", "trade_cnt": 8981, "trade_amt": 88911.9, "redeem_amt": 34420.0, "per": 3.83}, {"date": "0712", "trade_cnt": 3555, "trade_amt": 35194.5, "redeem_amt": 14349.0, "per": 4.04}, {"date": "0713", "trade_cnt": 3692, "trade_amt": 36550.8, "redeem_amt": 14587.0, "per": 3.95}, {"date": "0714", "trade_cnt": 2812, "trade_amt": 27838.8, "redeem_amt": 11393.0, "per": 4.05}, {"date": "0715", "trade_cnt": 4586, "trade_amt": 45401.4, "redeem_amt": 14957.0, "per": 3.26}, {"date": "0716", "trade_cnt": 11991, "trade_amt": 118710.9, "redeem_amt": 50932.1, "per": 4.25}, {"date": "0717", "trade_cnt": 7568, "trade_amt": 74923.2, "redeem_amt": 28539.0, "per": 3.77}, {"date": "0718", "trade_cnt": 9501, "trade_amt": 94059.9, "redeem_amt": 39439.0, "per": 4.15}, {"date": "0719", "trade_cnt": 3991, "trade_amt": 39510.9, "redeem_amt": 16890.1, "per": 4.23}, {"date": "0720", "trade_cnt": 3092, "trade_amt": 30610.8, "redeem_amt": 12064.0, "per": 3.9}, {"date": "0721", "trade_cnt": 5139, "trade_amt": 50876.1, "redeem_amt": 20359.0, "per": 3.96}, {"date": "0722", "trade_cnt": 8005, "trade_amt": 79249.5, "redeem_amt": 33277.0, "per": 4.16}, {"date": "0723", "trade_cnt": 4644, "trade_amt": 45975.6, "redeem_amt": 19889.0, "per": 4.28}], "cum": {"trade_cnt": 87851, "redeem_amt": 345837.7, "per": 3.94}}, "layers": [{"layer": "高频", "bg_pv": 163876, "lq_pv": 9756, "hx_pv": 6793, "bg_rate": 0.0595, "lq_rate": 0.6963, "hx_rate": 0.0415, "lq_share": 0.1005, "hx_share": 0.1424}, {"layer": "低频", "bg_pv": 323590, "lq_pv": 18923, "hx_pv": 12044, "bg_rate": 0.0585, "lq_rate": 0.6365, "hx_rate": 0.0372, "lq_share": 0.1949, "hx_share": 0.2525}, {"layer": "沉默", "bg_pv": 591380, "lq_pv": 21451, "hx_pv": 9858, "bg_rate": 0.0363, "lq_rate": 0.4596, "hx_rate": 0.0167, "lq_share": 0.221, "hx_share": 0.2066}, {"layer": "流失", "bg_pv": 1252027, "lq_pv": 35705, "hx_pv": 15065, "bg_rate": 0.0285, "lq_rate": 0.4219, "hx_rate": 0.012, "lq_share": 0.3678, "hx_share": 0.3158}, {"layer": "潜在", "bg_pv": 2200097, "lq_pv": 11247, "hx_pv": 3948, "bg_rate": 0.0051, "lq_rate": 0.351, "hx_rate": 0.0018, "lq_share": 0.1159, "hx_share": 0.0828}, {"layer": "未覆盖", "bg_pv": 0, "lq_pv": 0, "hx_pv": 0, "bg_rate": 0, "lq_rate": 0, "hx_rate": 0, "lq_share": 0.0, "hx_share": 0.0}]};
+let GOUQUAN_DATA_SOURCE = 'embedded';  // embedded=内联真实快照(预览用)；Supabase 三表就绪后改为 'supabase'
 const alertSb = window.supabase.createClient(ALERT_SUPABASE_URL, ALERT_SUPABASE_KEY);
 
 // ============================================================
@@ -1065,7 +1141,10 @@ document.querySelectorAll('.project-tab').forEach(tab => {
     if (tab.dataset.project === 'gouquan' && typeof loadGouquan === 'function') {
       setTimeout(() => {
         if (!window._gouquanLoaded) { window._gouquanLoaded = true; loadGouquan(); }
-        else if (typeof renderGouquanGantt === 'function') renderGouquanGantt();
+        else {
+          if (typeof renderGouquanGantt === 'function') renderGouquanGantt();
+          if (typeof renderGouquanTrend === 'function' && _gqWin2) renderGouquanTrend(_gqWin2);
+        }
       }, 50);
     }
     // 切换到无忧 tab 时，resize 甘特图
@@ -5123,11 +5202,14 @@ function renderCikaPrivateGantt() {
 // ---- 购券 ----
 async function loadGouquan() {
   try {
+    // 原有模块：商户明细 + 甘特图（保留，下沉到底部折叠区）
     var rows = await alertSb.from('ka_gouquan_brands').select('*').eq('is_active', true);
     if (rows.error) throw rows.error;
     _gouquanData = rows.data || [];
     renderGouquanTable();
     renderGouquanGantt();
+    // 新增模块 ①②③④（数据源：内联真实快照；Supabase 表就绪后由 GOUQUAN_DATA_SOURCE 切换）
+    renderGouquanAll();
   } catch (e) {
     console.error('[gouquan]', e);
     showToast('加载购券数据失败：' + e.message);
@@ -5137,7 +5219,7 @@ async function loadGouquan() {
 function renderGouquanTable() {
   var tbody = document.getElementById('gouquanTbody');
   if (!tbody) return;
-  var base = _cikaPrivateBaseBrands();  // 同样茶饮咖啡
+  var base = _cikaPrivateBaseBrands();
   var byName = {};
   _gouquanData.forEach(function (r) { byName[r.brand_name] = r; });
   var rows = base.map(function (b) {
@@ -5155,24 +5237,31 @@ function renderGouquanTable() {
   document.getElementById('gouquanCount').textContent = rows.length + ' 家';
   var esc = function (s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); };
   tbody.innerHTML = rows.map(function (r, i) {
-    var intentSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="intent" class="gouquan-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
-      '<option value="">—</option>' +
-      CIKA_INTENT_OPTS.map(function (o) { return '<option value="' + o + '"' + (o === r.intent ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>';
-    var monthSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="planned_month" class="gouquan-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
-      '<option value="">—</option>' +
-      PLAN_MONTHS.map(function (m) { return '<option value="' + m + '"' + (m === r.planned_month ? ' selected' : '') + '>' + MONTH_LABELS[m] + '</option>'; }).join('') + '</select>';
-    var remarkInp = '<input type="text" data-brand="' + esc(r.brand_name) + '" data-fld="remark" class="gouquan-input" value="' + esc(r.remark) + '" placeholder="备注..." style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">';
-    var upd = r.updated_at ? new Date(r.updated_at).toLocaleString('zh-CN', { hour12: false }).slice(0, 16) : '<span style="color:#cbd5e1;">—</span>';
-    return '<tr>' +
-      '<td style="text-align:center;color:#94a3b8;font-size:12px;">' + (i + 1) + '</td>' +
-      '<td style="font-weight:600;color:#0f172a;">' + esc(r.brand_name) + '</td>' +
-      '<td style="color:#64748b;font-size:12px;">' + esc(r.brand_id) + '</td>' +
-      '<td style="color:#475569;font-size:12px;">' + esc(r.owner) + '</td>' +
-      '<td>' + intentSel + '</td>' +
-      '<td>' + monthSel + '</td>' +
-      '<td>' + remarkInp + '</td>' +
-      '<td style="color:#94a3b8;font-size:11px;">' + upd + '</td>' +
-      '</tr>';
+    var hasFb = r.intent || r.planned_month || r.remark;
+    var intentSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="intent" class="gouquan-input" style="padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
+      '<option value="">—<\/option>' +
+      CIKA_INTENT_OPTS.map(function (o) { return '<option value="' + o + '"' + (o === r.intent ? ' selected' : '') + '>' + o + '<\/option>'; }).join('') + '<\/select>';
+    var monthSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="planned_month" class="gouquan-input" style="padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
+      '<option value="">—<\/option>' +
+      PLAN_MONTHS.map(function (m) { return '<option value="' + m + '"' + (m === r.planned_month ? ' selected' : '') + '>' + MONTH_LABELS[m] + '<\/option>'; }).join('') + '<\/select>';
+    var remarkInp = '<input type="text" data-brand="' + esc(r.brand_name) + '" data-fld="remark" class="gouquan-input" value="' + esc(r.remark) + '" placeholder="备注..." style="padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;width:160px;">';
+    var upd = r.updated_at ? new Date(r.updated_at).toLocaleString('zh-CN', { hour12: false }).slice(0, 16) : '<span style="color:#cbd5e1;">—<\/span>';
+    var arrow = hasFb ? '▼' : '▶';
+    return '<tr class="gq-tr-s" onclick="var d=this.nextElementSibling;d.style.display=d.style.display==\'none\'?\'table-row\':\'none\';this.querySelector(\'.gq-ar\').textContent=d.style.display==\'none\'?\'\u25b6\':\'\u25bc\';" style="cursor:pointer;">' +
+      '<td style="text-align:center;color:#94a3b8;font-size:12px;">' + (i + 1) + '<\/td>' +
+      '<td style="font-weight:600;color:#0f172a;">' + esc(r.brand_name) + '<\/td>' +
+      '<td style="color:#64748b;font-size:12px;">' + esc(r.brand_id) + '<\/td>' +
+      '<td style="color:#475569;font-size:12px;">' + esc(r.owner) + '<\/td>' +
+      '<td colspan="4" style="text-align:right;font-size:11px;color:#94a3b8;"><span class="gq-ar">' + arrow + '<\/span><\/td>' +
+      '<\/tr>' +
+      '<tr class="gq-tr-d" style="display:' + (hasFb ? 'table-row' : 'none') + ';">' +
+      '<td colspan="8" style="padding:4px 12px 10px;background:#f8fafc;">' +
+      '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;">' +
+      '意愿 ' + intentSel +
+      '&emsp;预计上线 ' + monthSel +
+      '&emsp;备注 ' + remarkInp +
+      '&emsp;更新 <span style="color:#94a3b8;font-size:11px;">' + upd + '<\/span>' +
+      '<\/div><\/td><\/tr>';
   }).join('');
   tbody.querySelectorAll('.gouquan-input').forEach(function (el) {
     el.addEventListener('change', function () { saveGouquan(el.dataset.brand); });
@@ -5250,6 +5339,254 @@ function renderGouquanGantt() {
     ]
   }, true);
   setTimeout(function () { chart.resize(); }, 30);
+}
+
+
+
+// ============================================================
+// 购券 Tab 改造模块（① 活动转化 / ② 购券转化 / ③ 购券vs领券 / ④ 用户分层）
+// 数据源：GOUQUAN_DATA（内联真实快照，2026-07-23）。SUPABASE 三表就绪后
+// 将 GOUQUAN_DATA_SOURCE 改为 'supabase' 并启用 fetchGouquanFromSupabase()。
+// ============================================================
+let _gqWin2 = '近7天', _gqWin3 = '近7天', _gqBound = false, _gqTrendChart = null;
+let _gqLayerSort = { key: null, asc: true };
+
+function gqMd(d) { return d.slice(0, 2) + '-' + d.slice(2); }          // '0723' -> '07-23'
+function gqWinDates(win) {
+  const d = GOUQUAN_DATA.dates;
+  if (win === '当日') return [GOUQUAN_DATA.meta.today];
+  if (win === '近7天') return d.slice(-7);
+  if (win === '近14天') return d.slice(-14);
+  return d.slice();
+}
+function gqPct(r) { return (r == null || isNaN(r)) ? '-' : (r * 100).toFixed(1) + '%'; }
+function gqInt(n) { return (n == null) ? '-' : Number(n).toLocaleString(); }
+function gqCmp(cur, base) {
+  if (base == null || base === 0 || cur == null) return '<span class="gq-na">昨日缺报</span>';
+  const r = (cur - base) / base;
+  const cls = r >= 0 ? 'gq-up' : 'gq-down';
+  const arr = r >= 0 ? '▲' : '▼';
+  return '<span class="' + cls + '">' + arr + ' ' + Math.abs(r * 100).toFixed(1) + '%</span>';
+}
+function gqCmpSub(cur, base) {
+  if (base == null || cur == null) return '<span class="gq-na">昨日缺报</span>';
+  const r = (cur - base) / base;
+  const cls = r >= 0 ? 'gq-up' : 'gq-down';
+  const arr = r >= 0 ? '▲' : '▼';
+  return '<span class="' + cls + '">' + arr + ' ' + Math.abs(r * 100).toFixed(1) + '%</span>';
+}
+
+// ① 活动转化
+function renderGouquanKpi() {
+  const D = GOUQUAN_DATA, M = D.meta, t = M.today;
+  const cur = D.detail_raw[t] || {};
+  let gq = 0, hx = 0;
+  for (const k in cur) { gq += cur[k].claim; hx += cur[k].use; }
+  const idx = D.dates.indexOf(t);
+  const yDate = idx > 0 ? D.dates[idx - 1] : null;
+  const wDate = idx >= 7 ? D.dates[idx - 7] : null;
+  const yRec = yDate ? (D.detail_raw[yDate] || {}) : {};
+  const wRec = wDate ? (D.detail_raw[wDate] || {}) : {};
+  let gqY = 0, hxY = 0, gqW = 0, hxW = 0;
+  for (const k in yRec) { gqY += yRec[k].claim; hxY += yRec[k].use; }
+  for (const k in wRec) { gqW += wRec[k].claim; hxW += wRec[k].use; }
+  const sub = D.subsidy.daily.find(s => s.date === t);
+  const perToday = sub ? sub.per : null;
+  const subY = D.subsidy.daily.find(s => s.date === yDate);
+  const subW = D.subsidy.daily.find(s => s.date === wDate);
+  const perYv = subY ? subY.per : null, perWv = subW ? subW.per : null;
+
+  const cards = [
+    { label: '购券订单数（当日领取PV）', val: gqInt(gq), day: gqCmp(gq, gqY), week: gqCmp(gq, gqW) },
+    { label: '核销订单数（当日核销PV）', val: gqInt(hx), day: gqCmp(hx, hxY), week: gqCmp(hx, hxW) },
+    { label: '单笔补贴（核销金额÷交易笔数）', val: '¥' + perToday, day: gqCmpSub(perToday, perYv), week: gqCmpSub(perToday, perWv) },
+  ];
+  document.getElementById('gqKpiRow').innerHTML = cards.map(c => (
+    '<div class="gq-kpi"><div class="label">' + c.label + '</div>' +
+    '<div class="val">' + c.val + '</div>' +
+    '<div class="gq-cmp"><div>日环比 <span>' + c.day + '</span></div>' +
+    '<div>周环比 <span>' + c.week + '</span></div></div></div>'
+  )).join('');
+
+  let cgq = 0, chx = 0;
+  for (const dt in D.detail_raw) for (const k in D.detail_raw[dt]) { cgq += D.detail_raw[dt][k].claim; chx += D.detail_raw[dt][k].use; }
+  const sc = D.subsidy.cum;
+  document.getElementById('gqCumBar').innerHTML =
+    '<div class="ci">累计购券订单数<b>' + gqInt(cgq) + '</b></div>' +
+    '<div class="ci">累计核销订单数<b>' + gqInt(chx) + '</b></div>' +
+    '<div class="ci">累计单笔补贴<b>¥' + sc.per + '</b></div>' +
+    '<div class="ci">活动开始<b>' + M.act_start.slice(4, 6) + '/' + M.act_start.slice(6) + '</b></div>' +
+    '<div class="ci">活动结束<b>' + M.act_end.slice(4, 6) + '/' + M.act_end.slice(6) + '</b></div>';
+}
+
+// ② 趋势图（ECharts 双 Y 轴）
+function renderGouquanTrend(win) {
+  const D = GOUQUAN_DATA;
+  const el = document.getElementById('gqTrendChart');
+  if (!el || typeof echarts === 'undefined') return;
+  if (el.offsetWidth === 0 || el.offsetHeight === 0) return;  // 容器不可见时跳过，等 tab 切换再渲染
+  if (!_gqTrendChart) {
+    _gqTrendChart = echarts.getInstanceByDom(el) || echarts.init(el);
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => _gqTrendChart && _gqTrendChart.resize()).observe(el);
+    window.addEventListener('resize', () => _gqTrendChart && _gqTrendChart.resize());
+  } else {
+    _gqTrendChart.resize();
+  }
+  const all = D.trend.filter(d => d.exp !== null);
+  const xDates = all.map(d => gqMd(d.date));
+  const expArr = all.map(d => d.exp), claimArr = all.map(d => d.claim), useArr = all.map(d => d.use);
+  const wd = gqWinDates(win);
+  const wsM = wd.length ? gqMd(wd[0]) : null;
+  const weM = wd.length ? gqMd(wd[wd.length - 1]) : null;
+  _gqTrendChart.setOption({
+    animation: true,
+    grid: { left: 64, right: 64, top: 46, bottom: 34, containLabel: true },
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params) => {
+        let txt = '<b>' + params[0].axisValue + '</b><br/>';
+        params.forEach(p => { if (p.value != null) txt += p.marker + p.seriesName + ': ' + fmtPV(p.value) + '<br/>'; });
+        return txt;
+      }
+    },
+    legend: { data: ['曝光 PV', '购买 PV', '核销 PV'], top: 6, left: 'center', itemGap: 24, textStyle: { fontSize: 12 } },
+    xAxis: { type: 'category', data: xDates, boundaryGap: false, axisLabel: { fontSize: 11, interval: Math.max(0, Math.floor(all.length / 12)) } },
+    yAxis: [
+      { type: 'value', name: '曝光', nameTextStyle: { fontSize: 11, color: '#7c8cff' }, position: 'left', axisLabel: { formatter: fmtPV, fontSize: 11 }, splitLine: { lineStyle: { type: 'dashed', color: '#eef0f3' } } },
+      { type: 'value', name: '购买/核销', nameTextStyle: { fontSize: 11, color: '#2f54eb' }, position: 'right', axisLabel: { formatter: fmtPV, fontSize: 11 }, splitLine: { show: false } }
+    ],
+    series: [
+      { name: '曝光 PV', type: 'line', yAxisIndex: 0, data: expArr, smooth: true, showSymbol: false, itemStyle: { color: '#7c8cff' }, lineStyle: { width: 2 }, areaStyle: { color: 'rgba(124,140,255,0.08)' } },
+      { name: '购买 PV', type: 'line', yAxisIndex: 1, data: claimArr, smooth: true, showSymbol: false, itemStyle: { color: '#2f54eb' }, lineStyle: { width: 2 } },
+      { name: '核销 PV', type: 'line', yAxisIndex: 1, data: useArr, smooth: true, showSymbol: false, itemStyle: { color: '#36c5a8' }, lineStyle: { width: 2 },
+        markArea: { silent: true, itemStyle: { color: 'rgba(47,84,235,0.08)' }, data: (wsM && weM) ? [[{ xAxis: wsM }, { xAxis: weM }]] : [] } }
+    ]
+  }, true);
+}
+
+// ② 明细表（按窗口算日均）
+function renderGouquanDetail(win) {
+  const D = GOUQUAN_DATA, M = D.meta;
+  const wd = gqWinDates(win);
+  const rows = M.acts.map(a => {
+    let e = 0, c = 0, u = 0, days = 0;
+    wd.forEach(dt => { const rec = D.detail_raw[dt] && D.detail_raw[dt][a.id]; if (rec && (rec.exp || rec.claim || rec.use)) { e += rec.exp; c += rec.claim; u += rec.use; days++; } });
+    return { id: a.id, name: a.name, brand: M.brand, exp: days ? Math.round(e / days) : 0, claim: days ? Math.round(c / days) : 0, use: days ? Math.round(u / days) : 0,
+      bgRate: days && e ? c / e : 0, lqRate: days && c ? u / c : 0, hxRate: days && e ? u / e : 0 };
+  });
+  const head = '<tr><th>活动ID</th><th>品牌</th><th>活动名称</th><th>曝光PV(日均)</th><th>购买PV(日均)</th><th>核销PV(日均)</th><th>曝光购买率</th><th>购买核销率</th><th>曝光核销率</th></tr>';
+  const body = rows.map(r => (
+    '<tr><td><b>' + r.id + '</b></td><td>' + r.brand + '</td><td>' + r.name + '</td>' +
+    '<td>' + gqInt(r.exp) + '</td><td>' + gqInt(r.claim) + '</td><td>' + gqInt(r.use) + '</td>' +
+    '<td class="gq-up">' + gqPct(r.bgRate) + '</td><td class="gq-up">' + gqPct(r.lqRate) + '</td><td class="gq-up">' + gqPct(r.hxRate) + '</td></tr>'
+  )).join('');
+  document.getElementById('gqDetailWrap').innerHTML = '<table class="gq-table">' + head + body + '</table>' +
+    '<div style="color:#94a3b8;font-size:11px;padding-top:6px;">* 日均=窗口内有量天之和÷有量天数；注：核销存在滞后，单日口径下"购买核销率"可能&gt;100%（当日核销含此前购买）。</div>';
+}
+
+// ③ 对比
+function renderGouquanCompare(win) {
+  const D = GOUQUAN_DATA;
+  const wd = gqWinDates(win);
+  function agg(side) {
+    let e = 0, c = 0, u = 0;
+    wd.forEach(dt => { const rec = D.channel_raw[dt] && D.channel_raw[dt][side]; if (rec) { e += rec.exp; c += rec.claim; u += rec.use; } });
+    return { e, c, u, bgRate: e ? c / e : 0, lqRate: c ? u / c : 0, hxRate: e ? u / e : 0 };
+  }
+  const g = agg('gouquan'), l = agg('lingquan');
+  function mcell(v) {
+    if (v == null) return '<span class="gq-na">—</span>';
+    const cls = v >= 1 ? 'gq-up' : 'gq-down';
+    return '<span class="gq-mult ' + cls + '">' + v.toFixed(2) + '倍</span>';
+  }
+  const mults = {
+    e: g.e && l.e ? g.e / l.e : null, c: g.c && l.c ? g.c / l.c : null, u: g.u && l.u ? g.u / l.u : null,
+    bg: g.bgRate && l.bgRate ? g.bgRate / l.bgRate : null, lq: g.lqRate && l.lqRate ? g.lqRate / l.lqRate : null, hx: g.hxRate && l.hxRate ? g.hxRate / l.hxRate : null
+  };
+  const head = '<tr><th>维度</th><th>曝光PV</th><th>购买/领取PV</th><th>核销PV</th><th>曝光→购买率</th><th>购买→核销率</th><th>曝光→核销率</th></tr>';
+  const rowG = '<tr><td><b>购券</b><span class="gq-info" title="57973+57976 周边渠道(myfavor)合计">i</span></td>' +
+    '<td>' + gqInt(g.e) + '</td><td>' + gqInt(g.c) + '</td><td>' + gqInt(g.u) + '</td>' +
+    '<td>' + gqPct(g.bgRate) + '</td><td>' + gqPct(g.lqRate) + '</td><td>' + gqPct(g.hxRate) + '</td></tr>';
+  const rowL = '<tr><td><b>领券</b><span class="gq-info" title="品牌1743 其余周边活动(myfavor)合计">i</span></td>' +
+    '<td>' + gqInt(l.e) + '</td><td>' + gqInt(l.c) + '</td><td>' + gqInt(l.u) + '</td>' +
+    '<td>' + gqPct(l.bgRate) + '</td><td>' + gqPct(l.lqRate) + '</td><td>' + gqPct(l.hxRate) + '</td></tr>';
+  const rowM = '<tr style="background:#f7f9ff;"><td><b>购券÷领券</b></td>' +
+    '<td>' + mcell(mults.e) + '</td><td>' + mcell(mults.c) + '</td><td>' + mcell(mults.u) + '</td>' +
+    '<td>' + mcell(mults.bg) + '</td><td>' + mcell(mults.lq) + '</td><td>' + mcell(mults.hx) + '</td></tr>';
+  document.getElementById('gqCmpWrap').innerHTML = '<table class="gq-table">' + head + rowG + rowL + rowM + '</table>' +
+    '<div style="color:#94a3b8;font-size:11px;padding-top:6px;">* PV 倍数偏小属正常：购券仅单品牌两活动，领券为该品牌全部周边活动，盘子量级不同；倍数重点看三个转化率。</div>';
+}
+
+// ④ 用户分层
+function renderGouquanLayers() {
+  const D = GOUQUAN_DATA;
+  const L = D.layers.slice();
+  const maxBg = Math.max.apply(null, L.map(x => x.bg_rate));
+  const maxLq = Math.max.apply(null, L.map(x => x.lq_rate));
+  const maxHx = Math.max.apply(null, L.map(x => x.hx_rate));
+  if (_gqLayerSort.key) {
+    L.sort((a, b) => _gqLayerSort.asc ? a[_gqLayerSort.key] - b[_gqLayerSort.key] : b[_gqLayerSort.key] - a[_gqLayerSort.key]);
+  }
+  const head = '<tr>' +
+    '<th class="sortable" data-k="layer">分层</th>' +
+    '<th class="sortable" data-k="bg_rate">曝光购买率</th>' +
+    '<th class="sortable" data-k="lq_rate">购买核销率</th>' +
+    '<th class="sortable" data-k="hx_rate">曝光核销率</th>' +
+    '<th class="sortable" data-k="lq_share">购买占比</th>' +
+    '<th class="sortable" data-k="hx_share">核销占比</th></tr>';
+  const body = L.map(x => {
+    const bbar = (x.bg_rate / maxBg * 100), lbar = (x.lq_rate / maxLq * 100), hbar = (x.hx_rate / maxHx * 100);
+    return '<tr><td><b>' + x.layer + '</b></td>' +
+      '<td class="gq-bar-cell"><div class="gq-bar-in" style="width:' + bbar + '%"></div><span>' + gqPct(x.bg_rate) + '</span></td>' +
+      '<td class="gq-bar-cell"><div class="gq-bar-in" style="width:' + lbar + '%"></div><span>' + gqPct(x.lq_rate) + '</span></td>' +
+      '<td class="gq-bar-cell"><div class="gq-bar-in" style="width:' + hbar + '%"></div><span>' + gqPct(x.hx_rate) + '</span></td>' +
+      '<td>' + (x.lq_share * 100).toFixed(1) + '%<div class="gq-stack" style="width:' + (x.lq_share * 100) + '%"></div></td>' +
+      '<td>' + (x.hx_share * 100).toFixed(1) + '%<div class="gq-stack" style="width:' + (x.hx_share * 100) + '%"></div></td></tr>';
+  }).join('');
+  const tbl = document.getElementById('gqLayerWrap');
+  tbl.innerHTML = '<table class="gq-table">' + head + body + '</table>';
+  tbl.querySelectorAll('th.sortable').forEach(th => {
+    th.onclick = () => {
+      const k = th.dataset.k;
+      if (_gqLayerSort.key === k) _gqLayerSort.asc = !_gqLayerSort.asc;
+      else { _gqLayerSort.key = k; _gqLayerSort.asc = true; }
+      tbl.querySelectorAll('th').forEach(t => t.classList.remove('sorted', 'asc'));
+      th.classList.add('sorted'); if (_gqLayerSort.asc) th.classList.add('asc');
+      renderGouquanLayers();
+    };
+  });
+}
+
+// 总入口
+function renderGouquanAll() {
+  renderGouquanKpi();
+  renderGouquanTrend(_gqWin2);
+  renderGouquanDetail(_gqWin2);
+  renderGouquanCompare(_gqWin3);
+  renderGouquanLayers();
+  if (!_gqBound) {
+    _gqBound = true;
+    const b2 = document.getElementById('gqWin2');
+    if (b2) b2.addEventListener('click', e => {
+      const b = e.target.closest('.range-btn'); if (!b) return;
+      _gqWin2 = b.dataset.win;
+      b2.querySelectorAll('.range-btn').forEach(x => x.classList.toggle('active', x === b));
+      renderGouquanTrend(_gqWin2); renderGouquanDetail(_gqWin2);
+    });
+    const b3 = document.getElementById('gqWin3');
+    if (b3) b3.addEventListener('click', e => {
+      const b = e.target.closest('.range-btn'); if (!b) return;
+      _gqWin3 = b.dataset.win;
+      b3.querySelectorAll('.range-btn').forEach(x => x.classList.toggle('active', x === b));
+      renderGouquanCompare(_gqWin3);
+    });
+  }
+}
+
+// SUPABASE 切换预留（三表就绪后启用）
+async function fetchGouquanFromSupabase() {
+  // TODO: 从 ka_gouquan_subsidy / ka_channel_daily / ka_user_layer / ka_activity_daily 拉取并组装为 GOUQUAN_DATA 同构对象
+  throw new Error('Supabase 购券数据源尚未启用');
 }
 
 // ---- 总览卡片：当日核销进度条（摇优惠 100w · 次卡 100w） ----
