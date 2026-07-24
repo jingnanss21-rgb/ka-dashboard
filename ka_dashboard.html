@@ -5782,66 +5782,9 @@ async function renderOverviewTargets() {
       }
     }
 
-    // —— 次卡：活动表 coupon_type='次卡' 的 use_pv（本就是当日核销PV，直接求和）——
-    var maxRes = await fetch(URL_ + '/rest/v1/ka_activity_daily?select=date&order=date.desc&limit=1', {
+    // —— 次卡：读 ka_cika_daily 统一表（公域全部次卡+KA私域次卡合计）——
+    var cikaDailyRes = await fetch(URL_ + '/rest/v1/ka_cika_daily?select=total_redeem_pv&order=date.desc&limit=1', {
       headers: { apikey: KEY_ }
     });
-    var maxRows = await maxRes.json();
-    var latestDate = (maxRows && maxRows[0]) ? maxRows[0].date : null;
-    var cikaDaily = 0;
-    if (latestDate) {
-      var cikaFilter = 'coupon_type=eq.' + encodeURIComponent('次卡');
-      var off = 0, page = 1000, all = [];
-      while (true) {
-        var r = await fetch(URL_ + '/rest/v1/ka_activity_daily?select=use_pv&date=eq.' + latestDate + '&' + cikaFilter + '&limit=' + page + '&offset=' + off, {
-          headers: { apikey: KEY_ }
-        });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        var d = await r.json();
-        all = all.concat(d);
-        if (d.length < page) break;
-        off += page;
-      }
-      var cikaSum = all.reduce(function (s, x) { return s + (Number(x.use_pv) || 0); }, 0);
-      cikaDaily = cikaSum;  // use_pv 已是当日核销PV，直接求和，无需÷7
-    }
-
-    var setBar = function (barId, pctSpanId, todaySpanId, val) {
-      var pct = Math.min(100, val / TARGET * 100);
-      var barEl = document.getElementById(barId);
-      var pctEl = document.getElementById(pctSpanId);
-      var todayEl = document.getElementById(todaySpanId);
-      if (barEl) barEl.style.width = pct + '%';
-      if (pctEl) pctEl.textContent = pct.toFixed(2) + '%';
-      if (todayEl) todayEl.textContent = Math.round(val).toLocaleString();
-    };
-    // 摇优惠 = 餐饮KA当日核销（底表ΣdailyRedeem）；次卡 = 次卡核销当日（活动表Σuse_pv，已为当日值）
-    setBar('shakeCardBar', 'shakeCardPct', 'shakeCardToday', kaDailyRedeem);
-    setBar('cikaCardBar',  'cikaCardPct',  'cikaCardToday',  cikaDaily);
-  } catch (e) { console.warn('[overview target]', e); }
-}
-
-// 每次 renderOverview 后自动追加异步进度条
-(function () {
-  var _origRenderOverview = window.renderOverview;
-  if (typeof _origRenderOverview === 'function') {
-    window.renderOverview = function () {
-      var r = _origRenderOverview.apply(this, arguments);
-      renderOverviewTargets();
-      return r;
-    };
-  } else {
-    // renderOverview 尚未定义（脚本顺序问题）→ 延迟拦截
-    setTimeout(function () {
-      var f = window.renderOverview;
-      if (typeof f === 'function') {
-        window.renderOverview = function () { var r = f.apply(this, arguments); renderOverviewTargets(); return r; };
-      }
-    }, 500);
-    // 首次也先跑一遍
-    setTimeout(renderOverviewTargets, 800);
-  }
-})();
-</script>
-</body>
-</html>
+    var cikaDailyRows = await cikaDailyRes.json();
+    var cikaDaily = (cikaDailyRows && cikaDailyRows[0]) ? (cikaDailyRows[0].total_redeem_pv || 0) : 0;
