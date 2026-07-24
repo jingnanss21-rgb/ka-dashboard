@@ -650,6 +650,16 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
   <!-- ============ 私域次卡 ============ -->
   <div class="cika-subpanel" id="cika-subpanel-private" style="display:none;">
+    <!-- 📊 活动转化 -->
+    <div class="section">
+      <div class="section-title"><div class="icon" style="background:#3b82f6"></div> 📊 活动转化 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">私域次卡商品券 · 瑞幸咖啡</span></div>
+      <div id="privateCikaKpi"></div>
+    </div>
+    <!-- 📈 批次核销率趋势 -->
+    <div class="section">
+      <div class="section-title"><div class="icon" style="background:#2563eb"></div> 📈 批次核销率趋势 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">5个批次 · 折扣阶梯递减</span></div>
+      <div id="privateCikaBatchChart" style="width:100%;height:300px;"></div>
+    </div>
     <!-- 时间甘特图 -->
     <div class="section">
       <div class="section-title" style="display:flex;align-items:center;gap:12px;">
@@ -762,7 +772,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div class="gq-kpi-row" id="gqKpiToday"></div>
     <div style="font-size:13px;color:#64748b;font-weight:600;margin:20px 0 10px;">累计</div>
     <div class="gq-kpi-row" id="gqKpiCum"></div>
-    <div class="gq-note"><span>⚠️</span><span>补贴数据自 <b>2026-07-05</b> 起才有量，且两活动合并统计不拆分；上表"累计单笔补贴"实际为 7/5 起的累计口径。</span></div>
+    
   </div>
 
   <!-- 📈 购券转化 -->
@@ -5038,8 +5048,64 @@ function _cikaPrivateBaseBrands() {
   return (KA_DATA.brands || []).filter(function (b) { return b['品类'] === '饮品' || b['品类'] === '茶饮咖啡'; });
 }
 
+async // ============ 私域次卡商品券数据 ============
+const PRIVATE_CIKA = {
+  name: '\u745e\u5e78\u5496\u5561\u8d85\u503c5\u6b21\u5361',
+  discount: '\u7b2c\u4e00\u7b146.3\u6298 / \u7b2c\u4e8c\u7b146.2\u6298 / \u7b2c\u4e09\u7b145.8\u6298 / \u7b2c\u56db\u7b145.5\u6298 / \u7b2c\u4e94\u7b145.3\u6298',
+  cum: { claimPV: 80863, claimUV: 64579, redeemPV: 27310, redeemUV: 17178, pvRate: 0.3377, uvRate: 0.2659 },
+  batches: [
+    { id: '1216010000003302', round: '\u7b2c\u4e00\u7b14', discount: '6.3\u6298', claimPV: 55695, claimUV: 55695, redeemPV: 17178, redeemUV: 17178, pvRate: 0.3084, uvRate: 0.3084 },
+    { id: '1216010000003303', round: '\u7b2c\u4e8c\u7b14', discount: '6.2\u6298', claimPV: 15945, claimUV: 15945, redeemPV: 7386, redeemUV: 7386, pvRate: 0.4632, uvRate: 0.4632 },
+    { id: '1216010000003304', round: '\u7b2c\u4e09\u7b14', discount: '5.8\u6298', claimPV: 7164, claimUV: 7164, redeemPV: 1520, redeemUV: 1520, pvRate: 0.2122, uvRate: 0.2122 },
+    { id: '1216010000003305', round: '\u7b2c\u56db\u7b14', discount: '5.5\u6298', claimPV: 1376, claimUV: 1376, redeemPV: 769, redeemUV: 769, pvRate: 0.5589, uvRate: 0.5589 },
+    { id: '1216010000003306', round: '\u7b2c\u4e94\u7b14', discount: '5.3\u6298', claimPV: 683, claimUV: 683, redeemPV: 457, redeemUV: 457, pvRate: 0.6691, uvRate: 0.6691 },
+  ]
+};
+function renderPrivateCikaKpi() {
+  const d=PRIVATE_CIKA; const c=d.cum;
+  function fmt(n){return n.toLocaleString()}
+  function pct(r){return (r*100).toFixed(2)+'%'}
+  const html=
+    '<div style="margin-bottom:12px;font-size:13px;color:#0f172a;background:#f1f5f9;border-radius:8px;padding:10px 14px;line-height:1.6;">'
+    +'<b>'+d.name+'</b> &nbsp;|&nbsp; 折扣力度：'+d.discount
+    +'</div>'
+    +'<div class="gq-kpi-row">'
+    +'<div class="gq-kpi"><div class="label">\u7d2f\u8ba1\u9886\u53d6PV</div><div class="val">'+fmt(c.claimPV)+'</div><div class="gq-cmp">\u7d2f\u8ba1\u9886\u53d6UV <b>'+fmt(c.claimUV)+'</b></div></div>'
+    +'<div class="gq-kpi"><div class="label">\u7d2f\u8ba1\u6838\u9500PV</div><div class="val">'+fmt(c.redeemPV)+'</div><div class="gq-cmp">\u7d2f\u8ba1\u6838\u9500UV <b>'+fmt(c.redeemUV)+'</b></div></div>'
+    +'<div class="gq-kpi"><div class="label">PV\u6838\u9500\u7387</div><div class="val" style="color:#2563eb;">'+pct(c.pvRate)+'</div><div class="gq-cmp">UV\u6838\u9500\u7387 <b style="color:#2563eb;">'+pct(c.uvRate)+'</b></div></div>'
+    +'</div>';
+  document.getElementById('privateCikaKpi').innerHTML=html;
+}
+function renderPrivateCikaBatch(){
+  const d=PRIVATE_CIKA.batches; const el=document.getElementById('privateCikaBatchChart');
+  if(!el||typeof echarts==='undefined')return;
+  const ch=echarts.getInstanceByDom(el)||echarts.init(el);
+  ch.setOption({
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+    legend:{top:4,data:['\u9886\u53d6PV','PV\u6838\u9500\u7387','UV\u6838\u9500\u7387']},
+    grid:{left:60,right:80,top:40,bottom:40},
+    xAxis:{type:'category',data:d.map(r=>r.round+'\n'+r.discount),axisLabel:{fontSize:11}},
+    yAxis:[
+      {type:'value',name:'\u9886\u53d6PV',nameTextStyle:{fontSize:11,color:'#7c8cff'},axisLabel:{fontSize:11}},
+      {type:'value',name:'\u6838\u9500\u7387',nameTextStyle:{fontSize:11,color:'#2f54eb'},min:0,max:1,axisLabel:{formatter:v=>(v*100).toFixed(0)+'%',fontSize:11}}
+    ],
+    series:[
+      {name:'\u9886\u53d6PV',type:'bar',yAxisIndex:0,data:d.map(r=>r.claimPV),itemStyle:{color:'#7c8cff'},barMaxWidth:50,
+        label:{show:true,position:'top',fontSize:10,formatter:p=>p.value?p.value.toLocaleString():''}},
+      {name:'PV\u6838\u9500\u7387',type:'line',yAxisIndex:1,data:d.map(r=>+(r.pvRate*100).toFixed(1)),smooth:true,
+        symbol:'circle',symbolSize:8,lineStyle:{width:2,color:'#2f54eb'},itemStyle:{color:'#2f54eb'},
+        label:{show:true,position:'bottom',fontSize:11,formatter:p=>p.value?p.value+'%':'',color:'#2f54eb'}},
+      {name:'UV\u6838\u9500\u7387',type:'line',yAxisIndex:1,data:d.map(r=>+(r.uvRate*100).toFixed(1)),smooth:true,
+        symbol:'diamond',symbolSize:8,lineStyle:{width:2,type:'dashed',color:'#f59e0b'},itemStyle:{color:'#f59e0b'},
+        label:{show:true,position:'top',fontSize:11,formatter:p=>p.value?p.value+'%':'',color:'#f59e0b'}}
+    ]
+  },true);
+  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>ch.resize()).observe(el);
+}
 async function loadCikaPrivate() {
   try {
+    renderPrivateCikaKpi();
+    renderPrivateCikaBatch();
     var rows = await alertSb.from('ka_cika_private_brands').select('*').eq('is_active', true);
     if (rows.error) throw rows.error;
     _cikaPrivateData = rows.data || [];
@@ -5402,43 +5468,38 @@ function gqCmpPct(cur, base) {
 function renderGouquanKpi() {
   const D = GOUQUAN_DATA, M = D.meta, t = M.today;
   const cur = D.detail_raw[t] || {};
-  let gq = 0, hx = 0;
-  for (const k in cur) { gq += cur[k].claim; hx += cur[k].use; }
-  const idx = D.dates.indexOf(t);
-  const yDate = idx > 0 ? D.dates[idx - 1] : null;
-  const wDate = idx >= 7 ? D.dates[idx - 7] : null;
-  const yRec = yDate ? (D.detail_raw[yDate] || {}) : {};
-  const wRec = wDate ? (D.detail_raw[wDate] || {}) : {};
-  let gqY = 0, hxY = 0, gqW = 0, hxW = 0;
-  for (const k in yRec) { gqY += yRec[k].claim; hxY += yRec[k].use; }
-  for (const k in wRec) { gqW += wRec[k].claim; hxW += wRec[k].use; }
-  const sub = D.subsidy.daily.find(s => s.date === t);
-  const perToday = sub ? sub.per : null;
-  const subY = D.subsidy.daily.find(s => s.date === yDate);
-  const subW = D.subsidy.daily.find(s => s.date === wDate);
-  const perYv = subY ? subY.per : null, perWv = subW ? subW.per : null;
-
-  const cards = [
-    { label: '购券订单数（当日领取PV）', val: gqInt(gq), day: gqCmp(gq, gqY), week: gqCmp(gq, gqW) },
-    { label: '核销订单数（当日核销PV）', val: gqInt(hx), day: gqCmp(hx, hxY), week: gqCmp(hx, hxW) },
-    { label: '单笔补贴（核销金额÷交易笔数）', val: '¥' + perToday, day: gqCmpSub(perToday, perYv), week: gqCmpSub(perToday, perWv) },
-  ];
-  document.getElementById('gqKpiRow').innerHTML = cards.map(c => (
-    '<div class="gq-kpi"><div class="label">' + c.label + '</div>' +
-    '<div class="val">' + c.val + '</div>' +
-    '<div class="gq-cmp"><div>日环比 <span>' + c.day + '</span></div>' +
-    '<div>周环比 <span>' + c.week + '</span></div></div></div>'
-  )).join('');
-
-  let cgq = 0, chx = 0;
-  for (const dt in D.detail_raw) for (const k in D.detail_raw[dt]) { cgq += D.detail_raw[dt][k].claim; chx += D.detail_raw[dt][k].use; }
-  const sc = D.subsidy.cum;
-  document.getElementById('gqCumBar').innerHTML =
-    '<div class="ci">累计购券订单数<b>' + gqInt(cgq) + '</b></div>' +
-    '<div class="ci">累计核销订单数<b>' + gqInt(chx) + '</b></div>' +
-    '<div class="ci">累计单笔补贴<b>¥' + sc.per + '</b></div>' +
-    '<div class="ci">活动开始<b>' + M.act_start.slice(4, 6) + '/' + M.act_start.slice(6) + '</b></div>' +
-    '<div class="ci">活动结束<b>' + M.act_end.slice(4, 6) + '/' + M.act_end.slice(6) + '</b></div>';
+  let gq=0, hx=0, exp=0;
+  for (const k in cur) { const c=cur[k]; gq+=c.claim; hx+=c.use; exp+=c.exp||0; }
+  const idx=D.dates.indexOf(t);
+  const yd=idx>0?D.dates[idx-1]:null, wd=idx>=7?D.dates[idx-7]:null;
+  const yR=yd?(D.detail_raw[yd]||{}):{}, wR=wd?(D.detail_raw[wd]||{}):{};
+  function agg(r){let e=0,c=0,u=0;for(const k in r){e+=r[k].exp||0;c+=r[k].claim;u+=r[k].use}return{e,c,u}}
+  const y=agg(yR), w=agg(wR);
+  const sub=D.subsidy.daily.find(s=>s.date===t), subY=sub&&yd?D.subsidy.daily.find(s=>s.date===yd):null, subW=sub&&wd?D.subsidy.daily.find(s=>s.date===wd):null;
+  const per=sub?sub.per:null, perY=subY?subY.per:null, perW=subW?subW.per:null;
+  function card(label,val,dod,wow){
+    return '<div class="gq-kpi"><div class="label">'+label+'</div><div class="val">'+val+'</div><div class="gq-cmp"><div>日环比 <span>'+dod+'</span></div><div>周环比 <span>'+wow+'</span></div></div></div>';
+  }
+  function cardCum(label,val){
+    return '<div class="gq-kpi"><div class="label">'+label+'</div><div class="val">'+val+'</div></div>';
+  }
+  document.getElementById('gqKpiToday').innerHTML =
+    card('曝光数',gqInt(exp),gqCmp(exp,y.e),gqCmp(exp,w.e))+
+    card('购券数',gqInt(gq),gqCmp(gq,y.c),gqCmp(gq,w.c))+
+    card('核销数',gqInt(hx),gqCmp(hx,y.u),gqCmp(hx,w.u))+
+    card('曝光购买率',gqPct(exp?gq/exp:0),gqCmpPct(exp?gq/exp:0,y.e?y.c/y.e:0),gqCmpPct(exp?gq/exp:0,w.e?w.c/w.e:0))+
+    card('购买核销率',gqPct(gq?hx/gq:0),gqCmpPct(gq?hx/gq:0,y.c?y.u/y.c:0),gqCmpPct(gq?hx/gq:0,w.c?w.u/w.c:0))+
+    card('单笔补贴',per!==null?'¥'+per:'-',gqCmpSub(per,perY),gqCmpSub(per,perW));
+  let cExp=0,cGq=0,cHx=0;
+  for(const dt in D.detail_raw)for(const k in D.detail_raw[dt]){cExp+=D.detail_raw[dt][k].exp||0;cGq+=D.detail_raw[dt][k].claim;cHx+=D.detail_raw[dt][k].use}
+  const sc=D.subsidy.cum;
+  document.getElementById('gqKpiCum').innerHTML =
+    cardCum('累计曝光数',gqInt(cExp))+
+    cardCum('累计购券数',gqInt(cGq))+
+    cardCum('累计核销数',gqInt(cHx))+
+    cardCum('累计曝光购买率',gqPct(cExp?cGq/cExp:0))+
+    cardCum('累计购买核销率',gqPct(cGq?cHx/cGq:0))+
+    '<div class="gq-kpi"><div class="label">累计补贴</div><div class="val">¥'+Math.round(sc.redeem_amt).toLocaleString()+'</div><div class="gq-cmp" style="margin-top:4px;">平均单笔补贴 ¥'+sc.per+'</div></div>'
 }
 
 // ② 趋势图（ECharts 双 Y 轴）
