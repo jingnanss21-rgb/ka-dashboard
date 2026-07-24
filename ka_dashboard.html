@@ -755,17 +755,19 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 #panel-gouquan .gq-collapse.open .gq-collapse-body{display:block;}
 </style>
 <div class="project-panel" id="panel-gouquan">
-  <!-- ① 活动转化 -->
+  <!-- 📊 活动转化 -->
   <div class="section">
-    <div class="section-title"><div class="icon" style="background:#3b82f6"></div> ① 活动转化 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">目标活动 57973 / 57976 · 瑞幸咖啡爆品</span></div>
-    <div class="gq-kpi-row" id="gqKpiRow"></div>
-    <div class="gq-cum-bar" id="gqCumBar"></div>
+    <div class="section-title"><div class="icon" style="background:#3b82f6"></div> 📊 活动转化 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">目标活动 57973 / 57976 · 瑞幸咖啡爆品</span></div>
+    <div style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:10px;">当日</div>
+    <div class="gq-kpi-row" id="gqKpiToday"></div>
+    <div style="font-size:13px;color:#64748b;font-weight:600;margin:20px 0 10px;">累计</div>
+    <div class="gq-kpi-row" id="gqKpiCum"></div>
     <div class="gq-note"><span>⚠️</span><span>补贴数据自 <b>2026-07-05</b> 起才有量，且两活动合并统计不拆分；上表"累计单笔补贴"实际为 7/5 起的累计口径。</span></div>
   </div>
 
-  <!-- ② 购券转化 -->
+  <!-- 📈 购券转化 -->
   <div class="section">
-    <div class="section-title"><div class="icon" style="background:#2563eb"></div> ② 购券转化 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">双 Y 轴趋势（曝光走左轴，购券/核销走右轴）· 所选窗口高亮</span></div>
+    <div class="section-title"><div class="icon" style="background:#2563eb"></div> 📈 购券转化 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">双 Y 轴趋势（曝光走左轴，购券/核销走右轴）· 所选窗口高亮</span></div>
     <div class="gq-range-switcher" id="gqWin2">
       <button class="range-btn" data-win="当日">当日</button>
       <button class="range-btn active" data-win="近7天">近7天</button>
@@ -778,7 +780,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
   <!-- ③ 购券 vs 领券 -->
   <div class="section">
-    <div class="section-title"><div class="icon" style="background:#7c3aed"></div> ③ 购券 vs 领券 数据对比 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">口径统一取周边渠道(myfavor)</span></div>
+    <div class="section-title"><div class="icon" style="background:#7c3aed"></div> 🔄 购券 vs 领券 数据对比 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">口径统一取周边渠道(myfavor)</span></div>
     <div class="gq-range-switcher" id="gqWin3">
       <button class="range-btn" data-win="当日">当日</button>
       <button class="range-btn active" data-win="近7天">近7天</button>
@@ -788,19 +790,15 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div class="gq-table-wrap" id="gqCmpWrap"></div>
   </div>
 
-  <!-- ④ 用户分层 -->
+  <!-- 👥 用户分层 -->
   <div class="section">
-    <div class="section-title"><div class="icon" style="background:#0891b2"></div> ④ 用户分层 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">活动投放至今累计(57973+57976) · 点击表头排序</span></div>
+    <div class="section-title"><div class="icon" style="background:#0891b2"></div> 👥 用户分层 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">活动投放至今累计(57973+57976) · 点击表头排序</span></div>
     <div class="gq-table-wrap" id="gqLayerWrap"></div>
   </div>
 
   <!-- ⑤ 原有模块下沉折叠 -->
-  <div class="section gq-collapse" id="gqOldMod">
-    <div class="gq-collapse-head" onclick="var m=document.getElementById('gqOldMod');m.classList.toggle('open');if(m.classList.contains('open')&&window.echarts){var c=echarts.getInstanceByDom(document.getElementById('gouquanGantt'));if(c){c.resize();}else if(typeof renderGouquanGantt==='function'){renderGouquanGantt();}}">
-      <span class="gq-arrow">▶</span>
-      <span>上线时间线 + 商户明细（原有模块，改造后下沉）</span>
-    </div>
-    <div class="gq-collapse-body">
+  <div class="section" id="gqOldMod">
+    <div class="section-title"><div class="icon" style="background:#6366f1"></div> ⏱ 上线进度 <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">购券上线时间线 + 商户明细</span></div>
       <div class="section-title" style="display:flex;align-items:center;gap:12px;margin-top:8px;">
         <div class="icon" style="background:#3b82f6"></div>
         <span>📅 购券上线时间线</span>
@@ -820,15 +818,16 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
               <th style="min-width:120px;">品牌</th>
               <th style="min-width:80px;">品牌ID</th>
               <th style="min-width:70px;">负责人</th>
-              <th style="color:#94a3b8;font-size:11px;font-weight:400;text-align:right;" colspan="4">点击展开详情 ▼</th>
+              <th style="min-width:110px;">意愿</th>
+              <th style="min-width:120px;">预计上线</th>
+              <th style="min-width:200px;">备注</th>
+              <th style="min-width:110px;">更新时间</th>
             </tr>
           </thead>
           <tbody id="gouquanTbody"></tbody>
         </table>
       </div>
-    </div>
   </div>
-</div>
 
 <!-- ============ PANEL: 无忧会员 ============ -->
 <div class="project-panel" id="panel-wuyou">
@@ -5225,46 +5224,60 @@ function renderGouquanTable() {
   var byName = {};
   _gouquanData.forEach(function (r) { byName[r.brand_name] = r; });
   var rows = base.map(function (b) {
-    var rec = byName[b['品牌']] || {};
+    var rec = byName[b['\u54c1\u724c']] || {};
     return {
-      brand_name: b['品牌'],
-      brand_id: b['品牌id'] || '',
-      owner: b['负责人'] || '',
+      brand_name: b['\u54c1\u724c'],
+      brand_id: b['\u54c1\u724cid'] || '',
+      owner: b['\u8d1f\u8d23\u4eba'] || '',
       intent: rec.intent || '',
       planned_month: rec.planned_month || '',
       remark: rec.remark || '',
       updated_at: rec.updated_at || ''
     };
   });
-  document.getElementById('gouquanCount').textContent = rows.length + ' 家';
+  var willing = rows.filter(function(r) { return r.intent === '\u6709\u610f\u613f'; });
+  var others = rows.filter(function(r) { return r.intent !== '\u6709\u610f\u613f'; });
+  document.getElementById('gouquanCount').textContent = willing.length + ' / ' + rows.length + ' \u5bb6\u6709\u610f\u613f';
   var esc = function (s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); };
-  tbody.innerHTML = rows.map(function (r, i) {
-    var hasFb = r.intent || r.planned_month || r.remark;
-    var intentSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="intent" class="gouquan-input" style="padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
-      '<option value="">—<\/option>' +
+  function renderRow(r) {
+    var intentSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="intent" class="gouquan-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
+      '<option value="">\u2014<\/option>' +
       CIKA_INTENT_OPTS.map(function (o) { return '<option value="' + o + '"' + (o === r.intent ? ' selected' : '') + '>' + o + '<\/option>'; }).join('') + '<\/select>';
-    var monthSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="planned_month" class="gouquan-input" style="padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
-      '<option value="">—<\/option>' +
+    var monthSel = '<select data-brand="' + esc(r.brand_name) + '" data-fld="planned_month" class="gouquan-input" style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">' +
+      '<option value="">\u2014<\/option>' +
       PLAN_MONTHS.map(function (m) { return '<option value="' + m + '"' + (m === r.planned_month ? ' selected' : '') + '>' + MONTH_LABELS[m] + '<\/option>'; }).join('') + '<\/select>';
-    var remarkInp = '<input type="text" data-brand="' + esc(r.brand_name) + '" data-fld="remark" class="gouquan-input" value="' + esc(r.remark) + '" placeholder="备注..." style="padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;width:160px;">';
-    var upd = r.updated_at ? new Date(r.updated_at).toLocaleString('zh-CN', { hour12: false }).slice(0, 16) : '<span style="color:#cbd5e1;">—<\/span>';
-    var arrow = hasFb ? '▼' : '▶';
-    return '<tr class="gq-tr-s" onclick="var d=this.nextElementSibling;d.style.display=d.style.display==\'none\'?\'table-row\':\'none\';this.querySelector(\'.gq-ar\').textContent=d.style.display==\'none\'?\'\u25b6\':\'\u25bc\';" style="cursor:pointer;">' +
-      '<td style="text-align:center;color:#94a3b8;font-size:12px;">' + (i + 1) + '<\/td>' +
+    var remarkInp = '<input type="text" data-brand="' + esc(r.brand_name) + '" data-fld="remark" class="gouquan-input" value="' + esc(r.remark) + '" placeholder="\u5907\u6ce8..." style="width:100%;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;">';
+    var upd = r.updated_at ? new Date(r.updated_at).toLocaleString('zh-CN', { hour12: false }).slice(0, 16) : '<span style="color:#cbd5e1;">\u2014<\/span>';
+    return '<tr>' +
+      '<td style="text-align:center;color:#94a3b8;font-size:12px;">' + (i = i + 1) + '<\/td>' +
       '<td style="font-weight:600;color:#0f172a;">' + esc(r.brand_name) + '<\/td>' +
       '<td style="color:#64748b;font-size:12px;">' + esc(r.brand_id) + '<\/td>' +
       '<td style="color:#475569;font-size:12px;">' + esc(r.owner) + '<\/td>' +
-      '<td colspan="4" style="text-align:right;font-size:11px;color:#94a3b8;"><span class="gq-ar">' + arrow + '<\/span><\/td>' +
-      '<\/tr>' +
-      '<tr class="gq-tr-d" style="display:' + (hasFb ? 'table-row' : 'none') + ';">' +
-      '<td colspan="8" style="padding:4px 12px 10px;background:#f8fafc;">' +
-      '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;">' +
-      '意愿 ' + intentSel +
-      '&emsp;预计上线 ' + monthSel +
-      '&emsp;备注 ' + remarkInp +
-      '&emsp;更新 <span style="color:#94a3b8;font-size:11px;">' + upd + '<\/span>' +
-      '<\/div><\/td><\/tr>';
-  }).join('');
+      '<td>' + intentSel + '<\/td>' +
+      '<td>' + monthSel + '<\/td>' +
+      '<td>' + remarkInp + '<\/td>' +
+      '<td style="color:#94a3b8;font-size:11px;">' + upd + '<\/td>' +
+      '<\/tr>';
+  }
+  var i = 0;
+  var html = willing.map(function(r) { return renderRow(r); }).join('');
+  if (others.length > 0) {
+    html += '<tr class="gq-toggle-row" style="background:#f8fafc;cursor:pointer;">' +
+      '<td colspan="8" style="text-align:center;font-size:13px;color:#3b82f6;padding:8px;">\u25b6 \u663e\u793a\u5176\u4ed6\u54c1\u724c (' + others.length + '\u5bb6)<\/td><\/tr>' +
+      others.map(function(r) { return renderRow(r); }).join('').replace(/<tr/g, '<tr class="gq-other" style="display:none;"');
+  }
+  tbody.innerHTML = html;
+  var toggleRow = tbody.querySelector('.gq-toggle-row');
+  if (toggleRow) {
+    toggleRow.onclick = function() {
+      var rows = tbody.querySelectorAll('.gq-other');
+      var isHidden = rows.length > 0 && rows[0].style.display === 'none';
+      rows.forEach(function(r) { r.style.display = isHidden ? '' : 'none'; });
+      toggleRow.querySelector('td').innerHTML = isHidden
+        ? '\u25bc \u6536\u8d77\u5176\u4ed6\u54c1\u724c (' + others.length + '\u5bb6)'
+        : '\u25b6 \u663e\u793a\u5176\u4ed6\u54c1\u724c (' + others.length + '\u5bb6)';
+    };
+  }
   tbody.querySelectorAll('.gouquan-input').forEach(function (el) {
     el.addEventListener('change', function () { saveGouquan(el.dataset.brand); });
     el.addEventListener('blur',   function () { if (el.dataset.fld === 'remark') saveGouquan(el.dataset.brand); });
@@ -5346,7 +5359,7 @@ function renderGouquanGantt() {
 
 
 // ============================================================
-// 购券 Tab 改造模块（① 活动转化 / ② 购券转化 / ③ 购券vs领券 / ④ 用户分层）
+// 购券 Tab 改造模块（📊 活动转化 / 📈 购券转化 / ③ 购券vs领券 / 👥 用户分层）
 // 数据源：GOUQUAN_DATA（内联真实快照，2026-07-23）。SUPABASE 三表就绪后
 // 将 GOUQUAN_DATA_SOURCE 改为 'supabase' 并启用 fetchGouquanFromSupabase()。
 // ============================================================
@@ -5377,8 +5390,15 @@ function gqCmpSub(cur, base) {
   const arr = r >= 0 ? '▲' : '▼';
   return '<span class="' + cls + '">' + arr + ' ' + Math.abs(r * 100).toFixed(1) + '%</span>';
 }
+function gqCmpPct(cur, base) {
+  if (base == null || base === 0 || cur == null) return '<span class="gq-na">昨日缺报</span>';
+  const r = (cur - base) / base;
+  const cls = r >= 0 ? 'gq-up' : 'gq-down';
+  const arr = r >= 0 ? '▲' : '▼';
+  return '<span class="' + cls + '">' + arr + ' ' + Math.abs(r * 100).toFixed(1) + '%</span>';
+}
 
-// ① 活动转化
+// 📊 活动转化
 function renderGouquanKpi() {
   const D = GOUQUAN_DATA, M = D.meta, t = M.today;
   const cur = D.detail_raw[t] || {};
@@ -5519,7 +5539,7 @@ function renderGouquanCompare(win) {
     '<div style="color:#94a3b8;font-size:11px;padding-top:6px;">* PV 倍数偏小属正常：购券仅单品牌两活动，领券为该品牌全部周边活动，盘子量级不同；倍数重点看三个转化率。</div>';
 }
 
-// ④ 用户分层
+// 👥 用户分层
 function renderGouquanLayers() {
   const D = GOUQUAN_DATA;
   const L = D.layers.slice();
@@ -5601,12 +5621,15 @@ async function fetchGouquanFromSupabase() {
     const sDaily=subRows.map(r=>({date:r.date.slice(5).replace('-',''),trade_cnt:r.trade_cnt,trade_amt:r.trade_amt,redeem_amt:r.redeem_amt,per:r.trade_cnt>0?+(r.redeem_amt/r.trade_cnt).toFixed(2):null}));
     const cu={trade_cnt:0,trade_amt:0,redeem_amt:0,per:0};for(const s of sDaily){cu.trade_cnt+=s.trade_cnt||0;cu.trade_amt+=+(s.trade_amt||0);cu.redeem_amt+=+(s.redeem_amt||0)}cu.per=cu.trade_cnt>0?+(cu.redeem_amt/cu.trade_cnt).toFixed(2):null;
     const ch_r={};for(const r of chRows){const d=r.date.slice(5).replace('-','');if(!ch_r[d])ch_r[d]={gouquan:{exp:0,claim:0,use:0},lingquan:{exp:0,claim:0,use:0}};const gq=['57973','57976'].includes(String(r.act_id)),k=gq?'gouquan':'lingquan';if(r.channel==='myfavor'){ch_r[d][k].exp+=r.exp_pv||0;ch_r[d][k].claim+=r.claim_pv||0;ch_r[d][k].use+=r.use_pv||0}}
-    const rawLy=lyRows.map(r=>({activity:String(r.act_id),layer:r.layer,bg_uv:r.bg_uv,bg_pv:r.bg_pv,lq_uv:r.lq_uv,lq_pv:r.lq_pv,hx_uv:r.hx_uv,hx_pv:r.hx_pv}));
-    const totLq={},totHx={};
-    for(const x of rawLy){const a=x.activity;totLq[a]=(totLq[a]||0)+x.lq_pv;totHx[a]=(totHx[a]||0)+x.hx_pv}
-    const layers=rawLy.map(r=>({layer:r.layer,bg_pv:r.bg_pv,lq_pv:r.lq_pv,hx_pv:r.hx_pv,
-      bg_rate:r.bg_pv>0?r.lq_pv/r.bg_pv:0,lq_rate:r.lq_pv>0?r.hx_pv/r.lq_pv:0,hx_rate:r.bg_pv>0?r.hx_pv/r.bg_pv:0,
-      lq_share:totLq[r.activity]>0?r.lq_pv/totLq[r.activity]:0,hx_share:totHx[r.activity]>0?r.hx_pv/totHx[r.activity]:0}));
+    const rawLy=lyRows.map(r=>({layer:r.layer,bg_pv:r.bg_pv,lq_pv:r.lq_pv,hx_pv:r.hx_pv}));
+    const merged={};const layers=[];
+    for(const x of rawLy){if(!merged[x.layer])merged[x.layer]={bg_pv:0,lq_pv:0,hx_pv:0};merged[x.layer].bg_pv+=x.bg_pv;merged[x.layer].lq_pv+=x.lq_pv;merged[x.layer].hx_pv+=x.hx_pv}
+    const lyLq={},lyHx={};
+    for(const l in merged){lyLq[l]=merged[l].lq_pv;lyHx[l]=merged[l].hx_pv}
+    const totLq=Object.values(lyLq).reduce((a,b)=>a+b,0),totHx=Object.values(lyHx).reduce((a,b)=>a+b,0);
+    for(const l in merged){const m=merged[l];layers.push({layer:l,bg_pv:m.bg_pv,lq_pv:m.lq_pv,hx_pv:m.hx_pv,
+      bg_rate:m.bg_pv>0?m.lq_pv/m.bg_pv:0,lq_rate:m.lq_pv>0?m.hx_pv/m.lq_pv:0,hx_rate:m.bg_pv>0?m.hx_pv/m.bg_pv:0,
+      lq_share:totLq>0?m.lq_pv/totLq:0,hx_share:totHx>0?m.hx_pv/totHx:0})};
     const today=dates[dates.length-1]||'0723';
     GOUQUAN_DATA={meta:{brand:'luckin coffee',brand_id:1743,act_start:'20260626',act_end:'20260731',acts:Object.entries(actMap).map(([id,name])=>({id,name})),today,last_update:new Date().toISOString().slice(0,10)},dates,trend,detail_raw,channel_raw:ch_r,subsidy:{daily:sDaily,cum:cu},layers};
     console.log('[gouquan] Supabase 数据加载完成:',dates.length,'天,',layers.length,'条分层');
