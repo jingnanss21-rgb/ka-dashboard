@@ -5796,16 +5796,18 @@ async function renderOverviewTargets() {
     var wuyouRows = await wuyouRes.json();
     var wuyouCount = (wuyouRows && wuyouRows.length) ? wuyouRows.length : 0;
 
-    // 设置次卡 KPI
-    document.getElementById("ovKpiCika").textContent = cikaDaily.toLocaleString();
-    document.getElementById("ovKpiWuyou").textContent = wuyouCount.toLocaleString();
-
-    // —— 盒子：ka_box_brands 活跃数 ——
-    var boxRes = await fetch(URL_ + "/rest/v1/ka_box_brands?select=id&is_active=eq.true&or=(box_status.eq.沟通中 意向不明确,box_status.eq.意向明确 待签约,box_status.eq.已签约 待发货,box_status.eq.发货中,box_status.eq.支付宝风险)", {
-      headers: { apikey: KEY_ }
-    });
-    var boxRows = await boxRes.json();
-    document.getElementById("ovKpiBox").textContent = (boxRows && boxRows.length) ? boxRows.length.toLocaleString() : "-";
+    // 设置进度条（摇优惠 + 次卡）
+    var setBar = function (barId, pctSpanId, todaySpanId, val) {
+      var pct = Math.min(100, val / TARGET * 100);
+      var barEl = document.getElementById(barId);
+      var pctEl = document.getElementById(pctSpanId);
+      var todayEl = document.getElementById(todaySpanId);
+      if (barEl) barEl.style.width = pct + '%';
+      if (pctEl) pctEl.textContent = pct.toFixed(2) + '%';
+      if (todayEl) todayEl.textContent = Math.round(val).toLocaleString();
+    };
+    setBar('shakeCardBar', 'shakeCardPct', 'shakeCardToday', kaDailyRedeem);
+    setBar('cikaCardBar', 'cikaCardPct', 'cikaCardToday', cikaDaily);
   } catch (e) {
     console.error('[overview]', e.message);
   }
