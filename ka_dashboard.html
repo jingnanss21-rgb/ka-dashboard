@@ -5601,7 +5601,12 @@ async function fetchGouquanFromSupabase() {
     const sDaily=subRows.map(r=>({date:r.date.slice(5).replace('-',''),trade_cnt:r.trade_cnt,trade_amt:r.trade_amt,redeem_amt:r.redeem_amt,per:r.trade_cnt>0?+(r.redeem_amt/r.trade_cnt).toFixed(2):null}));
     const cu={trade_cnt:0,trade_amt:0,redeem_amt:0,per:0};for(const s of sDaily){cu.trade_cnt+=s.trade_cnt||0;cu.trade_amt+=+(s.trade_amt||0);cu.redeem_amt+=+(s.redeem_amt||0)}cu.per=cu.trade_cnt>0?+(cu.redeem_amt/cu.trade_cnt).toFixed(2):null;
     const ch_r={};for(const r of chRows){const d=r.date.slice(5).replace('-','');if(!ch_r[d])ch_r[d]={gouquan:{exp:0,claim:0,use:0},lingquan:{exp:0,claim:0,use:0}};const gq=['57973','57976'].includes(String(r.act_id)),k=gq?'gouquan':'lingquan';if(r.channel==='myfavor'){ch_r[d][k].exp+=r.exp_pv||0;ch_r[d][k].claim+=r.claim_pv||0;ch_r[d][k].use+=r.use_pv||0}}
-    const layers=lyRows.map(r=>({activity:String(r.act_id),layer:r.layer,bg_uv:r.bg_uv,bg_pv:r.bg_pv,lq_uv:r.lq_uv,lq_pv:r.lq_pv,hx_uv:r.hx_uv,hx_pv:r.hx_pv}));
+    const rawLy=lyRows.map(r=>({activity:String(r.act_id),layer:r.layer,bg_uv:r.bg_uv,bg_pv:r.bg_pv,lq_uv:r.lq_uv,lq_pv:r.lq_pv,hx_uv:r.hx_uv,hx_pv:r.hx_pv}));
+    const totLq={},totHx={};
+    for(const x of rawLy){const a=x.activity;totLq[a]=(totLq[a]||0)+x.lq_pv;totHx[a]=(totHx[a]||0)+x.hx_pv}
+    const layers=rawLy.map(r=>({layer:r.layer,bg_pv:r.bg_pv,lq_pv:r.lq_pv,hx_pv:r.hx_pv,
+      bg_rate:r.bg_pv>0?r.lq_pv/r.bg_pv:0,lq_rate:r.lq_pv>0?r.hx_pv/r.lq_pv:0,hx_rate:r.bg_pv>0?r.hx_pv/r.bg_pv:0,
+      lq_share:totLq[r.activity]>0?r.lq_pv/totLq[r.activity]:0,hx_share:totHx[r.activity]>0?r.hx_pv/totHx[r.activity]:0}));
     const today=dates[dates.length-1]||'0723';
     GOUQUAN_DATA={meta:{brand:'luckin coffee',brand_id:1743,act_start:'20260626',act_end:'20260731',acts:Object.entries(actMap).map(([id,name])=>({id,name})),today,last_update:new Date().toISOString().slice(0,10)},dates,trend,detail_raw,channel_raw:ch_r,subsidy:{daily:sDaily,cum:cu},layers};
     console.log('[gouquan] Supabase 数据加载完成:',dates.length,'天,',layers.length,'条分层');
