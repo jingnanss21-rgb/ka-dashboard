@@ -5632,9 +5632,11 @@ function renderGouquanCompare(win) {
   const D = GOUQUAN_DATA;
   const wd = gqWinDates(win);
   function agg(side) {
-    let e = 0, c = 0, u = 0;
-    wd.forEach(dt => { const rec = D.channel_raw[dt] && D.channel_raw[dt][side]; if (rec) { e += rec.exp; c += rec.claim; u += rec.use; } });
-    return { e, c, u, bgRate: e ? c / e : 0, lqRate: c ? u / c : 0, hxRate: e ? u / e : 0 };
+    let e = 0, c = 0, u = 0, cnt = 0;
+    wd.forEach(dt => { const rec = D.channel_raw[dt] && D.channel_raw[dt][side]; if (rec && (rec.exp || rec.claim || rec.use)) { e += rec.exp; c += rec.claim; u += rec.use; cnt++; } });
+    // 日均：PV 指标除以有量天数；转化率从日均 PV 计算
+    const avgE = cnt ? e / cnt : 0, avgC = cnt ? c / cnt : 0, avgU = cnt ? u / cnt : 0;
+    return { e: avgE, c: avgC, u: avgU, bgRate: avgE ? avgC / avgE : 0, lqRate: avgC ? avgU / avgC : 0, hxRate: avgE ? avgU / avgE : 0, cnt };
   }
   const g = agg('gouquan'), l = agg('lingquan');
   function mcell(v) {
@@ -5646,7 +5648,7 @@ function renderGouquanCompare(win) {
     e: g.e && l.e ? g.e / l.e : null, c: g.c && l.c ? g.c / l.c : null, u: g.u && l.u ? g.u / l.u : null,
     bg: g.bgRate && l.bgRate ? g.bgRate / l.bgRate : null, lq: g.lqRate && l.lqRate ? g.lqRate / l.lqRate : null, hx: g.hxRate && l.hxRate ? g.hxRate / l.hxRate : null
   };
-  const head = '<tr><th>维度</th><th>曝光PV</th><th>购买/领取PV</th><th>核销PV</th><th>曝光→购买率</th><th>购买→核销率</th><th>曝光→核销率</th></tr>';
+  const head = '<tr><th>维度</th><th>日均曝光PV</th><th>日均购买/领取PV</th><th>日均核销PV</th><th>曝光→购买率</th><th>购买→核销率</th><th>曝光→核销率</th></tr>';
   const rowG = '<tr><td><b>购券</b><span class="gq-info" title="57973+57976 周边渠道(myfavor)合计">i</span></td>' +
     '<td>' + gqInt(g.e) + '</td><td>' + gqInt(g.c) + '</td><td>' + gqInt(g.u) + '</td>' +
     '<td>' + gqPct(g.bgRate) + '</td><td>' + gqPct(g.lqRate) + '</td><td>' + gqPct(g.hxRate) + '</td></tr>';
@@ -5657,7 +5659,7 @@ function renderGouquanCompare(win) {
     '<td>' + mcell(mults.e) + '</td><td>' + mcell(mults.c) + '</td><td>' + mcell(mults.u) + '</td>' +
     '<td>' + mcell(mults.bg) + '</td><td>' + mcell(mults.lq) + '</td><td>' + mcell(mults.hx) + '</td></tr>';
   document.getElementById('gqCmpWrap').innerHTML = '<table class="gq-table">' + head + rowG + rowL + rowM + '</table>' +
-    '<div style="color:#94a3b8;font-size:11px;padding-top:6px;">* PV 倍数偏小属正常：购券仅单品牌两活动，领券为该品牌全部周边活动，盘子量级不同；倍数重点看三个转化率。</div>';
+    '<div style="color:#94a3b8;font-size:11px;padding-top:6px;">* PV 值数为窗口内<strong>日均</strong>（有量天数之和÷有量天数）；倍数重点看三个转化率。</div>';
 }
 
 // 👥 用户分层
@@ -5735,7 +5737,7 @@ async function fetchGouquanFromSupabase() {
     var [actRows,subRows,chRows,lyRows]=await Promise.all([
       api('ka_activity_daily','activity_id=in.(57973,57976)&select=date,activity_id,activity_name,exp_pv,claim_pv,use_pv&order=date.asc'),
       api('ka_gouquan_subsidy','select=date,trade_cnt,trade_amt,redeem_amt&order=date.asc'),
-      api('ka_channel_daily','brand_id=eq.1743&select=date,act_id,act_name,channel,exp_pv,claim_pv,use_pv&order=date.asc'),
+      api('ka_channel_daily','brand_id=eq.1743&select=date,act_id,act_name,channel,exp_pv,claim_pv,use_pv&order=date.asc&limit=5000'),
       api('ka_user_layer','select=act_id,layer,bg_uv,bg_pv,lq_uv,lq_pv,hx_uv,hx_pv,as_of_date')
     ]);
     const D={},dates=[],actMap={},trend=[],detail_raw={};
