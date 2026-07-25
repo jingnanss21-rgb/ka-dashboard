@@ -5731,13 +5731,27 @@ function renderGouquanAll() {
 // SUPABASE 切换预留（三表就绪后启用）
 async function fetchGouquanFromSupabase() {
   const URL = ALERT_SUPABASE_URL, KEY = ALERT_SUPABASE_KEY;
-  const api = (t,q) => fetch(URL+'/rest/v1/'+t+'?'+q,{headers:{apikey:KEY,Accept:'application/json'}}).then(r=>{if(!r.ok)throw Error(t+' '+r.status);return r.json()});
+  const H = {apikey:KEY, Accept:'application/json'};
+  const api = (t,q) => fetch(URL+'/rest/v1/'+t+'?'+q,{headers:H}).then(r=>{if(!r.ok)throw Error(t+' '+r.status);return r.json()});
+  // 分页拉取：匿名 key 单请求硬限 1000 行，超出的（如 ka_channel_daily 1244 行）需翻页
+  async function apiAll(t, q) {
+    let out = [], off = 0;
+    while (true) {
+      const page = await fetch(URL+'/rest/v1/'+t+'?'+q+'&limit=1000&offset='+off, {headers:H})
+        .then(r => { if (!r.ok) throw Error(t+' '+r.status); return r.json(); });
+      if (!page.length) break;
+      out = out.concat(page);
+      if (page.length < 1000) break;
+      off += 1000;
+    }
+    return out;
+  }
   try {
     var gqEl=document.getElementById('gqKpiToday');if(gqEl)gqEl.innerHTML='<div style="text-align:center;padding:20px;color:#94a3b8;">⏳ 加载数据中...<\/div>';
     var [actRows,subRows,chRows,lyRows]=await Promise.all([
-      api('ka_activity_daily','activity_id=in.(57973,57976)&select=date,activity_id,activity_name,exp_pv,claim_pv,use_pv&order=date.asc'),
+      apiAll('ka_activity_daily','activity_id=in.(57973,57976)&select=date,activity_id,activity_name,exp_pv,claim_pv,use_pv&order=date.asc'),
       api('ka_gouquan_subsidy','select=date,trade_cnt,trade_amt,redeem_amt&order=date.asc'),
-      api('ka_channel_daily','brand_id=eq.1743&select=date,act_id,act_name,channel,exp_pv,claim_pv,use_pv&order=date.asc&limit=5000'),
+      apiAll('ka_channel_daily','brand_id=eq.1743&select=date,act_id,act_name,channel,exp_pv,claim_pv,use_pv&order=date.asc'),
       api('ka_user_layer','select=act_id,layer,bg_uv,bg_pv,lq_uv,lq_pv,hx_uv,hx_pv,as_of_date')
     ]);
     const D={},dates=[],actMap={},trend=[],detail_raw={};
