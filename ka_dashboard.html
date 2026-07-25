@@ -5501,7 +5501,7 @@ function gqWinDates(win) {
   return d.slice();
 }
 function gqPct(r) { return (r == null || isNaN(r)) ? '-' : (r * 100).toFixed(1) + '%'; }
-function gqInt(n) { return (n == null) ? '-' : Number(n).toLocaleString(); }
+function gqInt(n) { return (n == null) ? '-' : Math.round(Number(n)).toLocaleString(); }
 function gqCmp(cur, base) {
   if (base == null || base === 0 || cur == null) return '<span class="gq-na">昨日缺报</span>';
   const r = (cur - base) / base;
