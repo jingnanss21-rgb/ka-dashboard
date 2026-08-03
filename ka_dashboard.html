@@ -5358,7 +5358,7 @@ async function loadCikaActivityFromSupabase() {
           allRows.push(...pageRows);
           if (pageRows.length < pageSize) break;
           offset += pageSize;
-          if (offset > 20000) break;  // 保险
+          if (offset > 200000) break;  // 保险（分母全量约2.2万行，需拉全避免最新日期被截断）
         }
       }
     }
