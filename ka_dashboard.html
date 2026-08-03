@@ -303,6 +303,15 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 #privateCikaBrandSwitch .range-btn.active { background:#475569; color:#fff; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.18); }
 #privateCikaBrandSwitch .range-btn[data-brand="luckin"].active { background:#2563eb; color:#fff; box-shadow:0 2px 6px rgba(37,99,235,.4); }
 #privateCikaBrandSwitch .range-btn[data-brand="mixue"].active { background:#ef4444; color:#fff; box-shadow:0 2px 6px rgba(239,68,68,.4); }
+/* 私域次卡 KPI 领取核销率卡片 · 公域对比行 */
+.cika-cmp { margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:12px; line-height:1.55; }
+.cika-cmp-pub { display:flex; align-items:center; gap:6px; color:#64748b; }
+.cika-dot { width:8px; height:8px; border-radius:50%; flex:none; }
+.cika-cmp-mult { color:#64748b; margin-top:3px; }
+.cika-x-up { color:#16a34a; font-weight:600; }
+.cika-x-down { color:#ef4444; font-weight:600; }
+.cika-note { color:#94a3b8; font-size:11px; }
+.cika-sub { font-size:11px; color:#94a3b8; margin-top:2px; }
 .cika-chart-wrap { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-top:12px; }
 .cika-chart-title { font-size:13px; color:var(--text-secondary); }
 .cika-chart-title-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:12px; }
@@ -7734,6 +7743,14 @@ async function loadPrivateCikaData(){
       if(!PRIVATE_CIKA.daily[code])PRIVATE_CIKA.daily[code]=[];
       PRIVATE_CIKA.daily[code].push(r);
     });
+    // 公域次卡对比基准：瑞幸→60077 / 蜜雪→57351（来自 ka_activity_daily）
+    var p=await alertSb.from('ka_activity_daily').select('date,activity_id,activity_name,claim_pv,use_pv').in('activity_id',[60077,57351]).order('date',{ascending:true});
+    window.cikaPublicCmp={};
+    if(!p.error&&p.data) p.data.forEach(function(r){
+      var id=String(r.activity_id);
+      if(!window.cikaPublicCmp[id])window.cikaPublicCmp[id]={id:id,name:r.activity_name,rows:[]};
+      window.cikaPublicCmp[id].rows.push({date:r.date,claim:r.claim_pv||0,use:r.use_pv||0});
+    });
     console.log('[cika private] Supabase数据加载完成, 品牌:', Object.keys(PRIVATE_CIKA.brands).join(','));
   }catch(e){console.error('[cika private]',e)}
 }
@@ -7764,6 +7781,38 @@ function getCikaScope(brand){
            pvRate:claimPV?redeemPV/claimPV:0,uvRate:claimUV?redeemUV/claimUV:0};
   return {name:'整体 · 私域次卡（瑞幸+蜜雪）',discount:'',cum:cum,daily:daily,n:daily.length};
 }
+// 公域次卡对比基准：瑞幸→60077 / 蜜雪→57351 / 整体→两活动合并
+function getPublicCmp(brand, privLastDate){
+  if(!window.cikaPublicCmp) return null;
+  var ids = brand==='all' ? ['60077','57351'] : [brand==='luckin'?'60077':'57351'];
+  var acts = ids.map(function(id){return window.cikaPublicCmp[id];}).filter(Boolean);
+  if(!acts.length) return null;
+  var cg=0, cu=0;
+  acts.forEach(function(a){ a.rows.forEach(function(r){ cg+=r.claim; cu+=r.use; }); });
+  var cumRate = cg ? cu/cg : 0;
+  // 当日：对齐到私域该视图末日（无同日数据则取公域各自末日，标"错期"）
+  var pg=0, pu=0, found=false;
+  if(privLastDate){ acts.forEach(function(a){ a.rows.forEach(function(r){ if(r.date===privLastDate){ pg+=r.claim; pu+=r.use; found=true; } }); }); }
+  var dayRate, dateNote='';
+  if(found){ dayRate = pg ? pu/pg : 0; }
+  else {
+    var lg=0, lu=0;
+    acts.forEach(function(a){ var lr=a.rows.slice().sort(function(x,y){return x.date<y.date?-1:1;}); if(lr.length){ lg+=lr[lr.length-1].claim; lu+=lr[lr.length-1].use; } });
+    dayRate = lg ? lu/lg : 0; dateNote='错期';
+  }
+  var pubName = acts.length>1 ? ('公域 '+acts.map(function(a){return a.id;}).join('+')) : ('公域 '+acts[0].id);
+  return { cumRate:cumRate, dayRate:dayRate, pubName:pubName, dateNote:dateNote };
+}
+// 领取核销率卡片下的公域对比行
+function cmpFoot(privRate, pubRate, pubName, dateNote, dotColor){
+  if(!pubRate){ return ''; }
+  var mult = privRate/pubRate;
+  var cls = mult>=1 ? 'cika-x-up' : 'cika-x-down';
+  return '<div class="cika-cmp">'
+    + '<div class="cika-cmp-pub"><span class="cika-dot" style="background:'+dotColor+'"></span>'+pubName+' · '+(pubRate*100).toFixed(2)+'%</div>'
+    + '<div class="cika-cmp-mult">私域是其 <span class="'+cls+'">'+mult.toFixed(2)+'×</span>'+(dateNote?' <span class="cika-note">'+dateNote+'</span>':'')+'</div>'
+    + '</div>';
+}
 function cikaPrivateRenderScoped(){
   renderPrivateCikaKpi(cikaPrivateBrand);
   renderPrivateCikaDailyTrend(cikaPrivateBrand);
@@ -7784,7 +7833,10 @@ function renderPrivateCikaKpi(brand){
   }
   var last=rows[n-1]||{}, prev=rows[n-2]||{};
   var curClaim=last.claim_pv||0, curRedeem=last.redeem_pv||0, curRate=last._rate||0;
-  var lastDate=(last.date||'').slice(5);
+  var privLastDate=last.date||'';
+  var lastDate=privLastDate.slice(5);
+  var pub=getPublicCmp(brand, privLastDate);
+  var dotColor = brand==='luckin' ? '#2563eb' : (brand==='mixue' ? '#ef4444' : '#475569');
   function dayCmp(key){return n<2?'<span class="gq-na">缺数据</span>':cmp(rows[n-1][key],rows[n-2][key]);}
   function weekCmp(key){
     if(n<8)return '<span class="gq-na">缺数据</span>';
@@ -7806,13 +7858,21 @@ function renderPrivateCikaKpi(brand){
     +'<div class="gq-kpi-row">'
     + card('当日领取',fmt(curClaim),dayCmp('claim_pv'),weekCmp('claim_pv'))
     + card('当日核销',fmt(curRedeem),dayCmp('redeem_pv'),weekCmp('redeem_pv'))
-    + card('当日领取核销率',pct(curRate),dayCmp('_rate'),weekCmp('_rate'),'')
+    + '<div class="gq-kpi"><div class="label">当日领取核销率</div>'
+    + '<div class="val">'+pct(curRate)+'</div>'
+    + '<div class="gq-cmp"><div>日环比 <span>'+dayCmp('_rate')+'</span></div><div>周环比 <span>'+weekCmp('_rate')+'</span></div></div>'
+    + (pub?cmpFoot(curRate, pub.dayRate, pub.pubName, pub.dateNote, dotColor):'')
+    + '</div>'
     +'</div>'
     +'<div style="font-size:13px;color:#64748b;font-weight:600;margin:20px 0 10px;">累计 <span style="font-size:11px;font-weight:400;color:#94a3b8;">（活动投放至今 · UV为去重人数）</span></div>'
     +'<div class="gq-kpi-row">'
     + cardCum('累计领取',fmt(c.claimPV),'UV '+fmt(c.claimUV))
     + cardCum('累计核销',fmt(c.redeemPV),'UV '+fmt(c.redeemUV))
-    + cardCum('领取核销率',pct(c.pvRate),'UV '+pct(c.uvRate),'#2563eb')
+    + '<div class="gq-kpi"><div class="label">领取核销率</div>'
+    + '<div class="val" style="color:#2563eb">'+pct(c.pvRate)+'</div>'
+    + '<div class="cika-sub">UV '+pct(c.uvRate)+'</div>'
+    + (pub?cmpFoot(c.pvRate, pub.cumRate, pub.pubName, '', dotColor):'')
+    + '</div>'
     +'</div>';
   document.getElementById('privateCikaKpi').innerHTML=html;
 }
