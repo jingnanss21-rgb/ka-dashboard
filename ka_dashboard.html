@@ -673,6 +673,7 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
     <div class="section">
       <div class="section-title"><div class="icon" style="background:#2563eb"></div> 📈 批次核销率趋势 <span id="privateCikaBatchSub" style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:6px">折扣阶梯递减</span></div>
       <div id="privateCikaBatchChart" style="width:100%;height:300px;"></div>
+      <div id="privateCikaBatchHint" style="display:none;"></div>
     </div>
     <!-- 时间甘特图 -->
     <div class="section">
@@ -7810,17 +7811,23 @@ function renderPrivateCikaKpi(brand){
 function renderPrivateCikaBatch(brand){
   brand=brand||'all';
   const el=document.getElementById('privateCikaBatchChart');
+  const hint=document.getElementById('privateCikaBatchHint');
   const sub=document.getElementById('privateCikaBatchSub');
-  if(!el)return;
-  // 整体视图：两品牌折扣档位不同构，不展示批次图，给出引导
+  if(!el||!hint)return;
+  // 整体视图：两品牌折扣档位不同构，不展示批次图；用独立提示层，绝不改写 el.innerHTML（否则会毁掉 echarts 容器/实例）
   if(brand==='all'){
+    el.style.display='none';
+    hint.style.display='block';
     if(sub)sub.textContent='整体不展示（瑞幸/蜜雪折扣档位不同构）';
-    el.innerHTML='<div style="text-align:center;padding:54px 20px;color:#64748b;font-size:13px;line-height:1.9;">'
+    hint.innerHTML='<div style="text-align:center;padding:54px 20px;color:#64748b;font-size:13px;line-height:1.9;">'
       +'<div style="font-size:30px;margin-bottom:10px;">📊</div>'
       +'整体视图下不展示「批次核销率趋势」<br>'
       +'<span style="color:#2563eb;font-weight:600;">请切换至「瑞幸咖啡」或「蜜雪冰城」查看各自批次趋势</span></div>';
     return;
   }
+  // 分品牌：显示图表容器、隐藏提示层，复用 echarts 实例
+  hint.style.display='none';
+  el.style.display='block';
   const d=(PRIVATE_CIKA.brands[brand]||{}).batches||[];
   if(typeof echarts==='undefined')return;
   if(sub)sub.textContent=d.length+'个批次 · 折扣阶梯递减';
@@ -7840,7 +7847,8 @@ function renderPrivateCikaBatch(brand){
         label:{show:true,position:'top',fontSize:12,formatter:p=>p.value?p.value+'%':'',color:'#f59e0b'}}
     ]
   },true);
-  if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>ch.resize()).observe(el);
+  ch.resize();  // el 刚由 display:none 切回 block，必须触发尺寸重算否则画布为 0 高
+  if(typeof ResizeObserver!=='undefined'&&!window._cikaBatchRO){window._cikaBatchRO=true;new ResizeObserver(()=>ch.resize()).observe(el);}
 }
 function renderPrivateCikaDailyTrend(brand){
   brand=brand||'all';
