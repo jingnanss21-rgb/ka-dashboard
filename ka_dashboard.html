@@ -297,6 +297,12 @@ table .sticky-col-last::after { content:''; position:absolute; top:0; right:-6px
 .range-btn { background:transparent; border:none; padding:5px 10px; font-size:12px; color:#64748b; border-radius:4px; cursor:pointer; transition:all .15s; }
 .range-btn:hover { color:#1e293b; }
 .range-btn.active { background:#fff; color:#2563eb; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+/* 私域次卡品牌切换器（右侧、品牌色高亮） */
+#privateCikaBrandSwitch { font-size:13px; }
+#privateCikaBrandSwitch .range-btn { font-size:13px; padding:6px 13px; border-radius:7px; }
+#privateCikaBrandSwitch .range-btn.active { background:#475569; color:#fff; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.18); }
+#privateCikaBrandSwitch .range-btn[data-brand="luckin"].active { background:#2563eb; color:#fff; box-shadow:0 2px 6px rgba(37,99,235,.4); }
+#privateCikaBrandSwitch .range-btn[data-brand="mixue"].active { background:#ef4444; color:#fff; box-shadow:0 2px 6px rgba(239,68,68,.4); }
 .cika-chart-wrap { background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-top:12px; }
 .cika-chart-title { font-size:13px; color:var(--text-secondary); }
 .cika-chart-title-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:12px; }
@@ -652,11 +658,13 @@ document.getElementById('authPwdInput').addEventListener('keydown', e => { if (e
 
   <!-- ============ 私域次卡 ============ -->
   <div class="cika-subpanel" id="cika-subpanel-private" style="display:none;">
-    <div id="privateCikaBrandSwitch" style="display:inline-flex;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:14px;gap:2px;align-items:center;">
-      <span style="padding:0 8px;font-size:12px;color:#64748b;font-weight:600;">品牌视图</span>
-      <button class="range-btn active" data-brand="all">整体</button>
-      <button class="range-btn" data-brand="luckin">瑞幸咖啡</button>
-      <button class="range-btn" data-brand="mixue">蜜雪冰城</button>
+    <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:14px;">
+      <div id="privateCikaBrandSwitch" style="display:inline-flex;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:4px;gap:4px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+        <span style="padding:0 10px;font-size:13px;color:#475569;font-weight:700;">品牌视图</span>
+        <button class="range-btn active" data-brand="all">整体</button>
+        <button class="range-btn" data-brand="luckin">🔵 瑞幸咖啡</button>
+        <button class="range-btn" data-brand="mixue">🔴 蜜雪冰城</button>
+      </div>
     </div>
     <!-- 📊 活动转化 -->
     <div class="section">
